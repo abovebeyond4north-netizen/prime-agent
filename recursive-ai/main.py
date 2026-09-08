@@ -16,6 +16,7 @@ from synthesizer.context_builder import build_context
 from synthesizer.generator import CandidateSynthesizer, select_strategy
 from autonomy.controller import execute_goal, solve, status as research_status
 from autonomy.tasks import goal_contract
+from research.meta_eval import run_meta_evaluation
 
 
 def run(root, iterations, provider, image):
@@ -97,7 +98,7 @@ def rollback(root, commit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve"])
+    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate"])
     parser.add_argument("--state", default=str(Path(__file__).parent / ".lab-state"))
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--provider", choices=["demo", "search", "api"], default="demo")
@@ -115,20 +116,35 @@ def main():
     parser.add_argument("--max-stagnation", type=int, default=16)
     parser.add_argument("--max-model-calls", type=int, default=12)
     parser.add_argument("--max-containers", type=int, default=2000)
+    parser.add_argument("--policy-mode", choices=["learned", "fixed"], default="learned")
+    parser.add_argument("--replicates", type=int, default=3)
+    parser.add_argument("--base-seed", type=int, default=0)
     args = parser.parse_args()
     if not 1 <= args.iterations <= 1000:
         parser.error("iterations must be in [1, 1000]")
+    if not 1 <= args.replicates <= 50:
+        parser.error("replicates must be in [1, 50]")
+    provider = "search" if args.provider == "demo" else args.provider
     if args.command == "solve":
         print(json.dumps(solve(args.state, args.skill, json.loads(args.arguments), args.image), indent=2))
     elif args.command == "plan":
         print(json.dumps(goal_contract(args.goal, args.tier, args.target, args.task_seed, args.task_count), indent=2))
     elif args.command == "research-status":
         print(json.dumps(research_status(args.state), indent=2))
+    elif args.command == "meta-evaluate":
+        report = run_meta_evaluation(
+            args.state, goal=args.goal, tier=args.tier, target=args.target,
+            replicates=args.replicates, base_seed=args.base_seed, task_count=args.task_count,
+            max_attempts=args.max_attempts, max_seconds=args.max_seconds,
+            max_stagnation=args.max_stagnation, max_model_calls=args.max_model_calls,
+            max_containers=args.max_containers, provider=provider, image=args.image,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
     elif args.command == "autonomous":
         summary = execute_goal(args.state, args.goal, args.tier, args.target,
                                args.max_attempts, args.max_seconds, args.max_stagnation,
                                args.max_model_calls, args.max_containers,
-                               "search" if args.provider == "demo" else args.provider, args.image, args.task_seed, args.task_count)
+                               provider, args.image, args.task_seed, args.task_count, args.policy_mode)
         if summary["status"] != "goal_reached":
             raise SystemExit(2)
     elif args.command == "run":
