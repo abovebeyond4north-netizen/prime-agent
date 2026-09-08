@@ -1,6 +1,6 @@
-import { type ChildProcess, spawn } from "node:child_process";
+import type { ChildProcess } from "node:child_process";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { chmodSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { createServer, type Server, type Socket } from "node:net";
 import { basename, dirname, join, resolve } from "node:path";
 import { Writable } from "node:stream";
@@ -31,6 +31,7 @@ import {
 import {
 	type AgentCronJob,
 	AgentCronJobStore,
+	isHeartbeatCronJob,
 	migrateLegacyCronJobsToSessionArtifacts,
 	SESSION_SCHEDULED_JOBS_FILENAME,
 } from "../../core/cron-jobs.js";
@@ -51,7 +52,13 @@ import { canonicalSessionPath, getProcessStartId, SessionAlreadyActiveError } fr
 import { getSessionArtifactPathForFile, readSessionInfo, type SessionInfo } from "../../core/session-manager.js";
 import { looksLikeSessionPath } from "../../core/session-resolver.js";
 import { SettingsManager } from "../../core/settings-manager.js";
-import { isProcessAlive, processIdExists, signalProcessGroupOrProcess } from "../../utils/child-process.js";
+import { writeFileAtomicSync } from "../../utils/atomic-file.js";
+import {
+	isProcessAlive,
+	processIdExists,
+	signalProcessGroupOrProcess,
+	spawnHidden,
+} from "../../utils/child-process.js";
 import type { AgentConnectionHeartbeat } from "../agent-connection/types.js";
 import { attachJsonlLineReader, serializeJsonLine } from "../rpc/jsonl.js";
 import type { PrivateFrame } from "../session-worker/private-framing.js";
@@ -69,7 +76,7 @@ import {
 import { CommandRecoveryJournal, createCommandIdempotencyKey } from "./command-recovery-journal.js";
 import { CompactAssistantStreamReconstructor, isCompactAssistantDelta } from "./compact-session-stream.js";
 import { DAEMON_CATALOG_ROLE_ENV, DaemonCatalogClient } from "./daemon-catalog-process.js";
-import { deserializeDaemonError, serializeDaemonError } from "./daemon-errors.js";
+import { DaemonSessionRecoveringError, deserializeDaemonError, serializeDaemonError } from "./daemon-errors.js";
 import {
 	collectDaemonClientEnv,
 	createDaemonEventMeta,
@@ -156,6 +163,7 @@ import {
 	type RlmLedgerEdge,
 	RlmSpawnLedger,
 	tombstoneSavedSessionDelete,
+	withPassiveRlmDescendantInfos,
 } from "./rlm-ledger.js";
 import { serializeSavedSessionInfo } from "./saved-session-info.js";
 import { SNAPSHOT_TARGET_CHUNK_BYTES, SnapshotTranscriptCache } from "./snapshot-transcript-cache.js";
@@ -165,7 +173,18 @@ type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : n
 type DaemonCommandBody = DistributiveOmit<DaemonCommand, "id">;
 
 const structuredLog = getLogger("coding-agent.daemon-supervisor");
-const WORKER_CONNECT_TIMEOUT_MS = 30_000;
+// Windows antivirus scanning can delay worker startup beyond 30 seconds.
+const WORKER_CONNECT_TIMEOUT_MS = process.platform === "win32" ? 90_000 : 30_000;
+const WORKER_CONNECT_PROBE_MS = process.platform === "win32" ? 2_000 : 500;
+const WORKER_PROBE_BACKOFF_MIN_MS = 25;
+const WORKER_PROBE_BACKOFF_MAX_MS = process.platform === "win32" ? 2_000 : 25;
+
+/** Per-attempt handshake waits consume the remaining outer connect budget; a smaller fixed clock makes a consistently slow (win32) handshake fail every retry. */
+export function handshakeBudgetMs(deadline: number, now = Date.now()): number {
+	const remaining = deadline - now;
+	if (remaining <= 0) throw new DaemonWorkerProbeTimeoutError("Worker connection deadline elapsed");
+	return remaining;
+}
 const ROSTER_WATCHDOG_INTERVAL_MS = 15_000;
 const ROSTER_STALE_AFTER_MS = 3 * ROSTER_HEARTBEAT_INTERVAL_MS;
 const SUPERVISOR_SERVER_CAPABILITIES: readonly DaemonServerCapability[] = [
@@ -193,12 +212,16 @@ const STALE_RECLAIM_WAIT_MS = 10_000;
 // Polling loops probe existence cheaply via kill(0); the ps-backed zombie and
 // identity checks are throttled so a wedged worker cannot saturate the
 // supervisor event loop with synchronous subprocess spawns.
-const LIVENESS_IDENTITY_RECHECK_MS = 500;
+// Windows identity lookups launch PowerShell, so recheck less often there.
+const LIVENESS_IDENTITY_RECHECK_MS = process.platform === "win32" ? 3_000 : 500;
 const OWNED_WORKER_DISCONNECT_GRACE_MS = 30_000;
 const IDLE_EVICTION_MAX_SWEEP_INTERVAL_MS = 5 * 60_000;
 const IDLE_EVICTION_MIN_SWEEP_INTERVAL_MS = 60_000;
 const IDLE_EVICTION_DRAIN_TIMEOUT_MS = 5_000;
 const CHILD_PASSIVATION_PER_WORKER_CAP = 2;
+const SCHEDULED_WAKE_RETRY_MS = 60_000;
+const SCHEDULED_WAKE_MAX_TIMEOUT_MS = 2_147_483_647;
+const SCHEDULED_WAKE_CLIENT_ID = "scheduled-wake";
 const SUPERVISOR_CONFIG_FILE_NAME = "supervisor-config";
 const WORKER_STARTUP_GATE_FD = 3;
 
@@ -717,6 +740,10 @@ export class DaemonSupervisor {
 	private idleEvictionTimer?: ReturnType<typeof setTimeout>;
 	private idleEvictionSweep?: Promise<void>;
 	private idleEvictionFence?: Promise<void>;
+	private scheduledWakeTimer?: ReturnType<typeof setTimeout>;
+	private scheduledWakeRecompute?: Promise<void>;
+	private scheduledWakeRecomputeQueued = false;
+	private readonly scheduledWakeFailures = new Map<string, number>();
 
 	constructor(
 		private readonly socketPath: string,
@@ -819,6 +846,7 @@ export class DaemonSupervisor {
 				this.scheduleOwnedWorkerCleanup(worker);
 			}
 			this.scheduleIdleEvictionSweep();
+			this.scheduleScheduledSessionWakeRecompute();
 			this.rosterWatchdogTimer = setInterval(() => this.sweepRosterStaleness(), ROSTER_WATCHDOG_INTERVAL_MS);
 			this.rosterWatchdogTimer.unref();
 			this.assertSocketLeaseHeld();
@@ -870,6 +898,159 @@ export class DaemonSupervisor {
 		this.rosterWatchdogTimer = undefined;
 	}
 
+	private clearScheduledWakeTimer(): void {
+		if (!this.scheduledWakeTimer) return;
+		clearTimeout(this.scheduledWakeTimer);
+		this.scheduledWakeTimer = undefined;
+	}
+
+	// The supervisor only wakes non-resident trees; firing and delivery stay worker-owned.
+	private scheduleScheduledSessionWakeRecompute(): void {
+		if (this.shuttingDown) return;
+		if (this.scheduledWakeRecompute) {
+			this.scheduledWakeRecomputeQueued = true;
+			return;
+		}
+		this.scheduledWakeRecompute = this.recomputeScheduledSessionWake()
+			.catch((error) => this.log(`Scheduled-session wake recompute failed: ${String(error)}`))
+			.finally(() => {
+				this.scheduledWakeRecompute = undefined;
+				if (this.scheduledWakeRecomputeQueued) {
+					this.scheduledWakeRecomputeQueued = false;
+					this.scheduleScheduledSessionWakeRecompute();
+				}
+			});
+	}
+
+	/** Durable truth: the ledger family (fork headers stripped) plus each session's scheduled-jobs artifact. */
+	private async collectPassiveScheduledJobs(
+		includeInactive = false,
+	): Promise<Array<{ rootSessionFile: string; job: AgentCronJob; info: SessionInfo }>> {
+		const pendingCancelRoots = new Set<string>();
+		for (const intent of this.collectEphemeralCancelIntents()) {
+			const context = this.workerSessionArtifactContext(intent);
+			if (!context || !intent.descriptor.rootSessionId) continue;
+			try {
+				await this.cancelScheduledJobsForSessionTree(intent.descriptor.rootSessionId, context.sessionFile);
+				this.deleteWorkerDescriptor(intent);
+			} catch {
+				// Still owned until the cancel lands; the tree stays excluded below.
+				pendingCancelRoots.add(canonicalSessionPath(context.sessionFile));
+			}
+		}
+		const infos = await this.rlmSpawnLedger().family();
+		const infoByPath = new Map(infos.map((info) => [canonicalSessionPath(info.path), info] as const));
+		const storeBySessionId = new Map<string, AgentCronJobStore>();
+		const infoBySessionId = new Map<string, SessionInfo>();
+		for (const info of infos) {
+			if (info.state !== undefined && info.state.status !== "active") continue;
+			const artifactDir = getSessionArtifactPathForFile(resolve(info.path), info.id);
+			if (!existsSync(join(artifactDir, SESSION_SCHEDULED_JOBS_FILENAME))) continue;
+			const store = AgentCronJobStore.forSessionArtifacts();
+			store.registerSessionArtifact(info.id, artifactDir);
+			storeBySessionId.set(info.id, store);
+			infoBySessionId.set(info.id, info);
+		}
+		if (infoBySessionId.size === 0) return [];
+		const uncoveredRootFor = (info: SessionInfo): string | undefined => {
+			let current = info;
+			const visited = new Set([canonicalSessionPath(current.path)]);
+			while (true) {
+				try {
+					if (this.findWorkerBySessionFile(current.path)) return undefined;
+				} catch {
+					return undefined;
+				}
+				if (!current.parentSessionPath) break;
+				const parent = infoByPath.get(canonicalSessionPath(current.parentSessionPath));
+				if (!parent || visited.has(canonicalSessionPath(parent.path))) break;
+				visited.add(canonicalSessionPath(parent.path));
+				current = parent;
+			}
+			return current.path;
+		};
+		const results: Array<{ rootSessionFile: string; job: AgentCronJob; info: SessionInfo }> = [];
+		for (const [artifactSessionId, store] of storeBySessionId) {
+			let jobs: AgentCronJob[];
+			try {
+				jobs = store.list();
+			} catch (error) {
+				this.log(`Skipping unreadable scheduled jobs for session ${artifactSessionId}: ${String(error)}`);
+				continue;
+			}
+			for (const job of jobs) {
+				if (!includeInactive && job.status !== "active" && job.status !== "paused") continue;
+				const info = infoBySessionId.get(job.sessionId);
+				if (!info) continue;
+				const rootSessionFile = uncoveredRootFor(info);
+				if (rootSessionFile === undefined) continue;
+				if (pendingCancelRoots.has(canonicalSessionPath(rootSessionFile))) continue;
+				results.push({ rootSessionFile, job, info });
+			}
+		}
+		return results;
+	}
+
+	private async recomputeScheduledSessionWake(): Promise<void> {
+		if (this.shuttingDown || this.updateRestartPhase !== undefined) return;
+		const candidates = await this.collectPassiveScheduledJobs();
+		this.clearScheduledWakeTimer();
+		if (this.shuttingDown || this.updateRestartPhase !== undefined) return;
+		const now = Date.now();
+		const wakeTimes: number[] = [];
+		const candidateRoots = new Set(candidates.map(({ rootSessionFile }) => canonicalSessionPath(rootSessionFile)));
+		for (const root of [...this.scheduledWakeFailures.keys()]) {
+			if (!candidateRoots.has(root)) this.scheduledWakeFailures.delete(root);
+		}
+		for (const { rootSessionFile, job } of candidates) {
+			if (job.status !== "active" || job.nextRunAt === undefined) continue;
+			const runAt = Date.parse(job.nextRunAt);
+			if (!Number.isFinite(runAt)) continue;
+			// The failure floor keeps an overdue job off a hot retry loop.
+			const failedAt = this.scheduledWakeFailures.get(canonicalSessionPath(rootSessionFile));
+			wakeTimes.push(failedAt !== undefined ? Math.max(runAt, failedAt + SCHEDULED_WAKE_RETRY_MS) : runAt);
+		}
+		if (wakeTimes.length === 0) return;
+		const delay = Math.min(Math.max(0, Math.min(...wakeTimes) - now), SCHEDULED_WAKE_MAX_TIMEOUT_MS);
+		this.scheduledWakeTimer = setTimeout(() => {
+			this.scheduledWakeTimer = undefined;
+			void this.wakeDueScheduledSessions().catch((error) =>
+				this.log(`Scheduled-session wake failed: ${String(error)}`),
+			);
+		}, delay);
+		this.scheduledWakeTimer.unref();
+	}
+
+	private async wakeDueScheduledSessions(now = Date.now()): Promise<void> {
+		// Disarmed during update-restart preparation; the phase transition or next boot re-arms once.
+		if (this.shuttingDown || this.updateRestartPhase !== undefined) {
+			this.clearScheduledWakeTimer();
+			return;
+		}
+		try {
+			const due = new Map<string, string>();
+			for (const { rootSessionFile, job } of await this.collectPassiveScheduledJobs()) {
+				if (job.status !== "active" || job.nextRunAt === undefined) continue;
+				const runAt = Date.parse(job.nextRunAt);
+				if (!Number.isFinite(runAt) || runAt > now) continue;
+				due.set(canonicalSessionPath(rootSessionFile), rootSessionFile);
+			}
+			for (const [rootKey, sessionPath] of due) {
+				if (this.shuttingDown || this.updateRestartPhase !== undefined) return;
+				try {
+					await this.createOrReuseWorker(SCHEDULED_WAKE_CLIENT_ID, { type: "create", sessionPath });
+					this.scheduledWakeFailures.delete(rootKey);
+					this.log(`Woke session worker for a due scheduled job: ${sessionPath}`);
+				} catch (error) {
+					this.scheduledWakeFailures.set(rootKey, Date.now());
+					this.log(`Scheduled wake failed for ${sessionPath}: ${String(error)}`);
+				}
+			}
+		} finally {
+			this.scheduleScheduledSessionWakeRecompute();
+		}
+	}
+
 	private scheduleIdleEvictionSweep(): void {
 		if (this.shuttingDown || this.idleEvictionTimer || this.idleEvictionSweep) return;
 		const delayMs = idleEvictionSweepIntervalMs(this.settingsManager.getIdleEvictionMinutes());
@@ -894,6 +1075,7 @@ export class DaemonSupervisor {
 			hasOwnerClient: worker.descriptor.ownerClientId !== undefined,
 			isPreparingUpdateRestart:
 				this.updateRestartPhase !== undefined || worker.updateRestartPrepareClient !== undefined,
+			hasWakeBlindSchedule: this.isWakeBlindScheduledWorker(worker),
 			sessions: this.workerRosterEntries(worker)
 				.filter((entry) => !entry.queuedChild)
 				.map(sessionSummaryFromRosterEntry)
@@ -902,12 +1084,23 @@ export class DaemonSupervisor {
 					return {
 						isSessionActive: isSessionSummaryBusy(summary),
 						attachedClients: this.attachedClientCount(summary, activeSessionId),
-						hasRegisteredHeartbeat: summary.hasRegisteredHeartbeat === true,
 						hasRegisteredCronJob: summary.hasRegisteredCronJob === true,
 						lastActivityAt: Date.parse(summary.lastActivityAt ?? ""),
 					};
 				}),
 		};
+	}
+
+	/** A schedule whose root file sits outside the enumerable sessions root is invisible to the wake scan; keep it resident. */
+	private isWakeBlindScheduledWorker(worker: ResidentWorker): boolean {
+		const sessionFile = worker.descriptor.sessionFile ?? worker.descriptor.createCommand.sessionPath;
+		const agentDir = this.defaultSessionConfig.agentDir;
+		if (!sessionFile || !agentDir) return false;
+		const sessionsRoot = canonicalSessionPath(this.defaultSessionConfig.sessionDir ?? getSessionsDir(agentDir));
+		if (dirname(canonicalSessionPath(sessionFile)) === sessionsRoot) return false;
+		return this.workerRosterEntries(worker).some(
+			(entry) => entry.summary.hasRegisteredHeartbeat === true || entry.summary.hasRegisteredCronJob === true,
+		);
 	}
 
 	private async runIdleEvictionSweep(now = Date.now()): Promise<void> {
@@ -1063,7 +1256,8 @@ export class DaemonSupervisor {
 			this.shuttingDown ||
 			this.updateRestartPhase !== undefined ||
 			this.workers.get(worker.descriptor.workerId) !== worker ||
-			this.isWorkerStopping(worker)
+			this.isWorkerStopping(worker) ||
+			this.isWakeBlindScheduledWorker(worker)
 		) {
 			return false;
 		}
@@ -1155,6 +1349,32 @@ export class DaemonSupervisor {
 		}
 	}
 
+	/** Trees whose ephemeral-stop cancel failed stay owned until a retry lands: tombstoned client-owned descriptors with no resident worker. */
+	private collectEphemeralCancelIntents(): Array<{ descriptor: DaemonWorkerDescriptor; descriptorPath: string }> {
+		const intents: Array<{ descriptor: DaemonWorkerDescriptor; descriptorPath: string }> = [];
+		let names: string[];
+		try {
+			names = readdirSync(this.descriptorDir);
+		} catch {
+			return intents;
+		}
+		for (const name of names) {
+			if (name === SUPERVISOR_CONFIG_FILE_NAME || !name.endsWith(".json")) continue;
+			const descriptorPath = join(this.descriptorDir, name);
+			let descriptor: unknown;
+			try {
+				descriptor = JSON.parse(readFileSync(descriptorPath, "utf8"));
+			} catch {
+				continue;
+			}
+			if (!isDaemonWorkerDescriptor(descriptor, this.socketPath)) continue;
+			if (descriptor.stopRequestedAt === undefined || descriptor.ownerClientId === undefined) continue;
+			if (this.workers.has(descriptor.workerId)) continue;
+			intents.push({ descriptor, descriptorPath });
+		}
+		return intents;
+	}
+
 	private loadPersistedSupervisorConfig(): AgentSessionRuntimeConfig | undefined {
 		try {
 			const parsed = JSON.parse(
@@ -1182,10 +1402,7 @@ export class DaemonSupervisor {
 			socketPath: this.socketPath,
 			defaultSessionConfig: durableAgentSessionRuntimeConfig(this.defaultSessionConfig),
 		};
-		const tempPath = `${this.supervisorConfigPath}.${process.pid}.tmp`;
-		writeFileSync(tempPath, `${JSON.stringify(persisted, null, 2)}\n`, { mode: 0o600 });
-		chmodSync(tempPath, 0o600);
-		renameSync(tempPath, this.supervisorConfigPath);
+		writeFileAtomicSync(this.supervisorConfigPath, `${JSON.stringify(persisted, null, 2)}\n`, { mode: 0o600 });
 	}
 
 	private hasPersistedWorkerDescriptors(): boolean {
@@ -1197,13 +1414,10 @@ export class DaemonSupervisor {
 	private persistWorker(worker: ResidentWorker): void {
 		worker.descriptor.updatedAt = new Date().toISOString();
 		const persisted = durableDaemonWorkerDescriptor(worker.descriptor);
-		const tempPath = `${worker.descriptorPath}.${process.pid}.tmp`;
-		writeFileSync(tempPath, `${JSON.stringify(persisted, null, 2)}\n`, { mode: 0o600 });
-		chmodSync(tempPath, 0o600);
-		renameSync(tempPath, worker.descriptorPath);
+		writeFileAtomicSync(worker.descriptorPath, `${JSON.stringify(persisted, null, 2)}\n`, { mode: 0o600 });
 	}
 
-	private deleteWorkerDescriptor(worker: ResidentWorker): void {
+	private deleteWorkerDescriptor(worker: { descriptorPath: string; descriptor: DaemonWorkerDescriptor }): void {
 		try {
 			rmSync(worker.descriptorPath, { force: true });
 			rmSync(worker.descriptor.recoveryJournalPath, { force: true });
@@ -1997,14 +2211,7 @@ export class DaemonSupervisor {
 				if ((this.workerStopCounts?.get(worker) ?? 0) > 0) {
 					throw new Error("Session worker is stopping; retry after it finishes");
 				}
-				worker.intentionalStop = false;
-				worker.descriptor.stopRequestedAt = undefined;
-				worker.descriptor.archiveOnStop = undefined;
-				worker.descriptor.lifecycle = "recovering";
-				worker.descriptor.consecutiveFailures = 0;
-				worker.deferredRecoveryRounds = 0;
-				this.persistWorker(worker);
-				await this.recoverWorker(worker);
+				await this.retryWorkerRecovery(worker);
 				if (this.workers.get(worker.descriptor.workerId)?.descriptor.lifecycle !== "ready") {
 					throw new Error(worker.descriptor.lastError ?? "Session worker recovery failed");
 				}
@@ -2072,6 +2279,9 @@ export class DaemonSupervisor {
 						jobs.set(job.id, job);
 					}
 				}
+				for (const { job } of await this.collectPassiveScheduledJobs(command.includeInactive === true)) {
+					if (!jobs.has(job.id)) jobs.set(job.id, job);
+				}
 				return success(command.id, "cron_list", { jobs: sortCronJobs([...jobs.values()]) });
 			}
 			case "heartbeats_list": {
@@ -2119,6 +2329,15 @@ export class DaemonSupervisor {
 						heartbeats.set(heartbeat.job.id, heartbeat);
 					}
 				}
+				// Passivated sessions keep their armed heartbeats; no worker can list them.
+				for (const { job, info } of await this.collectPassiveScheduledJobs()) {
+					if (!isHeartbeatCronJob(job) || heartbeats.has(job.id)) continue;
+					heartbeats.set(job.id, {
+						job,
+						...(info.name !== undefined ? { sessionName: info.name } : {}),
+						...(info.firstMessage !== undefined ? { firstMessage: info.firstMessage } : {}),
+					});
+				}
 				return success(command.id, "heartbeats_list", { heartbeats: [...heartbeats.values()] });
 			}
 			case "heartbeat_manage": {
@@ -2128,6 +2347,24 @@ export class DaemonSupervisor {
 							heartbeat.job.id === command.jobId && heartbeat.job.activeSessionId === command.activeSessionId,
 					),
 				);
+				if (!cachedWorker) {
+					// Passive jobs are managed against their durable store; no wake just to flip a status.
+					const passive = (await this.collectPassiveScheduledJobs()).find(
+						({ job }) => job.id === command.jobId && job.activeSessionId === command.activeSessionId,
+					);
+					if (passive) {
+						const store = AgentCronJobStore.forSessionArtifacts();
+						store.registerSessionArtifact(
+							passive.info.id,
+							getSessionArtifactPathForFile(resolve(passive.info.path), passive.info.id),
+						);
+						const heartbeat = store.manageHeartbeat(command.activeSessionId, command.jobId, command.action);
+						if (heartbeat) {
+							this.broadcastHeartbeatsChanged();
+							return success(command.id, "heartbeat_manage", { heartbeat });
+						}
+					}
+				}
 				const worker = cachedWorker ?? (await this.findWorkerForClient(client, command.activeSessionId)).worker;
 				this.assertWorkerAccessibleToClient(client, worker, command.activeSessionId);
 				const response = await this.forwardToWorker(worker, command);
@@ -2182,6 +2419,19 @@ export class DaemonSupervisor {
 						cronJobsFromResponse(candidate.response).some((job) => job.id === command.jobId)
 					) {
 						return this.forwardToWorker(candidate.worker, command);
+					}
+				}
+				const passive = (await this.collectPassiveScheduledJobs()).find(({ job }) => job.id === command.jobId);
+				if (passive) {
+					const store = AgentCronJobStore.forSessionArtifacts();
+					store.registerSessionArtifact(
+						passive.info.id,
+						getSessionArtifactPathForFile(resolve(passive.info.path), passive.info.id),
+					);
+					const job = store.cancel(command.jobId);
+					if (job) {
+						this.broadcastHeartbeatsChanged();
+						return success(command.id, "cron_cancel", { job });
 					}
 				}
 				throw new Error(`No cron job found: ${command.jobId}`);
@@ -2578,7 +2828,12 @@ export class DaemonSupervisor {
 				}
 			: undefined;
 		const saved = await this.catalog.list(command.scope === "current" ? cwd : undefined, sessionDir, callbacks);
-		return success(command.id, "list_saved_sessions", { sessions: saved.map(serializeSavedSessionInfo) });
+		const sessions = await withPassiveRlmDescendantInfos(saved, this.rlmSpawnLedgerFor(sessionDir), {
+			...(command.scope === "current" ? { cwd } : {}),
+			...(callbacks ? { onSession: callbacks.onSession } : {}),
+			log: (message) => this.log(message),
+		});
+		return success(command.id, "list_saved_sessions", { sessions: sessions.map(serializeSavedSessionInfo) });
 	}
 
 	private async createOrReuseWorker(clientId: string, command: DaemonCreateCommand): Promise<ResidentWorker> {
@@ -2664,13 +2919,15 @@ export class DaemonSupervisor {
 		ownerClientId: string | undefined,
 		sessionPath: string,
 	): Promise<ResidentWorker> {
-		if (worker.descriptor.lifecycle === "failed") {
+		if (worker.descriptor.lifecycle === "failed" && !this.canRetryFailedWorker(worker)) {
 			throw new Error(
 				`Session "${sessionPath}" is registered to a failed worker that could not be safely reclaimed`,
 			);
 		}
 		this.assertWorkerCreateOwner(worker, ownerClientId, sessionPath);
-		if (!this.isWorkerReadyForCreate(worker)) {
+		if (this.canRetryFailedWorker(worker)) {
+			await this.retryWorkerRecovery(worker);
+		} else if (!this.isWorkerReadyForCreate(worker)) {
 			if (worker.recovery) {
 				await worker.recovery;
 			} else if (this.isWorkerRecoveryEligible(worker)) {
@@ -2868,7 +3125,7 @@ export class DaemonSupervisor {
 		});
 		delete workerEnvironment.RLM_DEPTH;
 		await this.assertRecoveryAllowed();
-		const child: ChildProcess = spawn(launch.command, launch.args, {
+		const child: ChildProcess = spawnHidden(launch.command, launch.args, {
 			cwd: createCommand.config?.cwd ?? process.cwd(),
 			detached: true,
 			env: workerEnvironment,
@@ -3088,12 +3345,13 @@ export class DaemonSupervisor {
 	private async connectWorker(worker: ResidentWorker, timeoutMs: number): Promise<DaemonWorkerClient> {
 		const deadline = Date.now() + timeoutMs;
 		let lastError: unknown;
+		let backoffMs = WORKER_PROBE_BACKOFF_MIN_MS;
 		while (Date.now() < deadline) {
 			await this.assertRecoveryAllowed();
 			const client = new DaemonWorkerClient(worker.descriptor.socketPath);
 			try {
-				await client.connect(Math.min(500, Math.max(50, deadline - Date.now())));
-				await client.waitForHello(1000);
+				await client.connect(Math.min(WORKER_CONNECT_PROBE_MS, handshakeBudgetMs(deadline)));
+				await client.waitForHello(handshakeBudgetMs(deadline));
 				// Listen before authenticating: the worker flushes its roster snapshot right after auth succeeds.
 				client.onFrame((frame) => this.handleWorkerFrame(worker, frame, client));
 				client.onClose((error) => void this.handleWorkerClose(worker, client, error));
@@ -3107,7 +3365,7 @@ export class DaemonSupervisor {
 								? { workerInstanceId: worker.descriptor.workerInstanceId }
 								: {}),
 						},
-						1000,
+						handshakeBudgetMs(deadline),
 					);
 					await this.assertRecoveryAllowed();
 					if (!workerAuthAdvertisesRoster(authResponse.data)) {
@@ -3131,7 +3389,10 @@ export class DaemonSupervisor {
 				) {
 					throw error;
 				}
-				await delay(25);
+				const remaining = deadline - Date.now();
+				if (remaining <= 0) break;
+				await delay(Math.min(backoffMs, remaining));
+				backoffMs = Math.min(backoffMs * 2, WORKER_PROBE_BACKOFF_MAX_MS);
 			}
 		}
 		throw new DaemonWorkerProbeTimeoutError(`Timed out connecting to daemon session worker: ${String(lastError)}`);
@@ -3170,7 +3431,7 @@ export class DaemonSupervisor {
 				if (worker.descriptor.processStartId === undefined && isProcessAlive(worker.descriptor.pid)) {
 					const observedProcessStartId = getProcessStartId(worker.descriptor.pid);
 					try {
-						await this.connectWorker(worker, 2000);
+						await this.connectWorker(worker, WORKER_CONNECT_TIMEOUT_MS);
 						if (observedProcessStartId) {
 							worker.descriptor.processStartId = observedProcessStartId;
 							this.persistWorker(worker);
@@ -3197,7 +3458,7 @@ export class DaemonSupervisor {
 				throw new Error("Session worker process is no longer running");
 			}
 			observedProcessStartId = getProcessStartId(worker.descriptor.pid);
-			await this.connectWorker(worker, 2000);
+			await this.connectWorker(worker, WORKER_CONNECT_TIMEOUT_MS);
 			await this.subscribeWorker(worker, worker.descriptor.rootActiveSessionId);
 			await this.refreshWorkerSummaries(worker, true);
 			if (worker.descriptor.processStartId === undefined && observedProcessStartId) {
@@ -3336,6 +3597,28 @@ export class DaemonSupervisor {
 		return this.isWorkerRecoveryCandidate(worker) && worker.recovery === undefined;
 	}
 
+	/** Failed is not terminal for an identity-verified live worker: any touch retries recovery, like manual retry_worker. */
+	private canRetryFailedWorker(worker: ResidentWorker): boolean {
+		return (
+			worker.descriptor.lifecycle === "failed" &&
+			(this.workerStopCounts?.get(worker) ?? 0) === 0 &&
+			// A user-stopped worker stays stopped; only an explicit retry_worker clears the persisted stop markers.
+			!this.isWorkerStopping(worker) &&
+			this.processIdentity(worker.descriptor.pid, worker.descriptor.processStartId) === "current"
+		);
+	}
+
+	private async retryWorkerRecovery(worker: ResidentWorker): Promise<void> {
+		worker.intentionalStop = false;
+		worker.descriptor.stopRequestedAt = undefined;
+		worker.descriptor.archiveOnStop = undefined;
+		worker.descriptor.lifecycle = "recovering";
+		worker.descriptor.consecutiveFailures = 0;
+		worker.deferredRecoveryRounds = 0;
+		this.persistWorker(worker);
+		await this.recoverWorker(worker);
+	}
+
 	private isWorkerRecoveryCandidate(worker: ResidentWorker): boolean {
 		return (
 			!this.shuttingDown &&
@@ -3351,7 +3634,8 @@ export class DaemonSupervisor {
 			return;
 		}
 		// A live-but-silent worker must not probe forever: park it failed (user-visible through the
-		// roster's failed status) and keep its process alive for a manual retry_worker.
+		// roster's failed status) and keep its process alive. The park is not terminal: retry_worker,
+		// attach, and create all retry recovery while the process identity stays current.
 		worker.deferredRecoveryRounds = (worker.deferredRecoveryRounds ?? 0) + 1;
 		if (worker.deferredRecoveryRounds > MAX_DEFERRED_RECOVERY_ROUNDS) {
 			worker.descriptor.lifecycle = "failed";
@@ -3443,6 +3727,33 @@ export class DaemonSupervisor {
 				this.handleWorkerClose(worker, client, error);
 				client.close();
 			}
+		}
+	}
+
+	/** Settle a transfer anomaly with the transfer as the blast radius: the worker channel stays up and clients resync fresh. */
+	private failSnapshotTransfer(
+		worker: ResidentWorker,
+		activeSessionId: string,
+		snapshotId: string,
+		error: Error,
+		snapshotPurpose: Extract<DaemonWorkerFrameHeader, { kind: "outbound" }>["snapshotPurpose"],
+	): void {
+		const published = worker.transcriptCaches.get(activeSessionId)?.snapshotId === snapshotId;
+		this.failWorkerSnapshotCache(worker, activeSessionId, error, false, snapshotId);
+		// The published-cache drop drives the resync, not the frame's purpose: a published transfer
+		// can be serving any client's catch-up wait, whose queue entry drainClientCatchups already cleared.
+		if (published) {
+			this.queueSnapshotResync(activeSessionId, snapshotPurpose === "replacement" ? "replacement" : "catchup");
+		}
+	}
+
+	private queueSnapshotResync(activeSessionId: string, snapshotPurpose: "replacement" | "catchup"): void {
+		for (const client of this.clients) {
+			if (!client.attachedActiveSessionIds.has(activeSessionId)) continue;
+			this.queueCatchup(client, activeSessionId, snapshotPurpose === "replacement" ? "replacement" : "resync");
+			void this.catchUpClient(client).catch((error) =>
+				this.log(`Failed to catch up client ${client.id}: ${String(error)}`),
+			);
 		}
 	}
 
@@ -3609,7 +3920,7 @@ export class DaemonSupervisor {
 						(identityNow === "unknown" && worker.descriptor.processStartId === undefined);
 					if (identityCompatible) {
 						try {
-							await this.connectWorker(worker, 1500);
+							await this.connectWorker(worker, WORKER_CONNECT_TIMEOUT_MS);
 							await this.subscribeWorker(worker, worker.descriptor.rootActiveSessionId);
 							await this.refreshWorkerSummaries(worker, true);
 							if (this.isWorkerRecoveryCancelled(worker)) {
@@ -4245,7 +4556,13 @@ export class DaemonSupervisor {
 				this.roster().delete(entry.agentId);
 				continue;
 			}
-			this.writeRosterEntry(passivatedWorkerRosterEntry(entry));
+			// Registration marks survive eviction: passive rows still have schedules behind them.
+			this.writeRosterEntry(
+				passivatedWorkerRosterEntry(entry, {
+					hasRegisteredHeartbeat: entry.summary.hasRegisteredHeartbeat === true,
+					hasRegisteredCronJob: entry.summary.hasRegisteredCronJob === true,
+				}),
+			);
 		}
 	}
 
@@ -4292,6 +4609,21 @@ export class DaemonSupervisor {
 			(message) => this.log(message),
 		);
 		return this.rlmSpawnLedgerInstance;
+	}
+
+	// Ledgers are per sessions-dir family: a catalog request for another dir must read that dir's ledger.
+	private rlmSpawnLedgerFor(sessionDir: string | undefined): RlmSpawnLedger {
+		const agentDir = this.defaultSessionConfig.agentDir;
+		const defaultDir = this.defaultSessionConfig.sessionDir ?? (agentDir ? getSessionsDir(agentDir) : undefined);
+		if (sessionDir === undefined || (defaultDir !== undefined && resolve(sessionDir) === resolve(defaultDir))) {
+			return this.rlmSpawnLedger();
+		}
+		if (!agentDir) {
+			throw new Error("Daemon supervisor config is missing agentDir");
+		}
+		return new RlmSpawnLedger(agentDir, sessionDir, createRlmLedgerRegistrySeedSource(), (message) =>
+			this.log(message),
+		);
 	}
 
 	/**
@@ -4551,6 +4883,31 @@ export class DaemonSupervisor {
 		if (matches.length > 1) {
 			throw new Error(`Ambiguous active session "${selector}"`);
 		}
+		// Descriptors are the durable half of addressability: an unhydrated root is recovering, not unknown;
+		// failed workers stay unknown so clients take the create fallback, which reclaims or retries them.
+		const recoveringRoots = (matchesSelector: (worker: ResidentWorker) => boolean) =>
+			[...this.workers.values()].filter(
+				(worker) =>
+					matchesSelector(worker) &&
+					(!includeWorker || includeWorker(worker)) &&
+					worker.descriptor.lifecycle !== "failed" &&
+					this.isWorkerRecoveryCandidate(worker),
+			);
+		// matchWorkers' addressing rule: exact ids first, unambiguous hex suffixes second.
+		const exactRecovering = recoveringRoots(
+			(worker) => worker.descriptor.rootActiveSessionId === selector || worker.descriptor.rootSessionId === selector,
+		);
+		const recoveringMatches =
+			exactRecovering.length > 0
+				? exactRecovering
+				: recoveringRoots(
+						(worker) =>
+							matchesSessionIdSuffix(worker.descriptor.rootActiveSessionId, selector) ||
+							matchesSessionIdSuffix(worker.descriptor.rootSessionId ?? "", selector),
+					);
+		if (recoveringMatches.length === 1) {
+			throw new DaemonSessionRecoveringError(recoveringMatches[0]!.descriptor.rootActiveSessionId);
+		}
 		throw new Error(`Unknown active session: ${selector}`);
 	}
 
@@ -4620,11 +4977,12 @@ export class DaemonSupervisor {
 		});
 	}
 
-	private findWorkerBySessionFile(sessionFile: string): ResidentWorker | undefined {
+	private findWorkerBySessionFile(sessionFile: string, exclude?: ResidentWorker): ResidentWorker | undefined {
 		const target = canonicalSessionPath(sessionFile);
 		const targetEntry = this.roster().bySessionFile(target);
 		const matches = new Set<ResidentWorker>();
 		for (const worker of this.workers.values()) {
+			if (worker === exclude) continue;
 			// The roster is the one live ownership source; the stale pull cache must not resurrect a match.
 			const summaryMatches = targetEntry?.workerId === worker.descriptor.workerId;
 			const descriptorPath = worker.descriptor.sessionFile
@@ -4650,6 +5008,14 @@ export class DaemonSupervisor {
 		command: DaemonCommand,
 		timeoutMs = WORKER_REQUEST_TIMEOUT_MS,
 	): Promise<DaemonResponse> {
+		// Every forwarded command is a touch: a cached failed roster row must not outrank
+		// the descriptor truth that the worker is recoverable (--attach-agent's get_state preflight lands here).
+		if (this.canRetryFailedWorker(worker)) {
+			await this.retryWorkerRecovery(worker);
+		} else if (worker.recovery) {
+			// Join a concurrent touch's in-flight recovery instead of throwing mid-ladder.
+			await worker.recovery;
+		}
 		const client = this.requireAvailableWorkerClient(worker, command.type === "kill");
 		const response = await client.request(withoutCommandId(command), timeoutMs);
 		if (command.type === "get_state" && response.success && isSessionSummary(response.data)) {
@@ -4666,46 +5032,47 @@ export class DaemonSupervisor {
 		client: DaemonSocketClient,
 		command: Extract<DaemonCommand, { type: "attach" }>,
 	): Promise<WorkerAttachData> {
-		const ownedWorker = [...this.workers.values()].find(
+		const descriptorWorker = [...this.workers.values()].find(
 			(worker) =>
-				worker.descriptor.ownerClientId !== undefined &&
-				(worker.descriptor.rootActiveSessionId === command.activeSessionId ||
-					worker.descriptor.rootSessionId === command.activeSessionId),
+				worker.descriptor.rootActiveSessionId === command.activeSessionId ||
+				worker.descriptor.rootSessionId === command.activeSessionId,
 		);
-		if (ownedWorker) {
-			if (ownedWorker.descriptor.ownerClientId !== this.protocolClientId(client)) {
-				throw new Error(`Unknown active session: ${command.activeSessionId}`);
-			}
-			this.assertTelemetryAttachAllowed(ownedWorker, command.telemetryDisabled);
-			ownedWorker.launchEnv = command.launchEnv ?? ownedWorker.launchEnv;
-			if (!ownedWorker.client || ownedWorker.descriptor.lifecycle !== "ready") {
-				if (command.recoveryConfig) {
-					ownedWorker.transientCreateCommand = {
-						...ownedWorker.descriptor.createCommand,
-						config: {
-							...command.recoveryConfig,
-							...(ownedWorker.descriptor.telemetryDisabled === true ? { telemetryDisabled: true } : {}),
-						},
-						env: command.env,
-						launchEnv: command.launchEnv,
-						lifecycle: "client_owned",
-					};
+		if (descriptorWorker) {
+			// The descriptor lookup is universal; owner-only attach payload stays in the owned branch.
+			if (descriptorWorker.descriptor.ownerClientId !== undefined) {
+				if (descriptorWorker.descriptor.ownerClientId !== this.protocolClientId(client)) {
+					throw new Error(`Unknown active session: ${command.activeSessionId}`);
 				}
-				if (!ownedWorker.launchEnv) {
-					throw new Error("Client-owned session recovery requires the owning client environment");
+				this.assertTelemetryAttachAllowed(descriptorWorker, command.telemetryDisabled);
+				descriptorWorker.launchEnv = command.launchEnv ?? descriptorWorker.launchEnv;
+				if (!descriptorWorker.client || descriptorWorker.descriptor.lifecycle !== "ready") {
+					if (command.recoveryConfig) {
+						descriptorWorker.transientCreateCommand = {
+							...descriptorWorker.descriptor.createCommand,
+							config: {
+								...command.recoveryConfig,
+								...(descriptorWorker.descriptor.telemetryDisabled === true ? { telemetryDisabled: true } : {}),
+							},
+							env: command.env,
+							launchEnv: command.launchEnv,
+							lifecycle: "client_owned",
+						};
+					}
+					if (!descriptorWorker.launchEnv) {
+						throw new Error("Client-owned session recovery requires the owning client environment");
+					}
+					await this.retryWorkerRecovery(descriptorWorker);
 				}
-				ownedWorker.intentionalStop = false;
-				ownedWorker.descriptor.stopRequestedAt = undefined;
-				ownedWorker.descriptor.archiveOnStop = undefined;
-				ownedWorker.descriptor.lifecycle = "recovering";
-				ownedWorker.descriptor.consecutiveFailures = 0;
-				ownedWorker.deferredRecoveryRounds = 0;
-				this.persistWorker(ownedWorker);
-				await this.recoverWorker(ownedWorker);
+			} else if (this.canRetryFailedWorker(descriptorWorker)) {
+				await this.retryWorkerRecovery(descriptorWorker);
 			}
 		}
 		const match = await this.findWorkerForClient(client, command.activeSessionId);
 		this.assertTelemetryAttachAllowed(match.worker, command.telemetryDisabled);
+		if (match.worker !== descriptorWorker && this.canRetryFailedWorker(match.worker)) {
+			// Child-session attaches land here without a descriptor match; one touch runs at most one ladder.
+			await this.retryWorkerRecovery(match.worker);
+		}
 		this.requireAvailableWorkerClient(match.worker);
 		const activeSessionId = match.summary.activeSessionId ?? match.summary.id;
 		const duplicateValidation = this.currentSnapshotGeneration(match.worker, activeSessionId)?.validation;
@@ -5230,12 +5597,12 @@ export class DaemonSupervisor {
 				const generations = this.snapshotGenerationsFor(worker, activeSessionId);
 				let generation = generations.get(begin.snapshotId);
 				if (generation?.incoming) {
-					this.failWorkerSnapshotCache(
+					this.failSnapshotTransfer(
 						worker,
 						activeSessionId,
-						new Error(`Snapshot ${begin.snapshotId} restarted before completion`),
-						true,
 						begin.snapshotId,
+						new Error(`Snapshot ${begin.snapshotId} restarted before completion`),
+						snapshotPurpose,
 					);
 					return;
 				}
@@ -5252,12 +5619,12 @@ export class DaemonSupervisor {
 					generation.result.snapshot.lastEventCursor?.generation === result.snapshot.lastEventCursor?.generation &&
 					generation.result.snapshot.lastEventCursor?.sequence === result.snapshot.lastEventCursor?.sequence;
 				if (generation?.transcript.complete && !duplicate) {
-					this.failWorkerSnapshotCache(
+					this.failSnapshotTransfer(
 						worker,
 						activeSessionId,
-						new Error(`Snapshot ${begin.snapshotId} did not match the cached transfer`),
-						true,
 						begin.snapshotId,
+						new Error(`Snapshot ${begin.snapshotId} did not match the cached transfer`),
+						snapshotPurpose,
 					);
 					return;
 				}
@@ -5366,12 +5733,12 @@ export class DaemonSupervisor {
 						generation.duplicateChunkIndex = duplicateIndex + 1;
 					}
 				} catch (error) {
-					this.failWorkerSnapshotCache(
+					this.failSnapshotTransfer(
 						worker,
 						activeSessionId,
-						error instanceof Error ? error : new Error(String(error)),
-						true,
 						generation.transcript.snapshotId,
+						error instanceof Error ? error : new Error(String(error)),
+						snapshotPurpose,
 					);
 				}
 			}
@@ -5423,12 +5790,12 @@ export class DaemonSupervisor {
 				generation.duplicateChunkIndex = undefined;
 				generation.duplicateResult = undefined;
 			} catch (error) {
-				this.failWorkerSnapshotCache(
+				this.failSnapshotTransfer(
 					worker,
 					activeSessionId,
-					error instanceof Error ? error : new Error(String(error)),
-					true,
 					transcript.snapshotId,
+					error instanceof Error ? error : new Error(String(error)),
+					snapshotPurpose,
 				);
 				return;
 			}
@@ -5438,13 +5805,7 @@ export class DaemonSupervisor {
 				transcript.dispose();
 			}
 			if (published && (snapshotPurpose === "replacement" || snapshotPurpose === "catchup")) {
-				for (const client of this.clients) {
-					if (!client.attachedActiveSessionIds.has(activeSessionId)) continue;
-					this.queueCatchup(client, activeSessionId, snapshotPurpose === "replacement" ? "replacement" : "resync");
-					void this.catchUpClient(client).catch((error) =>
-						this.log(`Failed to catch up client ${client.id}: ${String(error)}`),
-					);
-				}
+				this.queueSnapshotResync(activeSessionId, snapshotPurpose);
 			}
 			return;
 		}
@@ -5470,21 +5831,13 @@ export class DaemonSupervisor {
 				if (!generation) {
 					return;
 				}
-				const published = worker.transcriptCaches.get(activeSessionId) === generation.transcript;
-				this.failWorkerSnapshotCache(worker, activeSessionId, new Error(failed.error), false, failed.snapshotId);
-				if (published && (snapshotPurpose === "replacement" || snapshotPurpose === "catchup")) {
-					for (const client of this.clients) {
-						if (!client.attachedActiveSessionIds.has(activeSessionId)) continue;
-						this.queueCatchup(
-							client,
-							activeSessionId,
-							snapshotPurpose === "replacement" ? "replacement" : "resync",
-						);
-						void this.catchUpClient(client).catch((error) =>
-							this.log(`Failed to catch up client ${client.id}: ${String(error)}`),
-						);
-					}
-				}
+				this.failSnapshotTransfer(
+					worker,
+					activeSessionId,
+					failed.snapshotId,
+					new Error(failed.error),
+					snapshotPurpose,
+				);
 			} catch (error) {
 				this.failWorkerSnapshotCache(
 					worker,
@@ -5760,6 +6113,7 @@ export class DaemonSupervisor {
 			return manifest;
 		} catch (error) {
 			this.updateRestartPhase = undefined;
+			this.scheduleScheduledSessionWakeRecompute();
 			throw error;
 		}
 	}
@@ -5930,14 +6284,15 @@ export class DaemonSupervisor {
 		}
 		const path = getDaemonUpdateRestartManifestPath(this.socketPath, agentDir);
 		mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-		const tempPath = `${path}.${process.pid}.tmp`;
-		writeFileSync(tempPath, `${JSON.stringify(manifest)}\n`, { mode: 0o600 });
-		chmodSync(tempPath, 0o600);
-		const validated = JSON.parse(readFileSync(tempPath, "utf8")) as DaemonUpdateRestartManifest;
-		if (!Array.isArray(validated.sessions) || validated.sessions.length !== manifest.sessions.length) {
-			throw new Error("Could not validate aggregate update manifest");
-		}
-		renameSync(tempPath, path);
+		writeFileAtomicSync(path, `${JSON.stringify(manifest)}\n`, {
+			mode: 0o600,
+			beforeRename: (tempPath) => {
+				const validated = JSON.parse(readFileSync(tempPath, "utf8")) as DaemonUpdateRestartManifest;
+				if (!Array.isArray(validated.sessions) || validated.sessions.length !== manifest.sessions.length) {
+					throw new Error("Could not validate aggregate update manifest");
+				}
+			},
+		});
 	}
 
 	/**
@@ -6112,8 +6467,7 @@ export class DaemonSupervisor {
 			if (directChild) {
 				sigkillSent = directChild.child.kill("SIGKILL");
 			} else if (this.processIdentity(entryPid, entryStartId) === "current") {
-				// Fresh, unthrottled check: the cached verdict may be up to 500ms
-				// old, long enough for the pid to be recycled.
+				// Recheck without the cache: the pid may have been recycled.
 				signalProcessGroupOrProcess(entryPid, "SIGKILL");
 				sigkillSent = true;
 			}
@@ -6143,9 +6497,16 @@ export class DaemonSupervisor {
 			assertStopStillApplies();
 		}
 		this.invalidateWorkerSessionInputPauses(worker, "Session worker stopped while input was paused");
+		// Client-owned schedules die with the registration, like their roster rows. Cancel
+		// before the worker leaves the map, so no recompute sees the tree uncovered mid-stop.
+		let ephemeralCancelSettled = true;
+		if (removeDescriptor && worker.descriptor.ownerClientId !== undefined) {
+			ephemeralCancelSettled = await this.cancelEphemeralWorkerScheduledJobs(worker);
+		}
 		this.workers.delete(worker.descriptor.workerId);
 		this.flipWorkerRosterEntriesInactive(worker);
-		if (removeDescriptor) {
+		// A failed cancel keeps the stop tombstone as the durable intent; the enumeration retry or the next boot finishes it.
+		if (removeDescriptor && ephemeralCancelSettled) {
 			this.deleteWorkerDescriptor(worker);
 		}
 		if (!this.shuttingDown) {
@@ -6219,10 +6580,8 @@ export class DaemonSupervisor {
 				break;
 			}
 			if (!killed && stoppedCanSignal && Date.now() >= sigkillDeadline) {
-				// Fresh, unthrottled identity check right before signalling: the
-				// cached verdict may be up to 500ms old, long enough for the pid
-				// to be recycled by an unrelated process. A transiently
-				// unobservable identity skips this attempt but keeps escalation
+				// Recheck without the cache before signalling a possibly recycled pid.
+				// An unobservable identity skips this attempt but keeps escalation
 				// armed so a wedged worker is still killed on a later pass.
 				const observedNow = processStartId === undefined ? undefined : getProcessStartId(pid);
 				if (processStartId === undefined || observedNow === processStartId) {
@@ -6268,6 +6627,79 @@ export class DaemonSupervisor {
 		}
 	}
 
+	private async cancelScheduledJobsForSessionTree(
+		rootSessionId: string,
+		rootSessionFile: string,
+		stillWanted?: () => boolean,
+		exclude?: ResidentWorker,
+	): Promise<void> {
+		const store = AgentCronJobStore.forSessionArtifacts();
+		const sessions = [{ sessionId: rootSessionId, sessionFile: rootSessionFile }];
+		const childrenByParent = new Map<string, SessionInfo[]>();
+		for (const info of await this.rlmSpawnLedger().family()) {
+			if (!info.parentSessionPath) continue;
+			const key = canonicalSessionPath(info.parentSessionPath);
+			childrenByParent.set(key, [...(childrenByParent.get(key) ?? []), info]);
+		}
+		const queue = [canonicalSessionPath(rootSessionFile)];
+		const visited = new Set(queue);
+		while (queue.length > 0) {
+			for (const info of childrenByParent.get(queue.shift()!) ?? []) {
+				const child = canonicalSessionPath(info.path);
+				if (visited.has(child)) continue;
+				visited.add(child);
+				sessions.push({ sessionId: info.id, sessionFile: info.path });
+				queue.push(child);
+			}
+		}
+		// A worker covering any tree member owns its stores again; a stale intent must not kill new schedules.
+		for (const { sessionFile } of sessions) {
+			try {
+				if (this.findWorkerBySessionFile(sessionFile, exclude)) return;
+			} catch {
+				return;
+			}
+		}
+		let registered = false;
+		for (const { sessionId, sessionFile } of sessions) {
+			const artifactDir = getSessionArtifactPathForFile(sessionFile, sessionId);
+			if (!existsSync(join(artifactDir, SESSION_SCHEDULED_JOBS_FILENAME))) continue;
+			store.registerSessionArtifact(sessionId, artifactDir);
+			registered = true;
+		}
+		if (!registered) return;
+		// Re-checked in the same synchronous turn as the walk: a promotion committed during the family read keeps its schedules.
+		if (stillWanted && !stillWanted()) return;
+		for (const { sessionFile } of sessions) {
+			store.cancelJobsForSession({ sessionFile });
+		}
+	}
+
+	private async cancelEphemeralWorkerScheduledJobs(worker: ResidentWorker): Promise<boolean> {
+		const context = this.workerSessionArtifactContext(worker);
+		if (!context || !worker.descriptor.rootSessionId) {
+			return true;
+		}
+		try {
+			await this.cancelScheduledJobsForSessionTree(
+				worker.descriptor.rootSessionId,
+				context.sessionFile,
+				() => worker.descriptor.ownerClientId !== undefined,
+				worker,
+			);
+			return true;
+		} catch (error) {
+			// A promotion that landed during the failed read means the cancel is no longer wanted.
+			if (worker.descriptor.ownerClientId === undefined) {
+				return true;
+			}
+			this.log(
+				`Could not cancel scheduled jobs for client-owned worker ${worker.descriptor.workerId}: ${String(error)}`,
+			);
+			return false;
+		}
+	}
+
 	private reclaimStoppedWorkerCronLock(worker: ResidentWorker): void {
 		const context = this.workerSessionArtifactContext(worker);
 		if (!context) {
@@ -6276,9 +6708,9 @@ export class DaemonSupervisor {
 		rmSync(join(context.artifactDir, `${SESSION_SCHEDULED_JOBS_FILENAME}.lock`), { recursive: true, force: true });
 	}
 
-	private workerSessionArtifactContext(
-		worker: ResidentWorker,
-	): { sessionFile: string; artifactDir: string } | undefined {
+	private workerSessionArtifactContext(worker: {
+		descriptor: DaemonWorkerDescriptor;
+	}): { sessionFile: string; artifactDir: string } | undefined {
 		const sessionFile = worker.descriptor.sessionFile ?? worker.descriptor.createCommand.sessionPath;
 		if (!sessionFile || !worker.descriptor.rootSessionId) {
 			return undefined;
@@ -6301,6 +6733,7 @@ export class DaemonSupervisor {
 	}
 
 	private broadcastHeartbeatsChanged(): void {
+		this.scheduleScheduledSessionWakeRecompute();
 		for (const client of this.clients) {
 			this.write(client, { type: "heartbeats_changed" });
 		}
@@ -6396,6 +6829,7 @@ export class DaemonSupervisor {
 	private async cleanupSupervisorResourcesOnce(): Promise<void> {
 		this.shuttingDown = true;
 		this.clearIdleEvictionTimer();
+		this.clearScheduledWakeTimer();
 		this.clearRosterWatchdogTimer();
 		await this.idleEvictionSweep?.catch(() => undefined);
 		for (const cleanup of this.signalCleanupHandlers.splice(0)) {
@@ -6496,6 +6930,7 @@ export class DaemonSupervisor {
 		}
 		this.shuttingDown = true;
 		this.clearIdleEvictionTimer();
+		this.clearScheduledWakeTimer();
 		this.clearRosterWatchdogTimer();
 		await this.idleEvictionSweep?.catch(() => undefined);
 		if (closingReason) {
@@ -6559,7 +6994,7 @@ export class DaemonSupervisor {
 			delete environment[ORPHAN_PROCESS_JOURNAL_ENV];
 			delete environment[SESSION_LEASES_ENABLED_ENV];
 			delete environment[SESSION_LEASE_OWNER_ID_ENV];
-			const replacement = spawn(launch.command, launch.args, {
+			const replacement = spawnHidden(launch.command, launch.args, {
 				cwd: this.defaultSessionConfig.cwd ?? process.cwd(),
 				detached: true,
 				env: environment,

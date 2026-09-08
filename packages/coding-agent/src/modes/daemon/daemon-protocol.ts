@@ -22,6 +22,7 @@ import type { CustomMessage } from "../../core/messages.js";
 import type { QueuedMessageLane, QueuedMessageMutation } from "../../core/session-action-store.js";
 import type { SessionCwdIssue } from "../../core/session-cwd.js";
 import type { DeleteSessionFileResult } from "../../core/session-file-actions.js";
+import type { SessionUsageSummary } from "../../core/usage.js";
 import type {
 	AgentConnectionAgentStatus,
 	AgentConnectionHeartbeat,
@@ -70,8 +71,10 @@ export const DAEMON_COMMAND_ENVELOPE_MIN_PROTOCOL_VERSION = 7;
 // Revision 23 lets workers query the supervisor agent roster on demand.
 // Revision 24 adds the capability-gated agent-roster subscription and push.
 // Revision 25 adds capability-gated direct worker peer transport discovery.
-export const DAEMON_SCHEMA_REVISION = 25;
-export const DAEMON_SCHEMA_ID = "protocol-7-schema-25-585ef1102921";
+// Revision 26 publishes own-session usage totals on session summary and saved-session rows.
+// Revision 27 adds structured session_recovering failure info for known-but-unaddressable sessions.
+export const DAEMON_SCHEMA_REVISION = 27;
+export const DAEMON_SCHEMA_ID = "protocol-7-schema-27-962b8b4c5e35";
 
 export type DaemonProtocolName = typeof DAEMON_PROTOCOL_NAME;
 export type DaemonProtocolVersion = number;
@@ -1024,6 +1027,7 @@ export type DaemonErrorInfo =
 	| { code: "missing_session_cwd"; issue: SessionCwdIssue }
 	| { code: "session_import_file_not_found"; filePath: string }
 	| { code: "session_already_active"; sessionPath: string; activeSessionId?: string }
+	| { code: "session_recovering"; activeSessionId: string }
 	| { code: "command_result_uncertain"; clientId: DaemonClientId; commandId: DaemonCommandId };
 
 export type DaemonSessionClosedReason = "killed" | "shutdown" | "completed" | "replaced" | "update";
@@ -1074,6 +1078,7 @@ export interface DaemonSavedSessionInfo {
 	firstMessage: string;
 	allMessagesText: string;
 	agentStatus?: AgentConnectionAgentStatus;
+	usage?: SessionUsageSummary;
 }
 
 export type DaemonDeleteSavedSessionResult = DeleteSessionFileResult;
