@@ -1,10 +1,11 @@
-"""Compile evidence into an executable search policy; never execute it on the host."""
+"""Compile evidence into executable search policies; never execute them on the host."""
 import math
 from core.ast_validator import parse, validate
 from autonomy.memory import OPERATORS
 
 
 def choose(evidence):
+    """UCB1 policy used by the adaptive condition."""
     for index, (attempts, _, _) in enumerate(evidence):
         if attempts == 0:
             return index
@@ -12,6 +13,12 @@ def choose(evidence):
     scores = [reward / attempts + math.sqrt(2 * math.log(total) / attempts)
               for attempts, reward, _ in evidence]
     return max(range(len(scores)), key=scores.__getitem__)
+
+
+def choose_fixed(evidence):
+    """Non-learning round-robin control with identical action space."""
+    attempts = sum(row[0] for row in evidence)
+    return attempts % len(OPERATORS)
 
 
 def compile_policy(evidence):
@@ -24,10 +31,26 @@ def compile_policy(evidence):
     return source
 
 
-def dispatch(runner, evidence):
-    source = compile_policy(evidence)
-    expected = choose(evidence)
+def compile_fixed_policy(evidence):
+    """Compile a deterministic control policy without reading rewards."""
+    expected = choose_fixed(evidence)
+    source = f"def choose_operator():\n    return {expected}\n"
+    validate(parse(source))
+    return source
+
+
+def _execute_policy(runner, source, expected):
     result = runner.execute(source, [()], entrypoint="choose_operator", max_steps=1000)
     if result["outputs"] != [expected] or not 0 <= expected < len(OPERATORS):
-        raise RuntimeError("learned policy failed its action contract")
+        raise RuntimeError("policy failed its action contract")
     return OPERATORS[expected], source
+
+
+def dispatch(runner, evidence):
+    source = compile_policy(evidence)
+    return _execute_policy(runner, source, choose(evidence))
+
+
+def dispatch_fixed(runner, evidence):
+    source = compile_fixed_policy(evidence)
+    return _execute_policy(runner, source, choose_fixed(evidence))
