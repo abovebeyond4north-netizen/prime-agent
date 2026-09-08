@@ -1,6 +1,8 @@
 """Finite program sketches plus optional model proposals and reusable archived programs."""
 import ast
 import hashlib
+from autonomy.expressions import ExpressionTask
+from autonomy.tasks import task_from_key
 from synthesizer.generator import CandidateSynthesizer
 from synthesizer.mutator import mutate_ast
 from synthesizer.recombinator import recombine_ast
@@ -68,6 +70,31 @@ def transfer(task, active):
     return "\n".join(helpers[name] for name in required) + "\n" + ast.unparse(target) + "\n"
 
 
+def compile_expression(task, active):
+    """Build syntax only; generated functions are evaluated exclusively in Docker."""
+    helpers = ""
+    if task.prerequisites:
+        choices = [skill["source"] for key, skill in active.items() if task_from_key(key).family == "gcd"]
+        if not choices:
+            raise ValueError("verified gcd prerequisite missing")
+        helpers = choices[-1] + "\n"
+
+    def emit(node):
+        if type(node) is int:
+            return ast.Constant(value=node)
+        if type(node) is str:
+            return ast.Name(id=node, ctx=ast.Load())
+        children = [emit(child) for child in node[1:]]
+        arithmetic = {"add": ast.Add, "sub": ast.Sub, "mul": ast.Mult}
+        if node[0] in arithmetic:
+            return ast.BinOp(left=children[0], op=arithmetic[node[0]](), right=children[1])
+        return ast.Call(func=ast.Name(id=node[0], ctx=ast.Load()), args=children, keywords=[])
+
+    tree = ast.parse(f"def {task.family}(a, b):\n    return 0\n")
+    tree.body[0].body[0].value = emit(task.expression)
+    return helpers + ast.unparse(ast.fix_missing_locations(tree)) + "\n"
+
+
 class SearchEngine:
     def __init__(self, provider="search", model_calls=0, max_model_calls=12):
         self.provider = provider
@@ -77,7 +104,7 @@ class SearchEngine:
 
     def propose(self, task, operator, parents, active, attempt, remaining_seconds):
         self.model.last_usage = None
-        reused = [value for key, value in active.items() if key.startswith(task.family + ":tier")]
+        reused = [value for key, value in active.items() if task_from_key(key).family == task.family]
         if reused:
             return reused[-1]["source"], "curriculum_transfer"
         sources = [parent["source"] for parent in parents]
@@ -103,6 +130,8 @@ class SearchEngine:
         composed = transfer(task, active)
         if composed:
             return composed, "skill_composition"
+        if isinstance(task, ExpressionTask):
+            return compile_expression(task, active), "expression_compilation"
         # Search starts from an imperfect sketch and repairs from executable feedback.
         # The finite sketch space is disclosed; this is not novel algorithm discovery.
         source = SKETCHES[task.family]

@@ -58,7 +58,7 @@ class TaskVerifier:
                     measurement = {"cpu_seconds": statistics.median(r["cpu_seconds"] for r in trials),
                                    "peak_bytes": max(r["peak_bytes"] for r in trials),
                                    "max_steps": max(max(r["steps_per_case"]) for r in trials)}
-                    limit = 2500 if task.family == "gcd" else 5000 if task.family == "fibonacci" else 250
+                    limit = task.performance_step_limit
                     if measurement["max_steps"] > limit or measurement["cpu_seconds"] > 0.2 or measurement["peak_bytes"] > 8_000_000:
                         raise ValueError("performance budget exceeded")
                 elif number == 9:

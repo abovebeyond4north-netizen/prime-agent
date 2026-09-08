@@ -107,6 +107,8 @@ def main():
     parser.add_argument("--arguments", default="[12,18]")
     parser.add_argument("--goal", default="algorithms toolkit")
     parser.add_argument("--tier", type=int, default=2)
+    parser.add_argument("--task-seed", type=int, default=0)
+    parser.add_argument("--task-count", type=int, default=6)
     parser.add_argument("--target", type=float, default=1.0)
     parser.add_argument("--max-attempts", type=int, default=64)
     parser.add_argument("--max-seconds", type=float, default=900)
@@ -119,14 +121,14 @@ def main():
     if args.command == "solve":
         print(json.dumps(solve(args.state, args.skill, json.loads(args.arguments), args.image), indent=2))
     elif args.command == "plan":
-        print(json.dumps(goal_contract(args.goal, args.tier, args.target), indent=2))
+        print(json.dumps(goal_contract(args.goal, args.tier, args.target, args.task_seed, args.task_count), indent=2))
     elif args.command == "research-status":
         print(json.dumps(research_status(args.state), indent=2))
     elif args.command == "autonomous":
         summary = execute_goal(args.state, args.goal, args.tier, args.target,
                                args.max_attempts, args.max_seconds, args.max_stagnation,
                                args.max_model_calls, args.max_containers,
-                               "search" if args.provider == "demo" else args.provider, args.image)
+                               "search" if args.provider == "demo" else args.provider, args.image, args.task_seed, args.task_count)
         if summary["status"] != "goal_reached":
             raise SystemExit(2)
     elif args.command == "run":

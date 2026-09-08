@@ -1,5 +1,5 @@
 import math
-from autonomy.tasks import DEPENDENCIES, SUITE_VERSION, Task, task_from_key, suite_digest
+from autonomy.tasks import SUITE_VERSION, Task, task_from_key, suite_digest
 
 
 def certified(active):
@@ -24,9 +24,9 @@ def next_task(contract, active, attempts):
         task = task_from_key(descriptor["key"])
         if task.key in verified:
             continue
-        if task.tier > 1 and Task(task.family, task.tier - 1).key not in verified:
+        if task.tier > 1 and task.with_tier(task.tier - 1).key not in verified:
             continue
-        if any(Task(dependency, 1).key not in verified for dependency in DEPENDENCIES.get(task.family, ())):
+        if any(Task(dependency, 1).key not in verified for dependency in task.prerequisites):
             continue
         eligible.append(task)
     if not eligible:

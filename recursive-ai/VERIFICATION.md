@@ -19,3 +19,13 @@ Local verification of the extension on 2026-09-08:
 - `npm run check` passed without warnings, using npm 11.10.0.
 - The expanded CI workflow tests six task families, learned policy execution, rejection of linear search under the deterministic work budget, a complete 12-certificate autonomous goal, independent auditing, and subsequent invocation of acquired skills.
 - Local oracle-fake results are controller evidence only. The actual Docker and autonomous-goal outcome is recorded in the GitHub Actions run for the corresponding commit.
+
+## Generated compound curriculum
+
+Local controller verification on 2026-09-08:
+
+- `python3 -m unittest tests.test_expressions tests.test_autonomy -v`: 24 tests passed; one compound Docker integration test skipped because Docker is unavailable locally.
+- Tests cover bounded grammar rejection, canonical specification recovery, deterministic admission, fixed goal weights, prerequisite reuse, checkpoint resumption and acquired-skill invocation. Controller tests use an oracle fake and do not establish candidate correctness.
+- CI additionally compares compiled compound programs against the independent interpreter, rejects constant-output candidates, completes a three-expression/two-tier goal in Docker, restarts the goal, and invokes every acquired family.
+- Existing six-family CI result: [run 34284166234](https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/34284166234). Compound execution must be verified in the run for the new commit.
+- Repository `npm run check` passed without warnings for this extension.

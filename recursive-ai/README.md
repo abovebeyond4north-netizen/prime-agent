@@ -1,6 +1,6 @@
 # Recursive AI laboratory
 
-An executable, bounded program-search laboratory with autonomous goal-driven curricula across six algorithm families. The original `run` command retains the single-task prototype. This is not AGI or autonomous model training. The default demo searches supplied algorithms; the optional API mode requests new source from a local or remote chat-completions-compatible service.
+An executable, bounded program-search laboratory with autonomous goal-driven curricula across six primitive algorithm families and generated compound arithmetic tasks. The original `run` command retains the single-task prototype. This is not AGI or autonomous model training. The default demo searches supplied algorithms; the optional API mode requests new source from a local or remote chat-completions-compatible service.
 
 ## Autonomous goal completion
 
@@ -23,6 +23,22 @@ Attempt and model-call reservations persist across restarts for the same goal. W
 The default offline `search` provider operates over supplied algorithm sketches. It includes imperfect candidate variants so verification and archive-based repair are exercised. This is a reproducible bounded baseline, not evidence of discovering unknown algorithms. For model-generated new programs, configure the environment described below and add `--provider api`. API call reservations bound request counts, and returned usage is logged when the provider supplies it; no live model calls were needed for CI.
 
 Learning changes both archived program source and the operator policy's generated source. The policy executes only in Docker. Its UCB update rule remains fixed: this is evidence-based adaptation, not unrestricted rewriting of the learning algorithm. Read [research/RESEARCH.md](research/RESEARCH.md) for current research, design mappings, statistical assumptions, and limits.
+
+## Automatically generated compound tasks
+
+```sh
+python3 main.py plan --goal "compound arithmetic" --task-seed 73 --task-count 3 --tier 2
+python3 main.py autonomous --goal "compound arithmetic" --task-seed 73 --task-count 3 --tier 2 --max-model-calls 0
+python3 main.py research-status
+```
+
+This goal generates integer expressions from a bounded grammar of addition, subtraction, multiplication, GCD, absolute value, minimum, and maximum. The current sampler combines GCD with arithmetic and min/max. Admission rejects duplicate output fingerprints on a fixed probe grid and expressions without observable dependence on both inputs. This measures finite behavioral diversity, not mathematical novelty or research breakthroughs.
+
+The seed and task count freeze the curriculum before search. Three expressions at two tiers plus the GCD prerequisite produce seven equally weighted targets. Additional tasks outside that contract earn no credit. Changing the seed creates a different goal, not extra progress on the old goal. The default is six expressions; up to twelve are supported.
+
+Offline synthesis compiles the declarative expression into Python AST and reuses a certified GCD implementation. The host oracle interprets the expression separately using Python's trusted integer arithmetic and `math.gcd`; it never executes proposed source. Every compound program still passes all ten gates and the independent final audit inside the existing resource limits. This is compositional synthesis within a fixed grammar, not autonomous creation of arbitrary evaluators or training of model weights.
+
+Task keys contain the complete canonical specification, so checkpoint recovery and regression verification do not depend on an in-memory registry. `research-status` exposes each acquired `compound_<hash>` family name; invoke it with `python3 main.py solve --skill <family> --arguments '[-12,18]'`. Inputs are two integers of at most 512 bits. Grammar, sampling and oracle changes invalidate prior certificates through the evaluator fingerprint.
 
 ## Original single-task run
 
@@ -89,7 +105,7 @@ Implemented search strategies: direct synthesis, integer AST mutation, scope-pre
 `tests.test_lab` and `tests.test_autonomy` verify controller gates using a fake runner, static rejection, actual Git checkpoints, SQLite rollback, and fail-closed behavior. It does not execute untrusted Python on the host. `tests.test_docker` contains real Docker integration checks and must be run separately on a Docker host after building the image:
 
 ```sh
-python3 -m unittest tests.test_lab tests.test_autonomy tests.test_docker -v
+python3 -m unittest tests.test_lab tests.test_autonomy tests.test_expressions tests.test_docker -v
 ```
 
 A green controller test suite is not evidence that the container image has run successfully. See `VERIFICATION.md` for the actual verification results for this change.

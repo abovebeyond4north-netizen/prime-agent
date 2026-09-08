@@ -26,7 +26,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_docker -v
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
@@ -65,3 +65,26 @@ jobs:
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
               stream.write('Autonomous research result\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
           PY
+      - name: Generate compound tasks, certify, and reuse after restart
+        working-directory: recursive-ai
+        run: |
+          python3 main.py autonomous --goal "compound arithmetic" --tier 2 --task-seed 73 --task-count 3 --max-attempts 16 --max-seconds 240 --max-model-calls 0 > "$RUNNER_TEMP/compound-telemetry.jsonl"
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from autonomy.controller import execute_goal, solve, status
+          from autonomy.tasks import task_from_key
+          result = status('.lab-state')[-1]
+          summary = result['summary']
+          assert summary['status'] == 'goal_reached', summary
+          assert summary['coverage'] == 1.0 and len(summary['certified_tasks']) == 7
+          assert summary['audit']['passed'] and summary['model_calls'] == 0
+          assert execute_goal('.lab-state', 'compound arithmetic', tier=2, task_seed=73, task_count=3) == summary
+          for descriptor in result['contract']['tasks']:
+              task = task_from_key(descriptor['key'])
+              answer = solve('.lab-state', task.family, [-12, 18])
+              assert answer['output'] == task.expected([(-12, 18)])[0]
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
+              stream.write('Compound curriculum result\n\n```json\n' + json.dumps(summary, indent=2) + '\n```\n')
+          print(json.dumps(summary, indent=2))
+          PYTHON

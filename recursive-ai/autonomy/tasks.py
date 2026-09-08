@@ -7,6 +7,7 @@ import secrets
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from autonomy.expressions import ExpressionTask, generate_tasks
 
 SUITE_VERSION = "autonomy-1"
 FAMILIES = ("lower_bound", "upper_bound", "binary_search", "count_occurrences", "gcd", "fibonacci")
@@ -24,7 +25,7 @@ SPECS = {
 @lru_cache(maxsize=1)
 def suite_digest():
     root = Path(__file__).resolve().parents[1]
-    paths = ("autonomy/tasks.py", "autonomy/verifier.py", "core/ast_validator.py", "sandbox/runner_harness.py")
+    paths = ("autonomy/expressions.py", "autonomy/tasks.py", "autonomy/verifier.py", "core/ast_validator.py", "sandbox/runner_harness.py")
     return hashlib.sha256(b"".join((root / path).read_bytes() for path in paths)).hexdigest()
 
 
@@ -36,6 +37,17 @@ class Task:
     def __post_init__(self):
         if self.family not in FAMILIES or type(self.tier) is not int or not 1 <= self.tier <= 3:
             raise ValueError("unsupported task family or tier")
+
+    def with_tier(self, tier):
+        return Task(self.family, tier)
+
+    @property
+    def prerequisites(self):
+        return DEPENDENCIES.get(self.family, ())
+
+    @property
+    def performance_step_limit(self):
+        return 2500 if self.family == "gcd" else 5000 if self.family == "fibonacci" else 250
 
     @property
     def key(self):
@@ -116,13 +128,18 @@ class Task:
 
 
 def task_from_key(key):
+    if key.startswith("expression:"):
+        return ExpressionTask.from_key(key)
     family, tier = key.rsplit(":tier", 1)
     return Task(family, int(tier))
 
 
-def goal_contract(description="algorithms toolkit", tier=2, target=1.0):
+def goal_contract(description="algorithms toolkit", tier=2, target=1.0, task_seed=0, task_count=6):
     text = description.lower().strip()
-    if text in ("algorithms toolkit", "build a reliable algorithms toolkit"):
+    compound = text in ("compound arithmetic", "compositional arithmetic")
+    if compound:
+        families = ["gcd"]
+    elif text in ("algorithms toolkit", "build a reliable algorithms toolkit"):
         families = list(FAMILIES)
     elif text in ("sorted search", "search toolkit"):
         families = list(FAMILIES[:4])
@@ -140,7 +157,13 @@ def goal_contract(description="algorithms toolkit", tier=2, target=1.0):
     if type(tier) is not int or not 1 <= tier <= 3 or not math.isfinite(target) or not 0 < target <= 1:
         raise ValueError("tier must be 1..3 and target must be in (0,1]")
     tasks = [Task(family, level).descriptor() for level in range(1, tier + 1) for family in families]
+    if compound:
+        generated = generate_tasks(task_seed, task_count)
+        tasks = [Task("gcd").descriptor()] + [task.with_tier(level).descriptor()
+                 for level in range(1, tier + 1) for task in generated]
     contract = {"description": description, "tasks": tasks, "target": target,
                 "suite_version": SUITE_VERSION, "suite_digest": suite_digest(), "audit_lower_bound": 0.98, "weights": {task["key"]: 1 / len(tasks) for task in tasks}}
+    if compound:
+        contract["task_generator"] = {"grammar": "integer-expression-1", "seed": task_seed, "count": task_count}
     contract["id"] = hashlib.sha256(json.dumps(contract, sort_keys=True).encode()).hexdigest()[:24]
     return contract

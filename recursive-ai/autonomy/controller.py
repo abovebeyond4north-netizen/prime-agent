@@ -11,14 +11,14 @@ from autonomy.curriculum import certified, coverage, next_task
 from autonomy.memory import ResearchMemory
 from autonomy.policy import dispatch
 from autonomy.search import SearchEngine
-from autonomy.tasks import goal_contract
+from autonomy.tasks import goal_contract, task_from_key
 from autonomy.verifier import TaskVerifier
 
 
 def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                  max_attempts=64, max_seconds=900, max_stagnation=16,
                  max_model_calls=12, max_containers=2000,
-                 provider="search", image="recursive-ai-runner:local"):
+                 provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6):
     for name, value, ceiling in (("attempts", max_attempts, 1000), ("stagnation", max_stagnation, 1000),
                                   ("model calls", max_model_calls, 1000), ("containers", max_containers, 10000)):
         if type(value) is not int or not (0 if name == "model calls" else 1) <= value <= ceiling:
@@ -27,7 +27,7 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
         raise ValueError("wall budget must be in (0,86400]")
     if provider not in ("search", "api"):
         raise ValueError("unknown provider")
-    contract = goal_contract(description, tier, target)
+    contract = goal_contract(description, tier, target, task_seed, task_count)
     root = Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
     start = time.monotonic()
@@ -103,7 +103,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         parents = memory.parents(task.family)
         error = None
         try:
-            if any(key.startswith(task.family + ":tier") for key in certified(active)):
+            if any(task_from_key(key).family == task.family for key in certified(active)):
                 operator = "transfer"
             else:
                 operator, policy_source = dispatch(runner, evidence)
@@ -187,7 +187,7 @@ def solve(root, family, arguments, image="recursive-ai-runner:local"):
         raise ValueError("arguments must be a bounded JSON array")
     if family == "fibonacci":
         valid = len(arguments) == 1 and type(arguments[0]) is int and 0 <= arguments[0] <= 800
-    elif family == "gcd":
+    elif family == "gcd" or family.startswith("compound_"):
         valid = len(arguments) == 2 and all(type(value) is int and value.bit_length() <= 512 for value in arguments)
     else:
         valid = (len(arguments) == 2 and isinstance(arguments[0], list) and len(arguments[0]) <= 10000
@@ -200,10 +200,10 @@ def solve(root, family, arguments, image="recursive-ai-runner:local"):
     try:
         checkpoint = memory.current()
         active = certified(VersionController(root).read(checkpoint)) if checkpoint else {}
-        matching = [(key, skill) for key, skill in active.items() if key.startswith(family + ":tier")]
+        matching = [(key, skill) for key, skill in active.items() if task_from_key(key).family == family]
         if not matching:
             raise ValueError("skill has no current certification")
-        key, skill = max(matching, key=lambda pair: pair[0])
+        key, skill = max(matching, key=lambda pair: task_from_key(pair[0]).tier)
         runner = SandboxRunner(image)
         runner.boot()
         result = runner.execute(skill["source"], [arguments], entrypoint=family)
