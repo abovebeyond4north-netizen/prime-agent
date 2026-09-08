@@ -26,7 +26,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_docker -v
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
@@ -43,4 +43,25 @@ jobs:
           assert report['passed'] and len(report['gates']) == 10
           assert all(gate['passed'] for gate in report['gates'])
           store.db.close()
+          PY
+      - name: Autonomous goal completion and acquired skill invocation
+        working-directory: recursive-ai
+        run: |
+          python3 main.py autonomous --goal "algorithms toolkit" --tier 2 --max-attempts 32 --max-seconds 420 --max-model-calls 0 > "$RUNNER_TEMP/autonomous-telemetry.jsonl"
+          python3 main.py research-status
+          python3 main.py solve --skill gcd --arguments '[-12,18]'
+          python3 main.py solve --skill count_occurrences --arguments '[[1,2,2,3],2]'
+          python3 - <<'PY'
+          import json
+          import os
+          from autonomy.controller import status
+          result = status('.lab-state')[0]['summary']
+          assert result['status'] == 'goal_reached', result
+          assert result['coverage'] == 1.0
+          assert len(result['certified_tasks']) == 12
+          assert result['audit']['passed']
+          assert result['model_calls'] == 0
+          assert result['policy_revisions'] > 0
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
+              stream.write('Autonomous research result\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
           PY

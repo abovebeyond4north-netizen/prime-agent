@@ -28,18 +28,35 @@ def main():
     resource.setrlimit(resource.RLIMIT_CPU, (3, 3))
     namespace = {"__builtins__": SAFE}
     exec(compile(request["source"], "candidate", "exec"), namespace)
-    function = namespace["binary_search"]
+    function = namespace[request.get("entrypoint", "binary_search")]
     original = json.dumps(request["cases"], separators=(",", ":"))
     tracemalloc.start()
     start = time.process_time()
-    results = [function(*case) for case in request["cases"]]
+    steps = 0
+    steps_per_case = []
+    def trace(frame, event, arg):
+        nonlocal steps
+        if event == "line" and frame.f_code.co_filename == "candidate":
+            steps += 1
+            if steps > request.get("max_steps", 500000):
+                raise RuntimeError("candidate instruction budget exhausted")
+        return trace
+    results = []
+    sys.settrace(trace)
+    try:
+        for case in request["cases"]:
+            previous = steps
+            results.append(function(*case))
+            steps_per_case.append(steps - previous)
+    finally:
+        sys.settrace(None)
     elapsed = time.process_time() - start
     _, peak = tracemalloc.get_traced_memory()
     if any(type(value) is not int for value in results):
         raise ValueError("outputs must be integers")
     if json.dumps(request["cases"], separators=(",", ":")) != original:
         raise ValueError("candidate mutated inputs")
-    print(json.dumps({"outputs": results, "cpu_seconds": elapsed, "peak_bytes": peak}, allow_nan=False))
+    print(json.dumps({"outputs": results, "cpu_seconds": elapsed, "peak_bytes": peak, "steps_per_case": steps_per_case}, allow_nan=False))
 
 
 if __name__ == "__main__":

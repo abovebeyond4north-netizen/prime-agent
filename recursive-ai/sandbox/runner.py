@@ -12,8 +12,18 @@ class SandboxRunner:
     def __init__(self, image="recursive-ai-runner:local", timeout=15):
         self.image = image
         self.timeout = timeout
+        self.deadline = None
+        self.stop_file = None
+        self.container_runs = 0
+        self.max_container_runs = 2000
 
     def _run(self, payload):
+        if self.stop_file is not None and self.stop_file.exists():
+            raise RuntimeError("operator stop requested")
+        if self.deadline is not None and time.monotonic() >= self.deadline:
+            raise RuntimeError("run wall budget exhausted")
+        if self.container_runs >= self.max_container_runs:
+            raise RuntimeError("container budget exhausted")
         if not shutil.which("docker"):
             raise RuntimeError("Docker unavailable; host execution is forbidden")
         data = json.dumps(payload).encode()
@@ -29,10 +39,13 @@ class SandboxRunner:
         with tempfile.TemporaryFile() as stdin, tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
             stdin.write(data)
             stdin.seek(0)
+            self.container_runs += 1
             process = subprocess.Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr)
-            deadline = time.monotonic() + self.timeout
+            deadline = min(time.monotonic() + self.timeout, self.deadline or float("inf"))
             try:
                 while process.poll() is None:
+                    if self.stop_file is not None and self.stop_file.exists():
+                        raise RuntimeError("operator stop requested")
                     if time.monotonic() > deadline:
                         raise RuntimeError("sandbox timeout")
                     if stdout.seek(0, 2) + stderr.seek(0, 2) > 1_000_000:
@@ -64,12 +77,20 @@ class SandboxRunner:
         if quota <= 0 or period <= 0 or quota > period:
             raise RuntimeError("sandbox CPU quota probe failed")
 
-    def execute(self, source, cases):
+    def execute(self, source, cases, entrypoint="binary_search", max_steps=500000):
         validate(parse(source))
-        result = self._run({"source": source, "cases": cases})
+        if not isinstance(entrypoint, str) or not entrypoint.isidentifier() or entrypoint.startswith("_"):
+            raise ValueError("invalid entrypoint")
+        if type(max_steps) is not int or not 1 <= max_steps <= 1000000:
+            raise ValueError("invalid execution step budget")
+        result = self._run({"source": source, "cases": cases, "entrypoint": entrypoint, "max_steps": max_steps})
         outputs = result.get("outputs")
         if not isinstance(outputs, list) or len(outputs) != len(cases) or any(type(x) is not int for x in outputs):
             raise RuntimeError("invalid sandbox outputs")
+        if "steps_per_case" in result:
+            steps = result["steps_per_case"]
+            if not isinstance(steps, list) or len(steps) != len(cases) or any(type(n) is not int or n < 0 for n in steps):
+                raise RuntimeError("invalid execution step measurements")
         for key in ("cpu_seconds", "peak_bytes"):
             value = result.get(key)
             if type(value) not in (int, float) or not math.isfinite(value) or value < 0:

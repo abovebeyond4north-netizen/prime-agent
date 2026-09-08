@@ -43,6 +43,8 @@ def select_strategy(history):
 class CandidateSynthesizer:
     def __init__(self, provider="demo"):
         self.provider = provider
+        self.timeout = 60
+        self.last_usage = None
 
     def generate(self, strategy, context, seed):
         parents = context.get("sources") or [LINEAR, BINARY]
@@ -62,11 +64,13 @@ class CandidateSynthesizer:
         if os.environ.get("LAB_MODEL_KEY"):
             headers["Authorization"] = "Bearer " + os.environ["LAB_MODEL_KEY"]
         request = urllib.request.Request(endpoint, json.dumps(body).encode(), headers)
-        with urllib.request.build_opener(NoRedirect()).open(request, timeout=60) as response:
+        with urllib.request.build_opener(NoRedirect()).open(request, timeout=self.timeout) as response:
             raw = response.read(131073)
         if len(raw) > 131072:
             raise ValueError("model response too large")
-        source = json.loads(raw)["choices"][0]["message"]["content"].strip()
+        payload = json.loads(raw)
+        self.last_usage = payload.get("usage")
+        source = payload["choices"][0]["message"]["content"].strip()
         if source.startswith("```python\n") and source.endswith("```"):
             source = source[10:-3].strip()
         return source + "\n"

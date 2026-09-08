@@ -9,3 +9,13 @@ Local checks on 2026-09-08:
 - The optional model API adapter has not been exercised against a live model.
 
 The branch includes `.github/workflows/recursive-ai.yml` to build the Docker image, run all integration tests, and verify an actual ten-gate promotion. Remote execution results must be checked separately; adding the workflow does not establish that it ran or passed.
+
+## Autonomous curriculum extension
+
+Local verification of the extension on 2026-09-08:
+
+- 36 controller/model-adapter tests passed; 6 real Docker tests were skipped locally because Docker is unavailable.
+- The adapter tests use mocked responses and make no live model calls.
+- `npm run check` passed without warnings, using npm 11.10.0.
+- The expanded CI workflow tests six task families, learned policy execution, rejection of linear search under the deterministic work budget, a complete 12-certificate autonomous goal, independent auditing, and subsequent invocation of acquired skills.
+- Local oracle-fake results are controller evidence only. The actual Docker and autonomous-goal outcome is recorded in the GitHub Actions run for the corresponding commit.

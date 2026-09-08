@@ -1,8 +1,30 @@
 # Recursive AI laboratory
 
-An executable, bounded program-search prototype for `binary_search`. This is not AGI or autonomous model training. The default demo searches supplied algorithms; the optional API mode requests new source from a local or remote chat-completions-compatible service.
+An executable, bounded program-search laboratory with autonomous goal-driven curricula across six algorithm families. The original `run` command retains the single-task prototype. This is not AGI or autonomous model training. The default demo searches supplied algorithms; the optional API mode requests new source from a local or remote chat-completions-compatible service.
 
-## Run
+## Autonomous goal completion
+
+```sh
+cd recursive-ai
+docker build -t recursive-ai-runner:local sandbox/
+python3 main.py plan --goal "algorithms toolkit" --tier 2
+python3 main.py autonomous --goal "algorithms toolkit" --tier 2 --max-attempts 64 --max-seconds 900
+python3 main.py research-status
+python3 main.py solve --skill gcd --arguments '[-12,18]'
+python3 main.py solve --skill count_occurrences --arguments '[[1,2,2,3],2]'
+```
+
+This creates and solves prerequisite tasks without further input, archives unsuccessful stepping stones, repairs their source, composes verified helper functions, learns per-family operator preferences, and raises difficulty. The six families are `lower_bound`, `upper_bound`, `binary_search`, `count_occurrences`, `gcd`, and `fibonacci`. There are three supported difficulty tiers; the default goal has 12 certificates across six families and two tiers. Other supported goals are `sorted search`, `number theory`, and explicit function names. Unknown goals fail as unverifiable instead of receiving an invented success score.
+
+A successful session ends with `goal_reached` only after all required gates and an independent shifted-distribution final audit. Exit code 2 means the goal was not established. Inspect the final summary for `attempt_budget`, `wall_budget`, `container_budget`, `model_call_budget`, `stagnation`, `operator_stop`, `audit_failed`, or execution errors. The default target is full weighted coverage, with an audit lower-bound requirement of 0.98 at simultaneous 95% confidence on the defined audit distribution.
+
+Attempt and model-call reservations persist across restarts for the same goal. Wall time and container limits apply per session; Docker cleanup can add up to 15 seconds after the execution deadline. `--max-stagnation`, `--max-model-calls`, and `--max-containers` set additional limits. Create `.lab-state/STOP` to stop at the next broker check (or immediately terminate an active candidate); remove it before restarting. An already successful goal returns its recorded result if its active checkpoint is unchanged. A failed final audit is not retried on the same checkpoint. The goal and certificates include a fingerprint of trusted evaluator, task, AST policy, and harness source; changed evaluation code requires fresh certification.
+
+The default offline `search` provider operates over supplied algorithm sketches. It includes imperfect candidate variants so verification and archive-based repair are exercised. This is a reproducible bounded baseline, not evidence of discovering unknown algorithms. For model-generated new programs, configure the environment described below and add `--provider api`. API call reservations bound request counts, and returned usage is logged when the provider supplies it; no live model calls were needed for CI.
+
+Learning changes both archived program source and the operator policy's generated source. The policy executes only in Docker. Its UCB update rule remains fixed: this is evidence-based adaptation, not unrestricted rewriting of the learning algorithm. Read [research/RESEARCH.md](research/RESEARCH.md) for current research, design mappings, statistical assumptions, and limits.
+
+## Original single-task run
 
 Requires Linux, Python 3.12+, Git, and a Docker daemon with working cgroup v2 limits and its default seccomp profile. Docker Desktop's Linux VM is also suitable for evaluation, but the controller uses POSIX file locking. Colab without Docker cannot run candidates: there is deliberately no host-execution fallback.
 
@@ -34,10 +56,10 @@ Every promotion requires these gates, in order:
 2. Conservative pure-function AST policy (no imports, attributes, reflection, private names, decorators, defaults, or arbitrary calls).
 3. Container boot: verify non-root UID, read-only root, seccomp filter, no-new-privileges, zero effective capabilities, and actual cgroup CPU/memory/swap/PID limits.
 4. Public tests with host-computed expected answers.
-5. Current candidate regression tests plus rechecks of every active skill (currently one supported task).
+5. Current candidate regression tests plus rechecks of every active skill (one supported task in the legacy `run` command).
 6. 128 fresh holdout cases.
 7. Translation, positive scaling, sign reversal with re-sorting, duplicates, empty inputs, and large integer cases.
-8. CPU time and traced Python heap thresholds; broker wall timeout and container memory ceiling. These are not hardware CPU-cycle measurements or total RSS measurements.
+8. CPU time and traced Python heap thresholds; autonomous mode also measures line-event work budgets; broker wall timeout and container memory ceiling. These are not hardware CPU-cycle measurements or total RSS measurements.
 9. 1000 new randomized comparisons with a linear reference.
 10. Three fresh-container runs on identical inputs, requiring byte-identical serialized outputs and oracle correctness.
 
@@ -62,12 +84,12 @@ Git snapshot objects are written before SQLite activation. A crash before activa
 
 ## Scope and verification
 
-Implemented search strategies: direct synthesis, integer AST mutation, scope-preserving whole-function crossover, and regeneration using failure-gate context. The demo is deliberately finite; it does not discover an unlimited curriculum. Semantic embeddings, trained model updates, multi-task registration, historical evaluation-suite versioning, measured API token accounting, and hardware cycle counters are not provided.
+Implemented search strategies: direct synthesis, integer AST mutation, scope-preserving whole-function crossover, and regeneration using failure-gate context. The demo is deliberately finite; it does not discover an unlimited curriculum. Semantic embeddings, trained model updates, arbitrary new semantic task-family registration, and hardware cycle counters are not provided. Autonomous mode adds versioned multi-task contracts and records model usage when returned by the provider.
 
-`tests.test_lab` verifies controller gates using a fake runner, static rejection, actual Git checkpoints, SQLite rollback, and fail-closed behavior. It does not execute untrusted Python on the host. `tests.test_docker` contains real Docker integration checks and must be run separately on a Docker host after building the image:
+`tests.test_lab` and `tests.test_autonomy` verify controller gates using a fake runner, static rejection, actual Git checkpoints, SQLite rollback, and fail-closed behavior. It does not execute untrusted Python on the host. `tests.test_docker` contains real Docker integration checks and must be run separately on a Docker host after building the image:
 
 ```sh
-python3 -m unittest tests.test_docker -v
+python3 -m unittest tests.test_lab tests.test_autonomy tests.test_docker -v
 ```
 
 A green controller test suite is not evidence that the container image has run successfully. See `VERIFICATION.md` for the actual verification results for this change.

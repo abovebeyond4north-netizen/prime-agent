@@ -14,6 +14,8 @@ from memory.skill_store import MemoryEngine
 from sandbox.runner import SandboxRunner
 from synthesizer.context_builder import build_context
 from synthesizer.generator import CandidateSynthesizer, select_strategy
+from autonomy.controller import execute_goal, solve, status as research_status
+from autonomy.tasks import goal_contract
 
 
 def run(root, iterations, provider, image):
@@ -95,17 +97,40 @@ def rollback(root, commit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["run", "status", "rollback"])
+    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve"])
     parser.add_argument("--state", default=str(Path(__file__).parent / ".lab-state"))
     parser.add_argument("--iterations", type=int, default=4)
-    parser.add_argument("--provider", choices=["demo", "api"], default="demo")
+    parser.add_argument("--provider", choices=["demo", "search", "api"], default="demo")
     parser.add_argument("--image", default="recursive-ai-runner:local")
     parser.add_argument("--checkpoint")
+    parser.add_argument("--skill", default="gcd")
+    parser.add_argument("--arguments", default="[12,18]")
+    parser.add_argument("--goal", default="algorithms toolkit")
+    parser.add_argument("--tier", type=int, default=2)
+    parser.add_argument("--target", type=float, default=1.0)
+    parser.add_argument("--max-attempts", type=int, default=64)
+    parser.add_argument("--max-seconds", type=float, default=900)
+    parser.add_argument("--max-stagnation", type=int, default=16)
+    parser.add_argument("--max-model-calls", type=int, default=12)
+    parser.add_argument("--max-containers", type=int, default=2000)
     args = parser.parse_args()
     if not 1 <= args.iterations <= 1000:
         parser.error("iterations must be in [1, 1000]")
-    if args.command == "run":
-        run(args.state, args.iterations, args.provider, args.image)
+    if args.command == "solve":
+        print(json.dumps(solve(args.state, args.skill, json.loads(args.arguments), args.image), indent=2))
+    elif args.command == "plan":
+        print(json.dumps(goal_contract(args.goal, args.tier, args.target), indent=2))
+    elif args.command == "research-status":
+        print(json.dumps(research_status(args.state), indent=2))
+    elif args.command == "autonomous":
+        summary = execute_goal(args.state, args.goal, args.tier, args.target,
+                               args.max_attempts, args.max_seconds, args.max_stagnation,
+                               args.max_model_calls, args.max_containers,
+                               "search" if args.provider == "demo" else args.provider, args.image)
+        if summary["status"] != "goal_reached":
+            raise SystemExit(2)
+    elif args.command == "run":
+        run(args.state, args.iterations, "demo" if args.provider == "search" else args.provider, args.image)
     elif args.command == "rollback":
         if not args.checkpoint:
             parser.error("rollback requires --checkpoint")
