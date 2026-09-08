@@ -2,7 +2,7 @@ name: Recursive AI laboratory
 
 on:
   push:
-    branches: [recursive-ai-lab]
+    branches: [recursive-ai-lab, recursive-ai-meta-evaluation]
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
@@ -26,7 +26,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_docker -v
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
@@ -61,6 +61,7 @@ jobs:
           assert len(result['certified_tasks']) == 12
           assert result['audit']['passed']
           assert result['model_calls'] == 0
+          assert result['policy_mode'] == 'learned'
           assert result['policy_revisions'] > 0
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
               stream.write('Autonomous research result\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
