@@ -1,12 +1,44 @@
+import ast
+import contextlib
+import io
 import json
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from autonomy.controller import execute_goal
 from autonomy.memory import OPERATORS
 from autonomy.policy import choose_fixed, compile_fixed_policy
+from autonomy.tasks import Task
 from core.ast_validator import parse, validate
 from research.meta_eval import run_meta_evaluation, summarize
+
+
+class FixedPolicyRunner:
+    """Oracle fake for fixed-policy controller wiring; never executes candidate source."""
+    def __init__(self, image="fake"):
+        self.deadline = self.stop_file = None
+        self.container_runs = 0
+        self.max_container_runs = 2000
+
+    def boot(self):
+        self.container_runs += 1
+
+    def execute(self, source, cases, entrypoint="binary_search", max_steps=500000):
+        self.container_runs += 1
+        if entrypoint == "choose_operator":
+            function = ast.parse(source).body[0]
+            statement = function.body[0]
+            if isinstance(statement, ast.Assign):
+                scores = ast.literal_eval(statement.value)
+                value = max(range(len(scores)), key=scores.__getitem__)
+            else:
+                value = ast.literal_eval(statement.value)
+            outputs = [value]
+        else:
+            outputs = Task(entrypoint).expected(cases)
+        return {"outputs": outputs, "cpu_seconds": 0.001, "peak_bytes": 1000,
+                "steps_per_case": [10] * len(cases)}
 
 
 class MetaEvaluationTests(unittest.TestCase):
@@ -17,6 +49,15 @@ class MetaEvaluationTests(unittest.TestCase):
         validate(parse(source))
         self.assertIn("return 3", source)
         self.assertEqual(len(OPERATORS), 4)
+
+    def test_fixed_policy_completes_through_controller(self):
+        with tempfile.TemporaryDirectory() as root, patch("autonomy.controller.SandboxRunner", FixedPolicyRunner), contextlib.redirect_stdout(io.StringIO()):
+            result = execute_goal(root, description="gcd", tier=1, policy_mode="fixed", max_attempts=4)
+            self.assertEqual(result["status"], "goal_reached", result)
+            self.assertEqual(result["coverage"], 1.0)
+            self.assertTrue(result["audit"]["passed"])
+            self.assertEqual(result["policy_mode"], "fixed")
+            self.assertEqual(result["policy_revisions"], 0)
 
     def test_summary_uses_paired_deltas(self):
         rows = []
