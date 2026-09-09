@@ -5,6 +5,7 @@ import math
 import statistics
 from pathlib import Path
 from autonomy.controller import execute_goal
+from autonomy.tasks import goal_contract
 
 MODES = ("fixed", "learned")
 
@@ -75,6 +76,7 @@ def run_meta_evaluation(root, goal="algorithms toolkit", tier=2, target=1.0,
         raise ValueError("replicates must be in [1,50]")
     if type(base_seed) is not int:
         raise ValueError("base_seed must be an integer")
+    suite_digest = goal_contract(goal, tier, target, base_seed, task_count)["suite_digest"]
     config = {
         "goal": goal,
         "tier": tier,
@@ -89,6 +91,7 @@ def run_meta_evaluation(root, goal="algorithms toolkit", tier=2, target=1.0,
         "max_containers": max_containers,
         "provider": provider,
         "image": image,
+        "suite_digest": suite_digest,
     }
     study_id = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()[:20]
     study_root = Path(root).resolve() / "meta-evaluation" / study_id
