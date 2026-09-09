@@ -2,7 +2,7 @@ name: Recursive AI laboratory
 
 on:
   push:
-    branches: [recursive-ai-lab, recursive-ai-meta-evaluation]
+    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization]
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
@@ -14,7 +14,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -26,7 +26,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_docker -v
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
@@ -65,6 +65,38 @@ jobs:
           assert result['policy_revisions'] > 0
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
               stream.write('Autonomous research result\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
+          PY
+      - name: Held-out cross-family transfer smoke test
+        working-directory: recursive-ai
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from research.transfer_eval import run_transfer_evaluation
+          report = run_transfer_evaluation(
+              '.lab-state-transfer',
+              train_goal='binary_search',
+              holdout_goal='gcd',
+              tier=1,
+              replicates=1,
+              base_seed=41,
+              prior_strength=4.0,
+              max_attempts=8,
+              max_seconds=180,
+              max_model_calls=0,
+              max_containers=800,
+          )
+          assert set(report['config']['train_families']).isdisjoint(report['config']['holdout_families'])
+          assert report['config']['transfer_boundary'] == 'aggregate_operator_evidence_only'
+          assert len(report['training_trials']) == 1
+          assert len(report['holdout_trials']) == 3
+          assert all(row['goal_reached'] and row['audit_passed'] for row in report['holdout_trials'])
+          transferred = [row for row in report['holdout_trials'] if row['mode'] == 'learned_transfer'][0]
+          scratch = [row for row in report['holdout_trials'] if row['mode'] == 'learned_scratch'][0]
+          assert transferred['policy_prior_digest'] is not None
+          assert scratch['policy_prior_digest'] is None
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
+              stream.write('Cross-family transfer smoke result\n\n```json\n' + json.dumps(report['summary'], indent=2) + '\n```\n')
           PY
       - name: Generate compound tasks, certify, and reuse after restart
         working-directory: recursive-ai
