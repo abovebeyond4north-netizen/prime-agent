@@ -14,7 +14,7 @@ def _validate_evidence(evidence):
         attempts, reward, seconds = row
         if not all(isinstance(value, (int, float)) and math.isfinite(value) for value in row):
             raise ValueError("operator evidence must be finite numeric values")
-        if attempts < 0 or reward < 0 or seconds < 0 or reward > attempts + 1e-12:
+        if attempts < 0 or reward < 0 or seconds < 0:
             raise ValueError("operator evidence outside supported bounds")
         normalized.append((float(attempts), float(reward), float(seconds)))
     return normalized
@@ -26,6 +26,8 @@ def transfer_prior(evidence, strength=4.0):
     Total pseudo-count mass is exactly ``strength``. No candidate source, task answers,
     checkpoints, or family identifiers are transferred. Operators unseen during training
     receive the global mean reward rate rather than an artificial zero-probability prior.
+    Transferred reward rates are clamped to [0,1] even if a caller supplies legacy or
+    synthetic reward magnitudes outside the laboratory's normal binary certification range.
     """
     rows = _validate_evidence(evidence)
     if not isinstance(strength, (int, float)) or not math.isfinite(strength) or not 0 <= strength <= 32:
@@ -35,12 +37,12 @@ def transfer_prior(evidence, strength=4.0):
         return [(0.0, 0.0, 0.0) for _ in OPERATORS]
     total_reward = sum(row[1] for row in rows)
     total_seconds = sum(row[2] for row in rows)
-    global_rate = total_reward / total_attempts
+    global_rate = min(1.0, total_reward / total_attempts)
     global_seconds = total_seconds / total_attempts
     pseudo_attempts = float(strength) / len(OPERATORS)
     prior = []
     for attempts, reward, seconds in rows:
-        reward_rate = reward / attempts if attempts else global_rate
+        reward_rate = min(1.0, reward / attempts) if attempts else global_rate
         seconds_rate = seconds / attempts if attempts else global_seconds
         prior.append((pseudo_attempts, pseudo_attempts * reward_rate, pseudo_attempts * seconds_rate))
     return prior
