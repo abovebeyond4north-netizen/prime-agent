@@ -40,6 +40,16 @@ class ResearchMemory(MemoryEngine):
         evidence = {op: (n, reward, seconds) for op, n, reward, seconds in self.db.execute("SELECT operator,attempts,reward,seconds FROM operator_evidence WHERE family=?", (family,))}
         return [evidence.get(operator, (0, 0.0, 0.0)) for operator in OPERATORS]
 
+    def global_operators(self):
+        """Aggregate learned operator outcomes without exporting skills, source, or checkpoints."""
+        evidence = {
+            op: (attempts, reward, seconds)
+            for op, attempts, reward, seconds in self.db.execute(
+                "SELECT operator,sum(attempts),sum(reward),sum(seconds) FROM operator_evidence GROUP BY operator"
+            )
+        }
+        return [evidence.get(operator, (0, 0.0, 0.0)) for operator in OPERATORS]
+
     def archive(self, task, source, report, parent, operator, reward, seconds):
         digest = hashlib.sha256(source.encode()).hexdigest()
         quality = sum(gate["passed"] for gate in report.get("gates", [])) / 10
