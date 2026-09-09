@@ -35,9 +35,21 @@ def _sign_test_p(differences):
     return min(1.0, 2 * probability)
 
 
+def _contract(goal, tier, task_seed, task_count):
+    return goal_contract(goal, tier=tier, task_seed=task_seed, task_count=task_count)
+
+
 def _families(goal, tier, task_seed, task_count):
-    contract = goal_contract(goal, tier=tier, task_seed=task_seed, task_count=task_count)
-    return {task["family"] for task in contract["tasks"]}
+    return {task["family"] for task in _contract(goal, tier, task_seed, task_count)["tasks"]}
+
+
+def _require_disjoint(train_goal, holdout_goal, tier, seed, task_count):
+    train_families = _families(train_goal, tier, seed, task_count)
+    holdout_families = _families(holdout_goal, tier, seed, task_count)
+    overlap = train_families & holdout_families
+    if overlap:
+        raise ValueError("training and holdout families must be disjoint: " + ",".join(sorted(overlap)))
+    return train_families, holdout_families
 
 
 def _read_prior(root):
@@ -138,11 +150,14 @@ def run_transfer_evaluation(root, train_goal="sorted search", holdout_goal="numb
     if not isinstance(prior_strength, (int, float)) or not math.isfinite(prior_strength) or not 0 <= prior_strength <= 32:
         raise ValueError("prior_strength must be in [0,32]")
 
-    train_families = _families(train_goal, tier, base_seed, task_count)
-    holdout_families = _families(holdout_goal, tier, base_seed, task_count)
-    overlap = train_families & holdout_families
-    if overlap:
-        raise ValueError("training and holdout families must be disjoint: " + ",".join(sorted(overlap)))
+    train_families, holdout_families = _require_disjoint(
+        train_goal, holdout_goal, tier, base_seed, task_count
+    )
+    train_contract = _contract(train_goal, tier, base_seed, task_count)
+    holdout_contract = _contract(holdout_goal, tier, base_seed, task_count)
+    if train_contract["suite_digest"] != holdout_contract["suite_digest"]:
+        raise ValueError("training and holdout contracts must use the same trusted suite")
+    suite_digest = train_contract["suite_digest"]
 
     config = {
         "train_goal": train_goal,
@@ -160,6 +175,7 @@ def run_transfer_evaluation(root, train_goal="sorted search", holdout_goal="numb
         "max_containers": max_containers,
         "provider": provider,
         "image": image,
+        "suite_digest": suite_digest,
         "train_families": sorted(train_families),
         "holdout_families": sorted(holdout_families),
         "transfer_boundary": "aggregate_operator_evidence_only",
@@ -173,6 +189,9 @@ def run_transfer_evaluation(root, train_goal="sorted search", holdout_goal="numb
 
     for replicate in range(replicates):
         seed = base_seed + replicate
+        # Generated curricula can vary their family names with the seed, so recheck the
+        # no-overlap invariant for every replicate rather than trusting the base seed.
+        _require_disjoint(train_goal, holdout_goal, tier, seed, task_count)
         train_root = study_root / f"seed-{seed}-train"
         train_summary = execute_goal(
             train_root,
