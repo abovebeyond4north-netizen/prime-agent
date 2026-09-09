@@ -9,7 +9,7 @@ from core.rollback import VersionController
 from sandbox.runner import SandboxRunner
 from autonomy.curriculum import certified, coverage, next_task
 from autonomy.memory import ResearchMemory
-from autonomy.policy import dispatch
+from autonomy.policy import dispatch, dispatch_fixed
 from autonomy.search import SearchEngine
 from autonomy.tasks import goal_contract, task_from_key
 from autonomy.verifier import TaskVerifier
@@ -18,7 +18,8 @@ from autonomy.verifier import TaskVerifier
 def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                  max_attempts=64, max_seconds=900, max_stagnation=16,
                  max_model_calls=12, max_containers=2000,
-                 provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6):
+                 provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6,
+                 policy_mode="learned"):
     for name, value, ceiling in (("attempts", max_attempts, 1000), ("stagnation", max_stagnation, 1000),
                                   ("model calls", max_model_calls, 1000), ("containers", max_containers, 10000)):
         if type(value) is not int or not (0 if name == "model calls" else 1) <= value <= ceiling:
@@ -27,6 +28,8 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
         raise ValueError("wall budget must be in (0,86400]")
     if provider not in ("search", "api"):
         raise ValueError("unknown provider")
+    if policy_mode not in ("learned", "fixed"):
+        raise ValueError("policy_mode must be 'learned' or 'fixed'")
     contract = goal_contract(description, tier, target, task_seed, task_count)
     root = Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -36,13 +39,13 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
         memory = ResearchMemory(root)
         try:
             return _session(memory, root, contract, start, max_attempts, max_seconds,
-                            max_stagnation, max_model_calls, max_containers, provider, image)
+                            max_stagnation, max_model_calls, max_containers, provider, image, policy_mode)
         finally:
             memory.db.close()
 
 
 def _session(memory, root, contract, start, max_attempts, max_seconds,
-             max_stagnation, max_model_calls, max_containers, provider, image):
+             max_stagnation, max_model_calls, max_containers, provider, image, policy_mode):
     memory.register(contract)
     vcs = VersionController(root)
     runner = SandboxRunner(image)
@@ -56,14 +59,17 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
     previous_summary = memory.db.execute("SELECT summary FROM research_goals WHERE id=?", (contract["id"],)).fetchone()[0]
     if previous_summary:
         previous_summary = json.loads(previous_summary)
-        if previous_summary["status"] in ("goal_reached", "audit_failed") and previous_summary["checkpoint"] == parent:
+        if (previous_summary["status"] in ("goal_reached", "audit_failed")
+                and previous_summary["checkpoint"] == parent
+                and previous_summary.get("policy_mode", "learned") == policy_mode):
             return previous_summary
     initial = coverage(contract, active)
     stagnant = 0
     session_attempts = 0
     stop_reason = "attempt_budget"
     audit = None
-    memory.event({"goal_started": contract["id"], "contract": contract, "initial_coverage": initial})
+    memory.event({"goal_started": contract["id"], "contract": contract, "initial_coverage": initial,
+                  "policy_mode": policy_mode})
 
     def budget_reason():
         if runner.stop_file.exists():
@@ -106,7 +112,8 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
             if any(task_from_key(key).family == task.family for key in certified(active)):
                 operator = "transfer"
             else:
-                operator, policy_source = dispatch(runner, evidence)
+                operator, policy_source = (dispatch(runner, evidence) if policy_mode == "learned"
+                                           else dispatch_fixed(runner, evidence))
             if provider == "api" and operator in ("direct", "repair"):
                 memory.reserve_model_call(contract["id"], max_model_calls)
             source, origin = search.propose(task, operator, parents, certified(active), task_attempt,
@@ -130,7 +137,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                    "operator": operator, "origin": origin, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
                    "parent": parents[0]["digest"] if parents else None, "report": report,
                    "delta": gain, "coverage": after, "seconds": elapsed,
-                   "provider": provider, "model_usage": search.model.last_usage,
+                   "provider": provider, "policy_mode": policy_mode, "model_usage": search.model.last_usage,
                    "error_type": error, "failed_gate": failed_gate, "promoted": passed}
         memory.db.execute("BEGIN IMMEDIATE")
         try:
@@ -141,7 +148,8 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
             if source:
                 memory.archive(task, source, report, episode["parent"], operator, float(passed), elapsed)
             if policy_source:
-                episode["policy_digest"] = memory.save_policy(policy_source, evidence)
+                episode["policy_digest"] = (memory.save_policy(policy_source, evidence) if policy_mode == "learned"
+                                            else hashlib.sha256(policy_source.encode()).hexdigest())
             memory.event(episode)
             memory.db.execute("COMMIT")
         except Exception:
@@ -165,7 +173,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                "total_attempts": memory.db.execute("SELECT attempts FROM research_goals WHERE id=?", (contract["id"],)).fetchone()[0],
                "wall_seconds": time.monotonic() - start, "container_runs": runner.container_runs,
                "model_calls": memory.db.execute("SELECT count(*) FROM model_reservations WHERE goal=?", (contract["id"],)).fetchone()[0],
-               "audit": audit, "provider": provider, "image": image,
+               "audit": audit, "provider": provider, "image": image, "policy_mode": policy_mode,
                "policy_revisions": memory.db.execute("SELECT count(*) FROM learning_policies").fetchone()[0]}
     memory.finish(contract["id"], summary)
     print(json.dumps({"summary": summary}, sort_keys=True), flush=True)
