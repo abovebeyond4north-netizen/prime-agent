@@ -67,11 +67,11 @@ jobs:
             packages/coding-agent/src/core/agent-traces.ts \
             packages/coding-agent/test/agent-traces.test.ts \
             packages/coding-agent/vitest.config.ts \
-            packages/coding-agent/test/setup/agent-trace-cleanup.ts \
-            packages/coding-agent/.changes/trace-upload-deterministic-teardown.md; do
+            packages/coding-agent/test/setup/agent-trace-cleanup.ts; do
             echo "$changed" | grep -Fx "$required"
           done
-          test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 5
+          test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 4
+          test -s packages/coding-agent/.changes/trace-upload-deterministic-teardown.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add packages/coding-agent/src/core/agent-traces.ts packages/coding-agent/test/agent-traces.test.ts packages/coding-agent/vitest.config.ts packages/coding-agent/test/setup/agent-trace-cleanup.ts packages/coding-agent/.changes/trace-upload-deterministic-teardown.md
