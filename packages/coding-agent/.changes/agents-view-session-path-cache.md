@@ -1,0 +1,1 @@
+- Reduced agents-view rebuild overhead by caching canonical session-path identities with a bounded short-lived cache.
