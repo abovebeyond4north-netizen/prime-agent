@@ -32,16 +32,23 @@ jobs:
           set -e
           echo "pre-update audit exit status: ${before_status}"
 
-      - name: Resolve Vitest patch across workspaces
+      - name: Install explicit Vitest security patch
         run: |
-          npm update vitest --workspaces --package-lock-only --ignore-scripts
+          npm install --package-lock-only --ignore-scripts --save-dev \
+            --workspace @earendil-works/pi-agent-core \
+            --workspace @earendil-works/pi-ai \
+            --workspace @earendil-works/pi-coding-agent \
+            vitest@4.1.11
           cp package-lock.json /tmp/package-lock.vitest.json
-          echo "===== Vitest lockfile diff ====="
-          git diff -- package-lock.json
-          echo "===== manifest drift check ====="
-          test -z "$(git diff --name-only -- package.json packages/*/package.json)"
+          echo "===== changed paths ====="
+          git diff --name-only
+          echo "===== manifest diff ====="
+          git diff -- packages/agent/package.json packages/ai/package.json packages/coding-agent/package.json
+          test "$(node -p "require('./packages/agent/package.json').devDependencies.vitest")" = "^4.1.11"
+          test "$(node -p "require('./packages/ai/package.json').devDependencies.vitest")" = "^4.1.11"
+          test "$(node -p "require('./packages/coding-agent/package.json').devDependencies.vitest")" = "^4.1.11"
 
-      - name: Verify Vitest installed tree
+      - name: Verify patched installed tree
         run: |
           npm ci --ignore-scripts
           npm ls vitest @vitest/mocker --all
@@ -55,13 +62,14 @@ jobs:
           echo "post-update audit exit status: ${after_status}"
 
       - name: Upload Vitest evidence
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
-          name: npm-vitest-update-evidence
+          name: npm-vitest-explicit-evidence
           path: |
             /tmp/package-lock.before.json
             /tmp/package-lock.vitest.json
             /tmp/npm-audit-before.json
             /tmp/npm-audit-after.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
