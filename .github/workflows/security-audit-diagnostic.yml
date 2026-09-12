@@ -30,22 +30,23 @@ jobs:
           npm audit --package-lock-only --json > /tmp/npm-audit-before.json
           before_status=$?
           set -e
-          cat /tmp/npm-audit-before.json
           echo "pre-update audit exit status: ${before_status}"
 
-      - name: Resolve only compatible patched versions
+      - name: Resolve Vitest patch across workspaces
         run: |
-          npm update vitest nanoid protobufjs --package-lock-only --ignore-scripts
-          cp package-lock.json /tmp/package-lock.targeted.json
-          echo "===== targeted lockfile diff ====="
+          npm update vitest --workspaces --package-lock-only --ignore-scripts
+          cp package-lock.json /tmp/package-lock.vitest.json
+          echo "===== Vitest lockfile diff ====="
           git diff -- package-lock.json
           echo "===== manifest drift check ====="
           test -z "$(git diff --name-only -- package.json packages/*/package.json)"
 
-      - name: Verify targeted installed tree
+      - name: Verify Vitest installed tree
         run: |
           npm ci --ignore-scripts
-          npm ls vitest @vitest/mocker nanoid protobufjs --all
+          npm ls vitest @vitest/mocker --all
+          node -e "const v=require('./node_modules/vitest/package.json').version; if (v !== '4.1.11') throw new Error('expected vitest 4.1.11, got '+v)"
+          node -e "const v=require('./node_modules/@vitest/mocker/package.json').version; if (v !== '4.1.11') throw new Error('expected @vitest/mocker 4.1.11, got '+v)"
           set +e
           npm audit --json > /tmp/npm-audit-after.json
           after_status=$?
@@ -53,13 +54,13 @@ jobs:
           cat /tmp/npm-audit-after.json
           echo "post-update audit exit status: ${after_status}"
 
-      - name: Upload targeted-update evidence
+      - name: Upload Vitest evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
-          name: npm-targeted-update-evidence
+          name: npm-vitest-update-evidence
           path: |
             /tmp/package-lock.before.json
-            /tmp/package-lock.targeted.json
+            /tmp/package-lock.vitest.json
             /tmp/npm-audit-before.json
             /tmp/npm-audit-after.json
           if-no-files-found: error
