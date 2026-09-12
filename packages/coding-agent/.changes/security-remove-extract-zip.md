@@ -1,0 +1,1 @@
+- Hardened Windows managed-tool ZIP extraction and removed the vulnerable `extract-zip` dependency.
