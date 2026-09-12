@@ -11,7 +11,7 @@ permissions:
 jobs:
   changelog-fragment:
     name: Check changelog fragment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event.pull_request.user.type != 'Bot'
     steps:
       - name: Require a changelog fragment for changed packages or an explicit opt-out
