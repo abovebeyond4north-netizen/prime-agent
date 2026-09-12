@@ -78,7 +78,7 @@ replace_in_test(
 \t\tconst setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
 \t\tconst cwd = join(tempDir, "project");
 ''',
-    "coalescing test timer spy",
+    "coalescing timer spy",
 )
 replace_in_test(
     coalescing,
@@ -88,13 +88,11 @@ replace_in_test(
 ''',
     '''\t\t\tbaseUrl: "https://api.example.test",
 \t\t\tfetchFn,
-\t\t\t// This test is about scheduler coalescing, not request timeout behavior.
-\t\t\t// Keep the request timeout outside the one-minute throttle window so
-\t\t\t// advancing the scheduler cannot accidentally select that timer instead.
+\t\t\t// Keep request timeout behavior outside this scheduler-specific test.
 \t\t\trequestTimeoutMs: 600_000,
 \t\t});
 ''',
-    "coalescing request timeout isolation",
+    "coalescing request-timeout isolation",
 )
 replace_in_test(
     coalescing,
@@ -108,31 +106,61 @@ replace_in_test(
 \t\tawait advanceTimersUntil(() => vi.getTimerCount() > 0);
 \t\tawait vi.advanceTimersToNextTimerAsync();
 \t\texpect(calls).toHaveLength(1);
+
+\t\treleaseFetch();
+\t\tawait advanceTimersUntil(() => calls.length === 2);
+\t\tconst finalBody = readFileSync(sessionManager.getSessionFile() as string, "utf8");
+\t\texpect(calls[1].init.body).toBe(finalBody);
+\t\t// Drain the follow-up upload's completion so its chain cannot leak into later fake-timer tests.
+\t\tawait advanceTimersUntil(
+\t\t\t() =>
+\t\t\t\treadOutboxEntry(tempDir, sessionManager.getSessionFile() as string)?.size === Buffer.byteLength(finalBody),
+\t\t);
 ''',
-    '''\t\tconst firstScheduleAt = Date.now();
-\t\tsessionManager.appendMessage(createUserMessage("hello"));
+    '''\t\tsessionManager.appendMessage(createUserMessage("hello"));
 \t\tsessionManager.appendMessage(createAssistantMessage("hi"));
 \t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(1_000);
-\t\tconst firstUploadStartedAt = firstScheduleAt + 1_000;
-\t\tawait advanceTimersUntil(() => calls.length === 1);
+\t\t// Fire only the controller's known debounce. From here until the first
+\t\t// request finishes, async progress is observed without advancing fake time.
+\t\tawait vi.advanceTimersByTimeAsync(1_000);
+\t\tawait waitForAsyncWork(() => calls.length === 1);
 
-\t\t// The upload start is fixed by the 1s debounce timer, but while its async
-\t\t// preflight settles the test harness may advance unrelated fake timers. The
-\t\t// scheduler correctly arms the *remaining* part of the one-minute window,
-\t\t// not necessarily a fresh 60 seconds from the moment fetch becomes visible.
-\t\tconst elapsedSinceUploadStart = Math.max(0, Date.now() - firstUploadStartedAt);
-\t\tconst remainingThrottleDelay = Math.max(1_000, 60_000 - elapsedSinceUploadStart);
-\t\tconst timerCallStart = setTimeoutSpy.mock.calls.length;
+\t\t// New content lands while the first upload is still in flight. It should
+\t\t// record pending work and arm the one-minute throttle, but must not issue a
+\t\t// concurrent request.
+\t\tconst persistTimerStart = setTimeoutSpy.mock.calls.length;
 \t\tsessionManager.appendMessage(createUserMessage("more"));
 \t\tsessionManager.appendMessage(createAssistantMessage("content"));
-\t\tconst persistedScheduleDelays = setTimeoutSpy.mock.calls
-\t\t\t.slice(timerCallStart)
-\t\t\t.map((call) => Number(call[1]));
-\t\texpect(persistedScheduleDelays).toContain(remainingThrottleDelay);
-\t\tawait vi.advanceTimersByTimeAsync(remainingThrottleDelay);
+\t\texpect(
+\t\t\tsetTimeoutSpy.mock.calls.slice(persistTimerStart).some((call) => Number(call[1]) === 60_000),
+\t\t).toBe(true);
 \t\texpect(calls).toHaveLength(1);
+
+\t\t// Completing the first request re-arms exactly one follow-up cycle for the
+\t\t// pending content. Wait for that re-arm with the clock frozen.
+\t\tconst completionTimerStart = setTimeoutSpy.mock.calls.length;
+\t\treleaseFetch();
+\t\tawait waitForAsyncWork(() =>
+\t\t\tsetTimeoutSpy.mock.calls.slice(completionTimerStart).some((call) => Number(call[1]) === 60_000),
+\t\t);
+\t\texpect(calls).toHaveLength(1);
+
+\t\tawait vi.advanceTimersByTimeAsync(59_999);
+\t\texpect(calls).toHaveLength(1);
+\t\tawait vi.advanceTimersByTimeAsync(1);
+\t\tawait waitForAsyncWork(() => calls.length === 2);
+\t\tconst finalBody = readFileSync(sessionManager.getSessionFile() as string, "utf8");
+\t\texpect(calls[1].init.body).toBe(finalBody);
+\t\t// Drain the follow-up upload without moving time, then prove no third upload
+\t\t// was accidentally scheduled by the coalescing path.
+\t\tawait waitForAsyncWork(
+\t\t\t() =>
+\t\t\t\treadOutboxEntry(tempDir, sessionManager.getSessionFile() as string)?.size === Buffer.byteLength(finalBody),
+\t\t);
+\t\tawait vi.advanceTimersByTimeAsync(60_000);
+\t\texpect(calls).toHaveLength(2);
 ''',
-    "coalescing remaining-throttle assertion",
+    "coalescing deterministic scheduler block",
 )
 
 throttled = "schedules automatic uploads at most once per minute and only after new entries persist"
@@ -156,28 +184,29 @@ replace_in_test(
 \t\t\trequestTimeoutMs: 600_000,
 \t\t});
 
-\t\tconst firstScheduleAt = Date.now();
 \t\tsessionManager.appendMessage(createUserMessage("hello"));
 \t\tsessionManager.appendMessage(createAssistantMessage("hi"));
 \t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(1_000);
-\t\tconst firstUploadStartedAt = firstScheduleAt + 1_000;
-\t\tawait advanceTimersUntil(() => calls.length === 1);
+\t\tawait vi.advanceTimersByTimeAsync(1_000);
+\t\tawait waitForAsyncWork(() => calls.length === 1);
 
-\t\t// A fetch invocation is observable before its success cursor and controller
-\t\t// completion settle. Synchronize on the durable cursor without moving fake
-\t\t// time, then assert the exact remaining throttle window at the next persist.
+\t\t// Fetch is observable before the upload cursor is durable. Wait for the
+\t\t// completed upload with fake time frozen, then verify the next persisted
+\t\t// entry is held for the full remaining minute.
 \t\tconst sessionFile = sessionManager.getSessionFile() as string;
-\t\tconst uploadedBodySize = Buffer.byteLength(readFileSync(sessionFile, "utf8"));
-\t\tawait waitForAsyncWork(() => readOutboxEntry(tempDir, sessionFile)?.size === uploadedBodySize);
+\t\tconst firstBodySize = Buffer.byteLength(readFileSync(sessionFile, "utf8"));
+\t\tawait waitForAsyncWork(() => readOutboxEntry(tempDir, sessionFile)?.size === firstBodySize);
 \t\tawait stat(new URL(import.meta.url));
-\t\tconst elapsedSinceUploadStart = Math.max(0, Date.now() - firstUploadStartedAt);
-\t\tconst remainingThrottleDelay = Math.max(1_000, 60_000 - elapsedSinceUploadStart);
 
 \t\tsetTimeoutSpy.mockClear();
 \t\tsessionManager.appendMessage(createUserMessage("next"));
-\t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(remainingThrottleDelay);
+\t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(60_000);
+\t\tawait vi.advanceTimersByTimeAsync(59_999);
+\t\texpect(calls).toHaveLength(1);
+\t\tawait vi.advanceTimersByTimeAsync(1);
+\t\tawait waitForAsyncWork(() => calls.length === 2);
 ''',
-    "throttle remaining-window assertion",
+    "throttle deterministic boundary block",
 )
 
 path.write_text(text)
