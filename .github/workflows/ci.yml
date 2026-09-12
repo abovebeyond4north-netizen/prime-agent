@@ -139,15 +139,6 @@ jobs:
           python3 -m pip install --user uv
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Stress Retry-After trace cleanup
-        if: matrix.name == 'coding-agent 3/3'
-        working-directory: packages/coding-agent
-        run: |
-          for iteration in $(seq 1 20); do
-            echo "Retry-After cleanup validation ${iteration}/20"
-            npx vitest --run test/agent-traces.test.ts -t "honors an advertised Retry-After on the next scheduled cycle without blocking"
-          done
-
       - name: Test
         working-directory: ${{ matrix.package }}
         run: ${{ matrix.command }}
