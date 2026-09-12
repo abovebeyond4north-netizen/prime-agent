@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import extractZip from "extract-zip";
 import { chmodSync, createWriteStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync } from "fs";
 import { arch, platform } from "os";
 import { join } from "path";
@@ -13,6 +12,8 @@ const NETWORK_TIMEOUT_MS = 10_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 const COMMAND_TIMEOUT_MS = 5_000;
 const RIPGREP_INSTALL_URL = "https://github.com/BurntSushi/ripgrep#installation";
+const POWERSHELL_ZIP_EXTRACT_COMMAND =
+	'$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force';
 
 export type ManagedTool = "fd" | "rg";
 
@@ -184,6 +185,27 @@ function findBinaryRecursively(rootDir: string, binaryFileName: string): string 
 	return null;
 }
 
+function extractZipOnWindows(archivePath: string, extractDir: string): void {
+	const result = spawnSyncHidden(
+		"powershell.exe",
+		["-NoProfile", "-NonInteractive", "-Command", POWERSHELL_ZIP_EXTRACT_COMMAND],
+		{
+			stdio: "pipe",
+			timeout: DOWNLOAD_TIMEOUT_MS,
+			env: {
+				...process.env,
+				PRIME_AGENT_ARCHIVE: archivePath,
+				PRIME_AGENT_DEST: extractDir,
+			},
+		},
+	);
+	if (result.error || result.status !== 0) {
+		const output = result.stderr?.toString().trim() || result.stdout?.toString().trim();
+		const errMsg = result.error?.message ?? output ?? `exit code ${result.status ?? "unknown"}`;
+		throw new Error(`Failed to extract ZIP archive: ${errMsg}`);
+	}
+}
+
 // Download and install a tool
 class UnsupportedToolPlatformError extends Error {}
 
@@ -229,8 +251,8 @@ async function downloadTool(tool: ManagedTool): Promise<string> {
 				const errMsg = extractResult.error?.message ?? extractResult.stderr?.toString().trim() ?? "unknown error";
 				throw new Error(`Failed to extract ${assetName}: ${errMsg}`);
 			}
-		} else if (assetName.endsWith(".zip")) {
-			await extractZip(archivePath, { dir: extractDir });
+		} else if (assetName.endsWith(".zip") && plat === "win32") {
+			extractZipOnWindows(archivePath, extractDir);
 		} else {
 			throw new Error(`Unsupported archive format: ${assetName}`);
 		}

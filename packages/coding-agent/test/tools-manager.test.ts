@@ -6,7 +6,6 @@ const toolState = vi.hoisted(() => ({
 	toolsDir: `/tmp/prime-agent-tools-manager-${process.pid}`,
 	platform: "linux",
 	architecture: "x64",
-	extractZip: async (_source: string, _options: { dir: string }): Promise<void> => {},
 }));
 
 vi.mock("../src/config.js", () => ({
@@ -17,10 +16,6 @@ vi.mock("../src/config.js", () => ({
 vi.mock("os", () => ({
 	arch: () => toolState.architecture,
 	platform: () => toolState.platform,
-}));
-
-vi.mock("extract-zip", () => ({
-	default: (source: string, options: { dir: string }) => toolState.extractZip(source, options),
 }));
 
 import {
@@ -39,6 +34,20 @@ function writeExecutable(filePath: string, exitCode = 0): void {
 	chmodSync(filePath, 0o755);
 }
 
+function writePowerShellExtractor(binaryExitCode = 0): void {
+	const powershellPath = join(pathDir, "powershell.exe");
+	writeFileSync(
+		powershellPath,
+		`#!/bin/sh
+set -eu
+printf '#!/bin/sh\nexit ${binaryExitCode}\n' > "$PRIME_AGENT_DEST/rg.exe"
+/bin/chmod +x "$PRIME_AGENT_DEST/rg.exe"
+`,
+		"utf8",
+	);
+	chmodSync(powershellPath, 0o755);
+}
+
 function unavailable(
 	platform: string,
 	reason: ToolUnavailableResult["reason"] = "download_failed",
@@ -54,7 +63,6 @@ describe("tools manager", () => {
 		delete process.env.PI_OFFLINE;
 		toolState.platform = "linux";
 		toolState.architecture = "x64";
-		toolState.extractZip = async () => {};
 	});
 
 	afterEach(() => {
@@ -129,9 +137,7 @@ describe("tools manager", () => {
 			)
 			.mockResolvedValueOnce(new Response(new Uint8Array([1]), { status: 200 }));
 		vi.stubGlobal("fetch", fetchMock);
-		toolState.extractZip = async (_source, options) => {
-			writeExecutable(join(options.dir, "rg.exe"));
-		};
+		writePowerShellExtractor();
 
 		await expect(ensureToolWithStatus("rg")).resolves.toEqual({
 			status: "available",
@@ -149,13 +155,30 @@ describe("tools manager", () => {
 				.mockResolvedValueOnce(new Response(JSON.stringify({ tag_name: "15.1.0" }), { status: 200 }))
 				.mockResolvedValueOnce(new Response(new Uint8Array([1]), { status: 200 })),
 		);
-		toolState.extractZip = async (_source, options) => {
-			writeExecutable(join(options.dir, "rg.exe"), 1);
-		};
+		writePowerShellExtractor(1);
 
 		await expect(ensureToolWithStatus("rg")).resolves.toMatchObject({
 			status: "unavailable",
 			reason: "download_failed",
+		});
+		expect(existsSync(join(toolState.toolsDir, "rg.exe"))).toBe(false);
+	});
+
+	it("reports PowerShell ZIP extraction failures without leaving a managed binary", async () => {
+		toolState.platform = "win32";
+		writeExecutable(join(pathDir, "powershell.exe"), 1);
+		vi.stubGlobal(
+			"fetch",
+			vi
+				.fn()
+				.mockResolvedValueOnce(new Response(JSON.stringify({ tag_name: "15.1.0" }), { status: 200 }))
+				.mockResolvedValueOnce(new Response(new Uint8Array([1]), { status: 200 })),
+		);
+
+		await expect(ensureToolWithStatus("rg")).resolves.toMatchObject({
+			status: "unavailable",
+			reason: "download_failed",
+			detail: expect.stringContaining("Failed to extract ZIP archive"),
 		});
 		expect(existsSync(join(toolState.toolsDir, "rg.exe"))).toBe(false);
 	});
