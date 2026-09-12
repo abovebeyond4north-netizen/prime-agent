@@ -41,6 +41,12 @@ class CleanupStateTest(unittest.TestCase):
             report_path.write_text(json.dumps({"errors": [MISSING_SANDBOX_KEY_ERROR], "sandboxes": []}))
             self.assertTrue(can_skip_cleanup_from_path(report_path))
 
+    def test_not_started_marker_allows_skip_without_report(self) -> None:
+        self.assertTrue(can_skip_cleanup(None, sandbox_run_started=False))
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "missing.json"
+            self.assertTrue(can_skip_cleanup_from_path(missing, sandbox_run_started=False))
+
 
 if __name__ == "__main__":
     unittest.main()

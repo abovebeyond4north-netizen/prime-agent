@@ -104,6 +104,16 @@ jobs:
           .benchmark-bootstrap/bin/pip install uv==0.12.9
           .benchmark-bootstrap/bin/uv sync --locked --project scripts/benchmarks
           echo "$PWD/.benchmark-bootstrap/bin" >> "$GITHUB_PATH"
+      - name: Mark sandbox execution as cleanup-relevant
+        run: |
+          mkdir -p scripts/benchmarks/cleanup-state
+          printf '%s\n' 'The sandbox benchmark command is allowed to start.' > scripts/benchmarks/cleanup-state/required
+      - name: Save cleanup-required marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+        with:
+          name: benchmark-cleanup-required-${{ github.run_attempt }}
+          path: scripts/benchmarks/cleanup-state/required
+          retention-days: 14
       - name: Benchmark main and PR in Prime sandboxes
         working-directory: scripts/benchmarks
         run: uv run --locked cli.py run
