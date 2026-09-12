@@ -89,11 +89,8 @@ function writePowerShellExtractor(binaryExitCode = 0): void {
 \t\tpowershellPath,
 \t\t`#!/bin/sh
 set -eu
-cat > "$PRIME_AGENT_DEST/rg.exe" <<'PRIME_AGENT_EOF'
-#!/bin/sh
-exit ${binaryExitCode}
-PRIME_AGENT_EOF
-chmod +x "$PRIME_AGENT_DEST/rg.exe"
+printf '#!/bin/sh\\nexit ${binaryExitCode}\\n' > "$PRIME_AGENT_DEST/rg.exe"
+/bin/chmod +x "$PRIME_AGENT_DEST/rg.exe"
 `,
 \t\t"utf8",
 \t);
