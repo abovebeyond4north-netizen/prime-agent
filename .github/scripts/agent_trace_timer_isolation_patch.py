@@ -88,42 +88,51 @@ replace_in_test(
 ''',
     '''\t\t\tbaseUrl: "https://api.example.test",
 \t\t\tfetchFn,
-\t\t\t// Keep the request timeout beyond the 60s scheduler window so this
-\t\t\t// scheduler test never advances through an unrelated request timeout.
-\t\t\trequestTimeoutMs: 120_000,
+\t\t\t// This test is about scheduler coalescing, not request timeout behavior.
+\t\t\t// Keep the request timeout outside the one-minute throttle window so
+\t\t\t// advancing the scheduler cannot accidentally select that timer instead.
+\t\t\trequestTimeoutMs: 600_000,
 \t\t});
 ''',
     "coalescing request timeout isolation",
 )
 replace_in_test(
     coalescing,
-    '''\t\t// New content lands while the first upload is still in flight.
+    '''\t\tsessionManager.appendMessage(createUserMessage("hello"));
+\t\tsessionManager.appendMessage(createAssistantMessage("hi"));
+\t\tawait advanceTimersUntil(() => calls.length === 1);
+
+\t\t// New content lands while the first upload is still in flight.
 \t\tsessionManager.appendMessage(createUserMessage("more"));
 \t\tsessionManager.appendMessage(createAssistantMessage("content"));
 \t\tawait advanceTimersUntil(() => vi.getTimerCount() > 0);
 \t\tawait vi.advanceTimersToNextTimerAsync();
 \t\texpect(calls).toHaveLength(1);
-
-\t\treleaseFetch();
 ''',
-    '''\t\t// New content lands while the first upload is still in flight. Wait for
-\t\t// persistence to arm the controller's throttle timer without advancing fake
-\t\t// time, then advance exactly that 60s scheduler window. The request timeout
-\t\t// is intentionally later, so no unrelated timer can satisfy this step.
+    '''\t\tconst firstScheduleAt = Date.now();
+\t\tsessionManager.appendMessage(createUserMessage("hello"));
+\t\tsessionManager.appendMessage(createAssistantMessage("hi"));
+\t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(1_000);
+\t\tconst firstUploadStartedAt = firstScheduleAt + 1_000;
+\t\tawait advanceTimersUntil(() => calls.length === 1);
+
+\t\t// The upload start is fixed by the 1s debounce timer, but while its async
+\t\t// preflight settles the test harness may advance unrelated fake timers. The
+\t\t// scheduler correctly arms the *remaining* part of the one-minute window,
+\t\t// not necessarily a fresh 60 seconds from the moment fetch becomes visible.
+\t\tconst elapsedSinceUploadStart = Math.max(0, Date.now() - firstUploadStartedAt);
+\t\tconst remainingThrottleDelay = Math.max(1_000, 60_000 - elapsedSinceUploadStart);
 \t\tconst timerCallStart = setTimeoutSpy.mock.calls.length;
 \t\tsessionManager.appendMessage(createUserMessage("more"));
 \t\tsessionManager.appendMessage(createAssistantMessage("content"));
-\t\tawait waitForAsyncWork(() =>
-\t\t\tsetTimeoutSpy.mock.calls
-\t\t\t\t.slice(timerCallStart)
-\t\t\t\t.some((call) => Number(call[1]) === 60_000),
-\t\t);
-\t\tawait vi.advanceTimersByTimeAsync(60_000);
+\t\tconst persistedScheduleDelays = setTimeoutSpy.mock.calls
+\t\t\t.slice(timerCallStart)
+\t\t\t.map((call) => Number(call[1]));
+\t\texpect(persistedScheduleDelays).toContain(remainingThrottleDelay);
+\t\tawait vi.advanceTimersByTimeAsync(remainingThrottleDelay);
 \t\texpect(calls).toHaveLength(1);
-
-\t\treleaseFetch();
 ''',
-    "coalescing scheduler synchronization block",
+    "coalescing remaining-throttle assertion",
 )
 
 throttled = "schedules automatic uploads at most once per minute and only after new entries persist"
@@ -132,38 +141,43 @@ replace_in_test(
     '''\t\t\tbaseUrl: "https://api.example.test",
 \t\t\tfetchFn: createFetchRecorder(calls),
 \t\t});
-''',
-    '''\t\t\tbaseUrl: "https://api.example.test",
-\t\t\tfetchFn: createFetchRecorder(calls),
-\t\t\trequestTimeoutMs: 120_000,
-\t\t});
-''',
-    "throttle request timeout isolation",
-)
-replace_in_test(
-    throttled,
-    '''\t\tawait advanceTimersUntil(() => calls.length === 1);
+
+\t\tsessionManager.appendMessage(createUserMessage("hello"));
+\t\tsessionManager.appendMessage(createAssistantMessage("hi"));
+\t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(1_000);
+\t\tawait advanceTimersUntil(() => calls.length === 1);
 
 \t\tsetTimeoutSpy.mockClear();
 \t\tsessionManager.appendMessage(createUserMessage("next"));
 \t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(60_000);
 ''',
-    '''\t\tawait advanceTimersUntil(() => calls.length === 1);
+    '''\t\t\tbaseUrl: "https://api.example.test",
+\t\t\tfetchFn: createFetchRecorder(calls),
+\t\t\trequestTimeoutMs: 600_000,
+\t\t});
+
+\t\tconst firstScheduleAt = Date.now();
+\t\tsessionManager.appendMessage(createUserMessage("hello"));
+\t\tsessionManager.appendMessage(createAssistantMessage("hi"));
+\t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(1_000);
+\t\tconst firstUploadStartedAt = firstScheduleAt + 1_000;
+\t\tawait advanceTimersUntil(() => calls.length === 1);
 
 \t\t// A fetch invocation is observable before its success cursor and controller
-\t\t// completion settle. Synchronize on the durable cursor before checking the
-\t\t// next persist's throttle schedule, without advancing fake time.
+\t\t// completion settle. Synchronize on the durable cursor without moving fake
+\t\t// time, then assert the exact remaining throttle window at the next persist.
 \t\tconst sessionFile = sessionManager.getSessionFile() as string;
 \t\tconst uploadedBodySize = Buffer.byteLength(readFileSync(sessionFile, "utf8"));
 \t\tawait waitForAsyncWork(() => readOutboxEntry(tempDir, sessionFile)?.size === uploadedBodySize);
 \t\tawait stat(new URL(import.meta.url));
+\t\tconst elapsedSinceUploadStart = Math.max(0, Date.now() - firstUploadStartedAt);
+\t\tconst remainingThrottleDelay = Math.max(1_000, 60_000 - elapsedSinceUploadStart);
 
 \t\tsetTimeoutSpy.mockClear();
 \t\tsessionManager.appendMessage(createUserMessage("next"));
-\t\tawait waitForAsyncWork(() => setTimeoutSpy.mock.calls.some((call) => Number(call[1]) === 60_000));
-\t\texpect(setTimeoutSpy.mock.calls.some((call) => Number(call[1]) === 60_000)).toBe(true);
+\t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(remainingThrottleDelay);
 ''',
-    "throttle durable-completion synchronization block",
+    "throttle remaining-window assertion",
 )
 
 path.write_text(text)
