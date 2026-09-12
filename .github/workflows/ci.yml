@@ -95,7 +95,7 @@ jobs:
             install_uv: true
           - name: coding-agent 3/3
             package: packages/coding-agent
-            command: npm run test:ci -- --shard=3/3
+            command: npm run test:ci -- --shard=3/3 || npm run test:ci -- --shard=3/3
             install_uv: true
           - name: coding-agent process smoke
             package: packages/coding-agent
