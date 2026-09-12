@@ -25,7 +25,7 @@ jobs:
           node-version: 22
 
       - name: Apply upstream maintenance identity fix
-        run: python .github/scripts/backport_maintenance_session_identity_v2.py
+        run: python .github/scripts/backport_maintenance_session_identity_v3.py
 
       - name: Validate backport
         run: |
