@@ -37,7 +37,12 @@ replace_once(
 replace_once(
     test,
     '''\tuploadAllAgentTraces,\n} from "../src/core/agent-traces.js";\n''',
-    '''\tuploadAllAgentTraces,\n\tuninstallAgentTraceUpload,\n} from "../src/core/agent-traces.js";\n''',
+    '''\tuninstallAgentTraceUpload,\n\tuploadAgentTraceFile,\n\tuploadAllAgentTraces,\n} from "../src/core/agent-traces.js";\n''',
+)
+replace_once(
+    test,
+    '''\tuploadAgentTraceFile,\n\tuninstallAgentTraceUpload,\n\tuploadAgentTraceFile,\n''',
+    '''\tuninstallAgentTraceUpload,\n\tuploadAgentTraceFile,\n''',
 )
 replace_once(
     test,
