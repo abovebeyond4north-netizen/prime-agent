@@ -23,75 +23,44 @@ jobs:
         with:
           node-version: 22
 
-      - name: Capture lockfile audit JSON
-        run: |
-          set +e
-          npm audit --package-lock-only --json > /tmp/npm-audit-lock.json
-          audit_status=$?
-          set -e
-          cat /tmp/npm-audit-lock.json
-          echo "lockfile npm audit exit status: ${audit_status}"
-
-      - name: Trace installed vulnerable dependency ownership
-        run: |
-          npm ci --ignore-scripts
-          echo "===== installed npm audit ====="
-          set +e
-          npm audit --json > /tmp/npm-audit-installed.json
-          audit_status=$?
-          set -e
-          cat /tmp/npm-audit-installed.json
-          echo "installed npm audit exit status: ${audit_status}"
-          for package in extract-zip nanoid protobufjs @vitest/mocker vitest; do
-            echo "===== npm explain ${package} ====="
-            npm explain "$package" || true
-          done
-          echo "===== exact installed versions ====="
-          npm ls nanoid protobufjs extract-zip @vitest/mocker vitest --all --json || true
-          node - <<'NODE'
-          const fs = require('node:fs');
-          const path = require('node:path');
-          for (const name of ['nanoid', 'protobufjs', 'extract-zip', '@vitest/mocker', 'vitest']) {
-            try {
-              const packageJson = require.resolve(`${name}/package.json`);
-              const pkg = JSON.parse(fs.readFileSync(packageJson, 'utf8'));
-              console.log(`${name} => ${pkg.version} @ ${path.dirname(packageJson)}`);
-            } catch (error) {
-              console.log(`${name} => unresolved: ${error.message}`);
-            }
-          }
-          NODE
-          echo "===== source references ====="
-          git grep -n -E 'extract-zip|nanoid|protobufjs' -- ':!package-lock.json' || true
-
-      - name: Compute compatible npm audit fixes
+      - name: Capture current audit
         run: |
           cp package-lock.json /tmp/package-lock.before.json
           set +e
-          npm audit fix --package-lock-only --ignore-scripts
-          fix_status=$?
+          npm audit --package-lock-only --json > /tmp/npm-audit-before.json
+          before_status=$?
           set -e
-          echo "npm audit fix exit status: ${fix_status}"
-          echo "===== package manifest diff ====="
-          git diff -- package.json package-lock.json packages/*/package.json || true
-          echo "===== post-fix lockfile audit ====="
+          cat /tmp/npm-audit-before.json
+          echo "pre-update audit exit status: ${before_status}"
+
+      - name: Resolve only compatible patched versions
+        run: |
+          npm update vitest nanoid protobufjs --package-lock-only --ignore-scripts
+          cp package-lock.json /tmp/package-lock.targeted.json
+          echo "===== targeted lockfile diff ====="
+          git diff -- package-lock.json
+          echo "===== manifest drift check ====="
+          test -z "$(git diff --name-only -- package.json packages/*/package.json)"
+
+      - name: Verify targeted installed tree
+        run: |
+          npm ci --ignore-scripts
+          npm ls vitest @vitest/mocker nanoid protobufjs --all
           set +e
-          npm audit --package-lock-only --json > /tmp/npm-audit-after.json
+          npm audit --json > /tmp/npm-audit-after.json
           after_status=$?
           set -e
           cat /tmp/npm-audit-after.json
-          echo "post-fix audit exit status: ${after_status}"
-          cp package-lock.json /tmp/package-lock.fixed.json
+          echo "post-update audit exit status: ${after_status}"
 
-      - name: Upload audit-fix evidence
+      - name: Upload targeted-update evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
-          name: npm-audit-fix-evidence
+          name: npm-targeted-update-evidence
           path: |
             /tmp/package-lock.before.json
-            /tmp/package-lock.fixed.json
-            /tmp/npm-audit-lock.json
-            /tmp/npm-audit-installed.json
+            /tmp/package-lock.targeted.json
+            /tmp/npm-audit-before.json
             /tmp/npm-audit-after.json
           if-no-files-found: error
           retention-days: 7
