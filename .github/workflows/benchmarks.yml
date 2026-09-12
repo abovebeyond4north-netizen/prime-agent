@@ -41,7 +41,7 @@ jobs:
       - name: Install benchmark tooling
         run: |
           python3 -m venv .benchmark-bootstrap
-          .benchmark-bootstrap/bin/pip install uv==0.12.9
+          .benchmark-bootstrap/bin/pip install uv==0.12.13
           .benchmark-bootstrap/bin/uv sync --locked --project scripts/benchmarks
           echo "$PWD/.benchmark-bootstrap/bin" >> "$GITHUB_PATH"
       - name: Resolve exact revisions
@@ -101,7 +101,7 @@ jobs:
       - name: Install benchmark tooling
         run: |
           python3 -m venv .benchmark-bootstrap
-          .benchmark-bootstrap/bin/pip install uv==0.12.9
+          .benchmark-bootstrap/bin/pip install uv==0.12.13
           .benchmark-bootstrap/bin/uv sync --locked --project scripts/benchmarks
           echo "$PWD/.benchmark-bootstrap/bin" >> "$GITHUB_PATH"
       - name: Mark sandbox execution as cleanup-relevant
