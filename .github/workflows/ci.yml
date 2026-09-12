@@ -136,7 +136,7 @@ jobs:
       - name: Install uv
         if: matrix.install_uv
         run: |
-          python3 -m pip install --user uv
+          python3 -m pip install --user uv==0.12.13
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Test
