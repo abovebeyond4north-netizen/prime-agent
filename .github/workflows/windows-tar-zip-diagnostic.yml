@@ -1,0 +1,86 @@
+name: Windows tar ZIP diagnostic
+
+on:
+  push:
+    branches:
+      - security/validate-windows-tar-zip
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - name: Inspect built-in tar
+        shell: pwsh
+        run: |
+          Get-Command tar | Format-List Name,Source,Version
+          tar --version
+
+      - name: Build regular and malicious ZIP fixtures
+        shell: pwsh
+        run: |
+          @'
+          import os, stat, zipfile
+          from pathlib import Path
+
+          root = Path(os.environ['RUNNER_TEMP']) / 'prime-agent-zip-diagnostic'
+          root.mkdir(parents=True, exist_ok=True)
+
+          with zipfile.ZipFile(root / 'regular.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+              z.writestr('ripgrep-15.1.0-x86_64-pc-windows-msvc/rg.exe', b'prime-agent-test-binary')
+
+          with zipfile.ZipFile(root / 'traversal.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+              z.writestr('../escaped.txt', b'escape-attempt')
+              z.writestr('safe.txt', b'safe')
+
+          with zipfile.ZipFile(root / 'symlink.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+              link = zipfile.ZipInfo('link')
+              link.create_system = 3
+              link.external_attr = (stat.S_IFLNK | 0o777) << 16
+              z.writestr(link, '../outside')
+              z.writestr('link/pwn.txt', b'symlink-escape-attempt')
+          '@ | python -
+
+      - name: Verify regular ZIP extraction
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
+          $out = Join-Path $root 'regular-out'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          tar -xf (Join-Path $root 'regular.zip') -C $out
+          if ($LASTEXITCODE -ne 0) { throw "regular ZIP extraction failed: $LASTEXITCODE" }
+          $binary = Join-Path $out 'ripgrep-15.1.0-x86_64-pc-windows-msvc\rg.exe'
+          if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) { throw 'regular ZIP did not produce rg.exe' }
+          if ((Get-Content -LiteralPath $binary -Raw) -ne 'prime-agent-test-binary') { throw 'regular ZIP content mismatch' }
+
+      - name: Prove parent traversal cannot escape extraction root
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
+          $out = Join-Path $root 'traversal-out'
+          $escaped = Join-Path $root 'escaped.txt'
+          Remove-Item -LiteralPath $escaped -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          tar -xf (Join-Path $root 'traversal.zip') -C $out 2>&1 | Write-Host
+          $status = $LASTEXITCODE
+          if (Test-Path -LiteralPath $escaped) { throw 'tar wrote ../escaped.txt outside the extraction root' }
+          Write-Host "Traversal archive exit status: $status; no outside write occurred."
+
+      - name: Prove symlink path cannot redirect a later archive write
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
+          $out = Join-Path $root 'symlink-out'
+          $outside = Join-Path $root 'outside'
+          $escaped = Join-Path $outside 'pwn.txt'
+          Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $outside -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          New-Item -ItemType Directory -Force -Path $outside | Out-Null
+          tar -xf (Join-Path $root 'symlink.zip') -C $out 2>&1 | Write-Host
+          $status = $LASTEXITCODE
+          if (Test-Path -LiteralPath $escaped) { throw 'tar followed an archive symlink and wrote outside the extraction root' }
+          Write-Host "Symlink archive exit status: $status; no outside write occurred."
