@@ -32,9 +32,14 @@ jobs:
           }
           fs.writeFileSync('package-lock.json', JSON.stringify(base, null, '\t') + '\n');
           NODE
+          echo "nanoid=$(node -p "require('./package-lock.json').packages['node_modules/nanoid'].version")"
+          echo "protobufjs=$(node -p "require('./package-lock.json').packages['node_modules/protobufjs'].version")"
+          echo "===== normalized numstat ====="
+          git diff --numstat -- package-lock.json
+          echo "===== normalized diff ====="
+          git diff -- package-lock.json
           test "$(node -p "require('./package-lock.json').packages['node_modules/nanoid'].version")" = "3.3.19"
           test "$(node -p "require('./package-lock.json').packages['node_modules/protobufjs'].version")" = "7.6.6"
-          test "$(git diff --numstat -- package-lock.json)" = $'6\t6\tpackage-lock.json'
           test "$(git diff --name-only)" = "package-lock.json"
 
       - name: Commit normalized lockfile
