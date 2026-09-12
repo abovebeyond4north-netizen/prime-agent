@@ -79,7 +79,7 @@ describe("SubagentSummaryLine", () => {
 		}
 	});
 
-	it("counts only direct children using running, idle, and inactive status projections", () => {
+	it("counts reachable descendants using running, idle, and inactive status projections", () => {
 		const children = [
 			child("running", "running"),
 			child("queued", "queued"),
@@ -94,8 +94,8 @@ describe("SubagentSummaryLine", () => {
 		];
 
 		expect(countDirectSubagentStatuses(children, undefined)).toEqual({
-			total: 8,
-			running: 3,
+			total: 9,
+			running: 4,
 			idle: 3,
 			inactive: 2,
 		});
