@@ -37,21 +37,7 @@ jobs:
         run: |
           skip=false
           if [ "$RESULTS_OUTCOME" = success ]; then
-            skip=$(python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          report_path = Path("results/report.json")
-          try:
-              report = json.loads(report_path.read_text())
-          except (OSError, json.JSONDecodeError):
-              print("false")
-          else:
-              missing_key = "Repository secret PRIME_SANDBOX_API_KEY is not configured" in report.get("errors", [])
-              no_sandboxes = report.get("sandboxes") == []
-              print("true" if missing_key and no_sandboxes else "false")
-          PY
-            )
+            skip=$(python3 cleanup_state.py results/report.json)
           fi
           echo "skip=$skip" >> "$GITHUB_OUTPUT"
           if [ "$skip" = true ]; then
