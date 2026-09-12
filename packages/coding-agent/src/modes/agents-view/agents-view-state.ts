@@ -1,4 +1,4 @@
-import { basename, resolve } from "node:path";
+import { basename, isAbsolute, resolve } from "node:path";
 import { canonicalizePath } from "../../utils/paths.js";
 import type { AgentConnectionHeartbeat, AgentConnectionSavedSessionInfo } from "../agent-connection/index.js";
 import { rosterAgentIdForSummary } from "../daemon/agent-roster.js";
@@ -140,8 +140,37 @@ function formatAgeLabel(timestamp: string): string {
 	return minutes < 120 ? `${minutes}m ago` : `${Math.round(minutes / 60)}h ago`;
 }
 
+const SESSION_PATH_CACHE_LIMIT = 4096;
+const SESSION_PATH_CACHE_TTL_MS = 60_000;
+interface CachedSessionPath {
+	value: string;
+	expiresAt: number;
+}
+
+// UI-only cache: canonicalizing session aliases can hit the filesystem on every
+// row-model rebuild. Cache both successful resolutions and missing-path fallbacks;
+// file or symlink changes become visible after the short TTL.
+const canonicalSessionPathCache = new Map<string, CachedSessionPath>();
+
 function canonicalSessionPath(path: string): string {
-	return resolve(canonicalizePath(path));
+	const key = isAbsolute(path) ? path : `${process.cwd()}\0${path}`;
+	const now = Date.now();
+	const cached = canonicalSessionPathCache.get(key);
+	if (cached) {
+		canonicalSessionPathCache.delete(key);
+		if (cached.expiresAt > now) {
+			canonicalSessionPathCache.set(key, cached);
+			return cached.value;
+		}
+	}
+
+	const value = resolve(canonicalizePath(path));
+	if (canonicalSessionPathCache.size >= SESSION_PATH_CACHE_LIMIT) {
+		const oldestKey = canonicalSessionPathCache.keys().next().value;
+		if (oldestKey !== undefined) canonicalSessionPathCache.delete(oldestKey);
+	}
+	canonicalSessionPathCache.set(key, { value, expiresAt: now + SESSION_PATH_CACHE_TTL_MS });
+	return value;
 }
 
 function fileIdentity(path: string): string {
