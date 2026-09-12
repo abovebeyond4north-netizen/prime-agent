@@ -20,6 +20,24 @@ jobs:
         with:
           ref: main
           persist-credentials: false
+      - name: Check whether sandbox execution could have started
+        id: sandbox_state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGIN_RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          marker_name="benchmark-cleanup-required-${RUN_ATTEMPT}"
+          marker_count=$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${ORIGIN_RUN_ID}/artifacts?per_page=100" \
+            --jq ".artifacts | map(select(.name == \"${marker_name}\")) | length")
+          if [ "$marker_count" -gt 0 ]; then
+            echo "started=true" >> "$GITHUB_OUTPUT"
+            echo "Trusted cleanup marker found; sandbox execution may have started."
+          else
+            echo "started=false" >> "$GITHUB_OUTPUT"
+            echo "No cleanup marker exists; sandbox execution never reached its start boundary."
+          fi
       - name: Download benchmark results for cleanup decision
         id: cleanup_results
         continue-on-error: true
@@ -34,28 +52,19 @@ jobs:
         working-directory: scripts/benchmarks
         env:
           RESULTS_OUTCOME: ${{ steps.cleanup_results.outcome }}
+          SANDBOX_RUN_STARTED: ${{ steps.sandbox_state.outputs.started }}
         run: |
           skip=false
-          if [ "$RESULTS_OUTCOME" = success ]; then
-            skip=$(python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          report_path = Path("results/report.json")
-          try:
-              report = json.loads(report_path.read_text())
-          except (OSError, json.JSONDecodeError):
-              print("false")
-          else:
-              missing_key = "Repository secret PRIME_SANDBOX_API_KEY is not configured" in report.get("errors", [])
-              no_sandboxes = report.get("sandboxes") == []
-              print("true" if missing_key and no_sandboxes else "false")
-          PY
-            )
+          args=()
+          if [ "$SANDBOX_RUN_STARTED" != true ]; then
+            args+=(--sandbox-run-not-started)
+          fi
+          if [ "$RESULTS_OUTCOME" = success ] || [ "$SANDBOX_RUN_STARTED" != true ]; then
+            skip=$(python3 cleanup_state.py results/report.json "${args[@]}")
           fi
           echo "skip=$skip" >> "$GITHUB_OUTPUT"
           if [ "$skip" = true ]; then
-            echo "Originating benchmark run recorded a missing sandbox key and zero sandboxes; cleanup is unnecessary."
+            echo "Trusted evidence proves sandbox cleanup is unnecessary."
           else
             echo "Cleanup remains required; missing or ambiguous evidence will not suppress cleanup."
           fi
