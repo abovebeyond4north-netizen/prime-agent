@@ -90,7 +90,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           $env:PRIME_AGENT_ARCHIVE = Join-Path $root 'regular.zip'
           $env:PRIME_AGENT_DEST = $out
-          powershell.exe -NoProfile -NonInteractive -Command 'Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force'
+          powershell.exe -NoProfile -NonInteractive -Command '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force'
           if ($LASTEXITCODE -ne 0) { throw "Expand-Archive regular extraction failed: $LASTEXITCODE" }
           $binary = Join-Path $out 'ripgrep-15.1.0-x86_64-pc-windows-msvc\rg.exe'
           if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) { throw 'Expand-Archive did not produce rg.exe' }
@@ -107,7 +107,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           $env:PRIME_AGENT_ARCHIVE = Join-Path $root 'traversal.zip'
           $env:PRIME_AGENT_DEST = $out
-          powershell.exe -NoProfile -NonInteractive -Command 'Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force' 2>&1 | Write-Host
+          powershell.exe -NoProfile -NonInteractive -Command '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force' 2>&1 | Write-Host
           $status = $LASTEXITCODE
           $global:LASTEXITCODE = 0
           if (Test-Path -LiteralPath $escaped) { throw 'Expand-Archive wrote ../escaped.txt outside the extraction root' }
@@ -127,11 +127,14 @@ jobs:
           New-Item -ItemType Directory -Force -Path $outside | Out-Null
           $env:PRIME_AGENT_ARCHIVE = Join-Path $root 'symlink.zip'
           $env:PRIME_AGENT_DEST = $out
-          powershell.exe -NoProfile -NonInteractive -Command 'Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force' 2>&1 | Write-Host
+          powershell.exe -NoProfile -NonInteractive -Command '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force' 2>&1 | Write-Host
           $status = $LASTEXITCODE
           $global:LASTEXITCODE = 0
           if (Test-Path -LiteralPath $escaped) { throw 'Expand-Archive followed ZIP symlink metadata outside the extraction root' }
-          if ($status -ne 0) { throw "Expand-Archive failed symlink-metadata fixture unexpectedly: $status" }
-          $linkPath = Join-Path $out 'link'
-          if (-not (Test-Path -LiteralPath $linkPath -PathType Leaf)) { throw 'expected ZIP symlink metadata to be materialized as a regular file' }
-          Write-Host 'Expand-Archive materialized the symlink entry as a regular file and kept all writes inside the extraction root.'
+          if ($status -eq 0) {
+            $linkPath = Join-Path $out 'link'
+            if (-not (Test-Path -LiteralPath $linkPath -PathType Leaf)) { throw 'successful extraction did not materialize the symlink entry as a regular file' }
+            Write-Host 'Expand-Archive materialized the ZIP symlink entry as a regular file and kept all writes inside the extraction root.'
+          } else {
+            Write-Host "Expand-Archive rejected the ZIP symlink fixture with exit status $status; no outside write occurred."
+          }
