@@ -66,8 +66,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           tar -xf (Join-Path $root 'traversal.zip') -C $out 2>&1 | Write-Host
           $status = $LASTEXITCODE
+          $global:LASTEXITCODE = 0
           if (Test-Path -LiteralPath $escaped) { throw 'tar wrote ../escaped.txt outside the extraction root' }
-          Write-Host "Traversal archive exit status: $status; no outside write occurred."
+          if ($status -eq 0) { throw 'tar accepted a ZIP containing a parent traversal entry' }
+          Write-Host "Traversal archive rejected with exit status $status; no outside write occurred."
 
       - name: Prove symlink path cannot redirect a later archive write
         shell: pwsh
@@ -82,5 +84,6 @@ jobs:
           New-Item -ItemType Directory -Force -Path $outside | Out-Null
           tar -xf (Join-Path $root 'symlink.zip') -C $out 2>&1 | Write-Host
           $status = $LASTEXITCODE
+          $global:LASTEXITCODE = 0
           if (Test-Path -LiteralPath $escaped) { throw 'tar followed an archive symlink and wrote outside the extraction root' }
           Write-Host "Symlink archive exit status: $status; no outside write occurred."
