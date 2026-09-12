@@ -37,7 +37,14 @@ jobs:
 
       - name: Commit validated patch
         run: |
-          changed="$(git diff --name-only)"
+          git add \
+            packages/coding-agent/.changes/maintenance-session-identity.md \
+            packages/coding-agent/src/core/agent-session.ts \
+            packages/coding-agent/src/core/compaction/branch-summarization.ts \
+            packages/coding-agent/src/core/compaction/compaction.ts \
+            packages/coding-agent/src/core/refinement/refinement.ts \
+            packages/coding-agent/test/suite/regressions/6009-opencode-maintenance-session.test.ts
+          changed="$(git diff --cached --name-only)"
           echo "$changed"
           for required in \
             packages/coding-agent/.changes/maintenance-session-identity.md \
@@ -51,12 +58,5 @@ jobs:
           test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 6
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            packages/coding-agent/.changes/maintenance-session-identity.md \
-            packages/coding-agent/src/core/agent-session.ts \
-            packages/coding-agent/src/core/compaction/branch-summarization.ts \
-            packages/coding-agent/src/core/compaction/compaction.ts \
-            packages/coding-agent/src/core/refinement/refinement.ts \
-            packages/coding-agent/test/suite/regressions/6009-opencode-maintenance-session.test.ts
           git commit -m "fix: retain session identity for maintenance calls"
           git push origin HEAD:fix/maintenance-session-identity
