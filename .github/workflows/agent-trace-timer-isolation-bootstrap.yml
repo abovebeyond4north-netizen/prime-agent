@@ -1,0 +1,67 @@
+name: Agent trace scheduler timer isolation bootstrap
+
+on:
+  push:
+    branches:
+      - fix/agent-trace-scheduler-timer-isolation
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: fix/agent-trace-scheduler-timer-isolation
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply test-only timer isolation patch
+        run: python3 .github/scripts/agent_trace_timer_isolation_patch.py
+
+      - name: Stress the two scheduler regressions
+        working-directory: packages/coding-agent
+        run: |
+          for iteration in $(seq 1 30); do
+            echo "scheduler isolation validation ${iteration}/30"
+            npx vitest --run test/agent-traces.test.ts -t "coalesces new content that persists during an in-flight upload into one follow-up upload|schedules automatic uploads at most once per minute and only after new entries persist"
+          done
+
+      - name: Stress Retry-After cleanup regression
+        working-directory: packages/coding-agent
+        run: |
+          for iteration in $(seq 1 20); do
+            echo "Retry-After validation ${iteration}/20"
+            npx vitest --run test/agent-traces.test.ts -t "honors an advertised Retry-After on the next scheduled cycle without blocking"
+          done
+
+      - name: Repeat complete agent-traces file
+        working-directory: packages/coding-agent
+        run: |
+          for iteration in $(seq 1 5); do
+            echo "agent-traces full-file validation ${iteration}/5"
+            npx vitest --run test/agent-traces.test.ts
+          done
+
+      - name: Commit validated test repair
+        run: |
+          changed="$(git diff --name-only)"
+          printf '%s\n' "$changed"
+          test "$changed" = "packages/coding-agent/test/agent-traces.test.ts"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/coding-agent/test/agent-traces.test.ts
+          git commit -m "test: isolate agent-trace scheduler timers"
+          git push origin HEAD:fix/agent-trace-scheduler-timer-isolation
