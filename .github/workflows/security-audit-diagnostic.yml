@@ -63,3 +63,35 @@ jobs:
           NODE
           echo "===== source references ====="
           git grep -n -E 'extract-zip|nanoid|protobufjs' -- ':!package-lock.json' || true
+
+      - name: Compute compatible npm audit fixes
+        run: |
+          cp package-lock.json /tmp/package-lock.before.json
+          set +e
+          npm audit fix --package-lock-only --ignore-scripts
+          fix_status=$?
+          set -e
+          echo "npm audit fix exit status: ${fix_status}"
+          echo "===== package manifest diff ====="
+          git diff -- package.json package-lock.json packages/*/package.json || true
+          echo "===== post-fix lockfile audit ====="
+          set +e
+          npm audit --package-lock-only --json > /tmp/npm-audit-after.json
+          after_status=$?
+          set -e
+          cat /tmp/npm-audit-after.json
+          echo "post-fix audit exit status: ${after_status}"
+          cp package-lock.json /tmp/package-lock.fixed.json
+
+      - name: Upload audit-fix evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+        with:
+          name: npm-audit-fix-evidence
+          path: |
+            /tmp/package-lock.before.json
+            /tmp/package-lock.fixed.json
+            /tmp/npm-audit-lock.json
+            /tmp/npm-audit-installed.json
+            /tmp/npm-audit-after.json
+          if-no-files-found: error
+          retention-days: 7
