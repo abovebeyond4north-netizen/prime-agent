@@ -38,9 +38,7 @@ class CleanupStateTest(unittest.TestCase):
     def test_path_loader_accepts_exact_proof(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             report_path = Path(tmp) / "report.json"
-            report_path.write_text(
-                json.dumps({"errors": [MISSING_SANDBOX_KEY_ERROR], "sandboxes": []})
-            )
+            report_path.write_text(json.dumps({"errors": [MISSING_SANDBOX_KEY_ERROR], "sandboxes": []}))
             self.assertTrue(can_skip_cleanup_from_path(report_path))
 
 
