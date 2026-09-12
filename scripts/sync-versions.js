@@ -15,6 +15,7 @@ const packageDirs = readdirSync(packagesDir, { withFileTypes: true })
 
 const packages = {};
 const versionMap = {};
+let readFailed = false;
 
 for (const dir of packageDirs) {
 	const pkgPath = join(packagesDir, dir, 'package.json');
@@ -24,7 +25,13 @@ for (const dir of packageDirs) {
 		versionMap[pkg.name] = pkg.version;
 	} catch (e) {
 		console.error(`Failed to read ${pkgPath}:`, e.message);
+		readFailed = true;
 	}
+}
+
+if (readFailed) {
+	console.error('\n❌ ERROR: Refusing to sync versions because one or more workspace manifests could not be read.');
+	process.exit(1);
 }
 
 console.log('Current versions:');
