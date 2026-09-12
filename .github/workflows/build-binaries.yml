@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   release-context:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -115,8 +115,28 @@ jobs:
           echo "Production: $publish_production ${production_version:+v${production_version}}"
           echo "Beta: $publish_beta ${beta_version:+v${beta_version}}"
 
+      - name: Validate release configuration
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          missing=()
+          for name in R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET R2_ENDPOINT_URL R2_PUBLIC_BASE_URL; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -ne 0 ]; then
+            printf 'Missing required release configuration: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+          echo "Release configuration preflight passed."
+
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: release-context
     permissions:
       contents: read
@@ -224,7 +244,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [release-context, build]
     permissions:
       contents: write
