@@ -1,0 +1,74 @@
+name: Trace upload teardown bootstrap
+
+on:
+  push:
+    branches:
+      - ci/trace-upload-drain-isolation
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ci/trace-upload-drain-isolation
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply deterministic teardown patch
+        run: |
+          python .github/scripts/trace_upload_drain_patch.py
+          rm packages/coding-agent/test/setup/agent-trace-cleanup.ts
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build and check
+        run: |
+          npm run build
+          npm run check
+
+      - name: Stress agent trace timer lifecycle
+        working-directory: packages/coding-agent
+        run: |
+          for iteration in $(seq 1 20); do
+            echo "Retry-After validation ${iteration}/20"
+            npx vitest --run test/agent-traces.test.ts -t "honors an advertised Retry-After on the next scheduled cycle without blocking"
+          done
+          for iteration in $(seq 1 10); do
+            echo "Full agent-traces validation ${iteration}/10"
+            npx vitest --run test/agent-traces.test.ts
+          done
+
+      - name: Validate coding-agent shard 3/3
+        working-directory: packages/coding-agent
+        run: npm run test:ci -- --shard=3/3
+
+      - name: Commit validated repair
+        run: |
+          changed="$(git diff --name-only)"
+          echo "$changed"
+          for required in \
+            packages/coding-agent/src/core/agent-traces.ts \
+            packages/coding-agent/test/agent-traces.test.ts \
+            packages/coding-agent/vitest.config.ts \
+            packages/coding-agent/test/setup/agent-trace-cleanup.ts \
+            packages/coding-agent/.changes/trace-upload-deterministic-teardown.md; do
+            echo "$changed" | grep -Fx "$required"
+          done
+          test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 5
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/coding-agent/src/core/agent-traces.ts packages/coding-agent/test/agent-traces.test.ts packages/coding-agent/vitest.config.ts packages/coding-agent/test/setup/agent-trace-cleanup.ts packages/coding-agent/.changes/trace-upload-deterministic-teardown.md
+          git commit -m "test: drain agent trace uploads before teardown"
+          git push origin HEAD:ci/trace-upload-drain-isolation
