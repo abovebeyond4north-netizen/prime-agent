@@ -14,10 +14,7 @@ function snapshot(
 	return { id, label: id, status, sessionDir: `/tmp/${id}`, ...overrides };
 }
 
-function roster(
-	id: string,
-	overrides: Partial<SessionSummary> = {},
-): SessionSummary {
+function roster(id: string, overrides: Partial<SessionSummary> = {}): SessionSummary {
 	return {
 		id,
 		sessionId: id,
