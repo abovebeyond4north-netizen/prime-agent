@@ -11,7 +11,6 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: "node",
-		setupFiles: ["./test/setup/agent-trace-cleanup.ts"],
 		testTimeout: 30000,
 		env: { DO_NOT_TRACK: "1" },
 		tags: [

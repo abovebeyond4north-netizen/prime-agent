@@ -1,0 +1,1 @@
+- Made agent-trace test teardown deterministic by draining scheduled uploads before removing temporary files.

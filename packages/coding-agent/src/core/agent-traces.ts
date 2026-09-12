@@ -1068,6 +1068,7 @@ class AgentTraceUploadController {
 	private inFlight: Promise<void> | undefined;
 	private lastUploadStartedAt: number | undefined;
 	private notBeforeAt = 0;
+	private unsubscribePersist: (() => void) | undefined;
 
 	constructor(
 		private readonly sessionManager: SessionManager,
@@ -1076,6 +1077,23 @@ class AgentTraceUploadController {
 
 	update(options: AgentTraceUploadInstallOptions): void {
 		this.options = options;
+	}
+
+	attach(): void {
+		if (!this.unsubscribePersist) {
+			this.unsubscribePersist = this.sessionManager.onPersist(this.schedule);
+		}
+	}
+
+	async stop(): Promise<void> {
+		this.unsubscribePersist?.();
+		this.unsubscribePersist = undefined;
+		this.pending = false;
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = undefined;
+		}
+		await this.inFlight;
 	}
 
 	schedule = (): void => {
@@ -1166,5 +1184,16 @@ export function installAgentTraceUpload(sessionManager: SessionManager, options:
 
 	controller = new AgentTraceUploadController(sessionManager, options);
 	traceUploadControllers.set(sessionManager, controller);
-	sessionManager.onPersist(controller.schedule);
+	controller.attach();
+}
+
+export async function uninstallAgentTraceUpload(sessionManager: SessionManager): Promise<void> {
+	const controller = traceUploadControllers.get(sessionManager);
+	if (!controller) return;
+	traceUploadControllers.delete(sessionManager);
+	await controller.stop();
+	const sessionFile = sessionManager.getSessionFile();
+	if (sessionFile) {
+		locallyManagedSessionFiles.delete(sessionFile);
+	}
 }

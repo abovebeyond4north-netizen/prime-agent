@@ -10,8 +10,9 @@ import { ENV_AGENT_DIR, getAgentTracesLogPath } from "../src/config.js";
 import {
 	catchUpAgentTraceUploads,
 	findAgentTraceFiles,
-	installAgentTraceUpload,
+	installAgentTraceUpload as installAgentTraceUploadCore,
 	previewAgentTraceFile,
+	uninstallAgentTraceUpload,
 	uploadAgentTraceFile,
 	uploadAllAgentTraces,
 } from "../src/core/agent-traces.js";
@@ -23,6 +24,13 @@ import { SettingsManager } from "../src/core/settings-manager.js";
 interface FetchCall {
 	url: string;
 	init: RequestInit;
+}
+
+const installedTraceUploadManagers = new Set<SessionManager>();
+
+function installAgentTraceUpload(...args: Parameters<typeof installAgentTraceUploadCore>): void {
+	installedTraceUploadManagers.add(args[0]);
+	installAgentTraceUploadCore(...args);
 }
 
 function createAssistantMessage(text: string): AssistantMessage {
@@ -149,7 +157,11 @@ describe("agent trace upload", () => {
 		delete process.env.PRIME_API_BASE_URL;
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
+		for (const sessionManager of installedTraceUploadManagers) {
+			await uninstallAgentTraceUpload(sessionManager);
+		}
+		installedTraceUploadManagers.clear();
 		vi.restoreAllMocks();
 		vi.useRealTimers();
 		if (originalAgentDir === undefined) {
