@@ -1,0 +1,65 @@
+name: Security audit diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  npm-audit:
+    name: Capture npm audit evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Capture lockfile audit JSON
+        run: |
+          set +e
+          npm audit --package-lock-only --json > /tmp/npm-audit-lock.json
+          audit_status=$?
+          set -e
+          cat /tmp/npm-audit-lock.json
+          echo "lockfile npm audit exit status: ${audit_status}"
+
+      - name: Trace installed vulnerable dependency ownership
+        run: |
+          npm ci --ignore-scripts
+          echo "===== installed npm audit ====="
+          set +e
+          npm audit --json > /tmp/npm-audit-installed.json
+          audit_status=$?
+          set -e
+          cat /tmp/npm-audit-installed.json
+          echo "installed npm audit exit status: ${audit_status}"
+          for package in extract-zip nanoid protobufjs @vitest/mocker vitest; do
+            echo "===== npm explain ${package} ====="
+            npm explain "$package" || true
+          done
+          echo "===== exact installed versions ====="
+          npm ls nanoid protobufjs extract-zip @vitest/mocker vitest --all --json || true
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          for (const name of ['nanoid', 'protobufjs', 'extract-zip', '@vitest/mocker', 'vitest']) {
+            try {
+              const packageJson = require.resolve(`${name}/package.json`);
+              const pkg = JSON.parse(fs.readFileSync(packageJson, 'utf8'));
+              console.log(`${name} => ${pkg.version} @ ${path.dirname(packageJson)}`);
+            } catch (error) {
+              console.log(`${name} => unresolved: ${error.message}`);
+            }
+          }
+          NODE
+          echo "===== source references ====="
+          git grep -n -E 'extract-zip|nanoid|protobufjs' -- ':!package-lock.json' || true
