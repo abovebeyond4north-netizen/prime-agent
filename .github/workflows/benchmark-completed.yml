@@ -27,7 +27,12 @@ jobs:
           echo "$PWD/.benchmark-bootstrap/bin" >> "$GITHUB_PATH"
       - name: Delete remaining run sandboxes
         working-directory: scripts/benchmarks
-        run: uv run --locked cli.py cleanup
+        run: |
+          if [ -z "$PRIME_SANDBOX_API_KEY" ]; then
+            echo "PRIME_SANDBOX_API_KEY is not configured; the benchmark runner cannot create sandboxes, so cleanup is unnecessary."
+            exit 0
+          fi
+          uv run --locked cli.py cleanup
         env:
           PRIME_SANDBOX_API_KEY: ${{ secrets.PRIME_SANDBOX_API_KEY }}
           PRIME_TEAM_ID: ${{ vars.PRIME_BENCHMARK_TEAM_ID }}
