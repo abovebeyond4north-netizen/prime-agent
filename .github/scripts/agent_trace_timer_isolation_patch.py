@@ -53,15 +53,15 @@ replace_once(
 \t}
 }
 
-async function waitForAsyncWork(condition: () => boolean): Promise<void> {
-\tfor (let step = 0; step < 200 && !condition(); step += 1) {
+async function waitForAsyncWork(condition: () => boolean, label: string): Promise<void> {
+\tfor (let step = 0; step < 5_000 && !condition(); step += 1) {
 \t\t// Yield through real filesystem I/O so promises and persistence callbacks can
 \t\t// settle without moving Vitest's fake clock or firing unrelated timers.
 \t\tawait stat(new URL(import.meta.url));
 \t\tawait Promise.resolve();
 \t}
 \tif (!condition()) {
-\t\tthrow new Error("Timed out waiting for asynchronous work to reach the expected condition");
+\t\tthrow new Error(`Timed out waiting for asynchronous work: ${label}`);
 \t}
 }
 ''',
@@ -123,7 +123,7 @@ replace_in_test(
 \t\t// Fire only the controller's known debounce. From here until the first
 \t\t// request finishes, async progress is observed without advancing fake time.
 \t\tawait vi.advanceTimersByTimeAsync(1_000);
-\t\tawait waitForAsyncWork(() => calls.length === 1);
+\t\tawait waitForAsyncWork(() => calls.length === 1, "first upload request");
 
 \t\t// New content lands while the first upload is still in flight. It should
 \t\t// record pending work and arm the one-minute throttle, but must not issue a
@@ -140,15 +140,16 @@ replace_in_test(
 \t\t// pending content. Wait for that re-arm with the clock frozen.
 \t\tconst completionTimerStart = setTimeoutSpy.mock.calls.length;
 \t\treleaseFetch();
-\t\tawait waitForAsyncWork(() =>
-\t\t\tsetTimeoutSpy.mock.calls.slice(completionTimerStart).some((call) => Number(call[1]) === 60_000),
+\t\tawait waitForAsyncWork(
+\t\t\t() => setTimeoutSpy.mock.calls.slice(completionTimerStart).some((call) => Number(call[1]) === 60_000),
+\t\t\t"follow-up scheduler re-arm",
 \t\t);
 \t\texpect(calls).toHaveLength(1);
 
 \t\tawait vi.advanceTimersByTimeAsync(59_999);
 \t\texpect(calls).toHaveLength(1);
 \t\tawait vi.advanceTimersByTimeAsync(1);
-\t\tawait waitForAsyncWork(() => calls.length === 2);
+\t\tawait waitForAsyncWork(() => calls.length === 2, "follow-up upload request");
 \t\tconst finalBody = readFileSync(sessionManager.getSessionFile() as string, "utf8");
 \t\texpect(calls[1].init.body).toBe(finalBody);
 \t\t// Drain the follow-up upload without moving time, then prove no third upload
@@ -156,6 +157,7 @@ replace_in_test(
 \t\tawait waitForAsyncWork(
 \t\t\t() =>
 \t\t\t\treadOutboxEntry(tempDir, sessionManager.getSessionFile() as string)?.size === Buffer.byteLength(finalBody),
+\t\t\t"follow-up upload cursor",
 \t\t);
 \t\tawait vi.advanceTimersByTimeAsync(60_000);
 \t\texpect(calls).toHaveLength(2);
@@ -188,14 +190,17 @@ replace_in_test(
 \t\tsessionManager.appendMessage(createAssistantMessage("hi"));
 \t\texpect(Number(setTimeoutSpy.mock.calls.at(-1)?.[1])).toBe(1_000);
 \t\tawait vi.advanceTimersByTimeAsync(1_000);
-\t\tawait waitForAsyncWork(() => calls.length === 1);
+\t\tawait waitForAsyncWork(() => calls.length === 1, "initial throttled upload request");
 
 \t\t// Fetch is observable before the upload cursor is durable. Wait for the
 \t\t// completed upload with fake time frozen, then verify the next persisted
 \t\t// entry is held for the full remaining minute.
 \t\tconst sessionFile = sessionManager.getSessionFile() as string;
 \t\tconst firstBodySize = Buffer.byteLength(readFileSync(sessionFile, "utf8"));
-\t\tawait waitForAsyncWork(() => readOutboxEntry(tempDir, sessionFile)?.size === firstBodySize);
+\t\tawait waitForAsyncWork(
+\t\t\t() => readOutboxEntry(tempDir, sessionFile)?.size === firstBodySize,
+\t\t\t"initial throttled upload cursor",
+\t\t);
 \t\tawait stat(new URL(import.meta.url));
 
 \t\tsetTimeoutSpy.mockClear();
@@ -204,7 +209,7 @@ replace_in_test(
 \t\tawait vi.advanceTimersByTimeAsync(59_999);
 \t\texpect(calls).toHaveLength(1);
 \t\tawait vi.advanceTimersByTimeAsync(1);
-\t\tawait waitForAsyncWork(() => calls.length === 2);
+\t\tawait waitForAsyncWork(() => calls.length === 2, "second throttled upload request");
 ''',
     "throttle deterministic boundary block",
 )
