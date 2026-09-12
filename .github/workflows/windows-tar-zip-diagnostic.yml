@@ -1,4 +1,4 @@
-name: Windows tar ZIP diagnostic
+name: Windows ZIP extraction diagnostic
 
 on:
   push:
@@ -13,11 +13,13 @@ jobs:
     runs-on: windows-2025
     timeout-minutes: 5
     steps:
-      - name: Inspect built-in tar
+      - name: Inspect Windows archive tools
         shell: pwsh
         run: |
           Get-Command tar | Format-List Name,Source,Version
           tar --version
+          Get-Command powershell.exe | Format-List Name,Source,Version
+          powershell.exe -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()'
 
       - name: Build regular and malicious ZIP fixtures
         shell: pwsh
@@ -44,38 +46,26 @@ jobs:
               z.writestr('link/pwn.txt', b'symlink-escape-attempt')
           '@ | python -
 
-      - name: Verify regular ZIP extraction
+      - name: Preserve evidence that bsdtar blocks parent traversal
         shell: pwsh
         run: |
           $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
-          $out = Join-Path $root 'regular-out'
-          New-Item -ItemType Directory -Force -Path $out | Out-Null
-          tar -xf (Join-Path $root 'regular.zip') -C $out
-          if ($LASTEXITCODE -ne 0) { throw "regular ZIP extraction failed: $LASTEXITCODE" }
-          $binary = Join-Path $out 'ripgrep-15.1.0-x86_64-pc-windows-msvc\rg.exe'
-          if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) { throw 'regular ZIP did not produce rg.exe' }
-          if ((Get-Content -LiteralPath $binary -Raw) -ne 'prime-agent-test-binary') { throw 'regular ZIP content mismatch' }
-
-      - name: Prove parent traversal cannot escape extraction root
-        shell: pwsh
-        run: |
-          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
-          $out = Join-Path $root 'traversal-out'
+          $out = Join-Path $root 'tar-traversal-out'
           $escaped = Join-Path $root 'escaped.txt'
           Remove-Item -LiteralPath $escaped -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           tar -xf (Join-Path $root 'traversal.zip') -C $out 2>&1 | Write-Host
           $status = $LASTEXITCODE
           $global:LASTEXITCODE = 0
-          if (Test-Path -LiteralPath $escaped) { throw 'tar wrote ../escaped.txt outside the extraction root' }
-          if ($status -eq 0) { throw 'tar accepted a ZIP containing a parent traversal entry' }
-          Write-Host "Traversal archive rejected with exit status $status; no outside write occurred."
+          if (Test-Path -LiteralPath $escaped) { throw 'bsdtar wrote ../escaped.txt outside the extraction root' }
+          if ($status -eq 0) { throw 'bsdtar accepted a ZIP containing a parent traversal entry' }
+          Write-Host "bsdtar rejected parent traversal with exit status $status."
 
-      - name: Prove symlink path cannot redirect a later archive write
+      - name: Preserve evidence that bsdtar follows ZIP symlink paths
         shell: pwsh
         run: |
           $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
-          $out = Join-Path $root 'symlink-out'
+          $out = Join-Path $root 'tar-symlink-out'
           $outside = Join-Path $root 'outside'
           $escaped = Join-Path $outside 'pwn.txt'
           Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction SilentlyContinue
@@ -85,5 +75,63 @@ jobs:
           tar -xf (Join-Path $root 'symlink.zip') -C $out 2>&1 | Write-Host
           $status = $LASTEXITCODE
           $global:LASTEXITCODE = 0
-          if (Test-Path -LiteralPath $escaped) { throw 'tar followed an archive symlink and wrote outside the extraction root' }
-          Write-Host "Symlink archive exit status: $status; no outside write occurred."
+          if (-not (Test-Path -LiteralPath $escaped -PathType Leaf)) {
+            throw 'expected diagnostic bsdtar symlink escape was not reproduced'
+          }
+          Write-Host "bsdtar symlink escape reproduced with exit status $status; tar is rejected as a production replacement."
+          Remove-Item -LiteralPath $outside -Recurse -Force
+
+      - name: Verify PowerShell extracts a regular ZIP
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
+          $out = Join-Path $root 'ps-regular-out'
+          Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $env:PRIME_AGENT_ARCHIVE = Join-Path $root 'regular.zip'
+          $env:PRIME_AGENT_DEST = $out
+          powershell.exe -NoProfile -NonInteractive -Command 'Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force'
+          if ($LASTEXITCODE -ne 0) { throw "Expand-Archive regular extraction failed: $LASTEXITCODE" }
+          $binary = Join-Path $out 'ripgrep-15.1.0-x86_64-pc-windows-msvc\rg.exe'
+          if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) { throw 'Expand-Archive did not produce rg.exe' }
+          if ((Get-Content -LiteralPath $binary -Raw) -ne 'prime-agent-test-binary') { throw 'Expand-Archive content mismatch' }
+
+      - name: Prove PowerShell blocks parent traversal
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
+          $out = Join-Path $root 'ps-traversal-out'
+          $escaped = Join-Path $root 'escaped.txt'
+          Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $escaped -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $env:PRIME_AGENT_ARCHIVE = Join-Path $root 'traversal.zip'
+          $env:PRIME_AGENT_DEST = $out
+          powershell.exe -NoProfile -NonInteractive -Command 'Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force' 2>&1 | Write-Host
+          $status = $LASTEXITCODE
+          $global:LASTEXITCODE = 0
+          if (Test-Path -LiteralPath $escaped) { throw 'Expand-Archive wrote ../escaped.txt outside the extraction root' }
+          if ($status -eq 0) { throw 'Expand-Archive accepted a ZIP containing a parent traversal entry' }
+          Write-Host "Expand-Archive rejected parent traversal with exit status $status; no outside write occurred."
+
+      - name: Prove PowerShell does not follow ZIP symlink metadata
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'prime-agent-zip-diagnostic'
+          $out = Join-Path $root 'ps-symlink-out'
+          $outside = Join-Path $root 'outside'
+          $escaped = Join-Path $outside 'pwn.txt'
+          Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $outside -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          New-Item -ItemType Directory -Force -Path $outside | Out-Null
+          $env:PRIME_AGENT_ARCHIVE = Join-Path $root 'symlink.zip'
+          $env:PRIME_AGENT_DEST = $out
+          powershell.exe -NoProfile -NonInteractive -Command 'Expand-Archive -LiteralPath $env:PRIME_AGENT_ARCHIVE -DestinationPath $env:PRIME_AGENT_DEST -Force' 2>&1 | Write-Host
+          $status = $LASTEXITCODE
+          $global:LASTEXITCODE = 0
+          if (Test-Path -LiteralPath $escaped) { throw 'Expand-Archive followed ZIP symlink metadata outside the extraction root' }
+          if ($status -ne 0) { throw "Expand-Archive failed symlink-metadata fixture unexpectedly: $status" }
+          $linkPath = Join-Path $out 'link'
+          if (-not (Test-Path -LiteralPath $linkPath -PathType Leaf)) { throw 'expected ZIP symlink metadata to be materialized as a regular file' }
+          Write-Host 'Expand-Archive materialized the symlink entry as a regular file and kept all writes inside the extraction root.'
