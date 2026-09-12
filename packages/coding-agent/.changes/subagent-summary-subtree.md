@@ -1,0 +1,1 @@
+- Fixed the chat subagent summary bar so nested running, idle, and inactive agents are counted across the full reachable subtree, including descendants behind cancelled or archived intermediary rows.
