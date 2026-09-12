@@ -15,11 +15,7 @@ def can_skip_cleanup(report: Any) -> bool:
 
     errors = report.get("errors")
     sandboxes = report.get("sandboxes")
-    return (
-        isinstance(errors, list)
-        and MISSING_SANDBOX_KEY_ERROR in errors
-        and sandboxes == []
-    )
+    return isinstance(errors, list) and MISSING_SANDBOX_KEY_ERROR in errors and sandboxes == []
 
 
 def can_skip_cleanup_from_path(report_path: Path) -> bool:
