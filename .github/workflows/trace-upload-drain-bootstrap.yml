@@ -50,6 +50,11 @@ jobs:
             npx vitest --run test/agent-traces.test.ts
           done
 
+      - name: Install uv
+        run: |
+          python3 -m pip install --user uv
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Validate coding-agent shard 3/3
         working-directory: packages/coding-agent
         run: npm run test:ci -- --shard=3/3
