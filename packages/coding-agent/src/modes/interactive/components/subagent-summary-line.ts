@@ -24,29 +24,58 @@ export function classifySubagentSnapshotStatus(child: AgentConnectionRlmChildAge
 	});
 }
 
+/**
+ * Count every reachable snapshot in the current subagent subtree. Cancelled snapshots do not count,
+ * but they remain traversal links so a live descendant is not hidden behind a cancelled parent.
+ * The legacy function name is retained to avoid widening this display-only change through callers.
+ */
 export function countDirectSubagentStatuses(
 	children: Iterable<AgentConnectionRlmChildAgentSnapshot>,
 	parentId: string | undefined,
 ): SubagentSummaryCounts {
 	const counts: SubagentSummaryCounts = { total: 0, running: 0, idle: 0, inactive: 0 };
-	for (const child of children) {
-		if (child.parentId !== parentId || child.status === "cancelled") continue;
-		counts.total += 1;
-		counts[classifySubagentSnapshotStatus(child)] += 1;
+	const reachableParents = new Set<string | undefined>([parentId]);
+	const pending = [...children];
+	let matched = true;
+	while (matched) {
+		matched = false;
+		for (let index = pending.length - 1; index >= 0; index--) {
+			const child = pending[index]!;
+			if (!reachableParents.has(child.parentId)) continue;
+			pending.splice(index, 1);
+			matched = true;
+			reachableParents.add(child.id);
+			if (child.status === "cancelled") continue;
+			counts.total += 1;
+			counts[classifySubagentSnapshotStatus(child)] += 1;
+		}
 	}
 	return counts;
 }
 
+/** Count live roster rows across the full reachable subtree; archived rows still link live descendants. */
 export function countRosterSubagentStatuses(
 	summaries: Iterable<SessionSummary>,
 	parent: { activeSessionId?: string | undefined; sessionId?: string | undefined; sessionFile?: string | undefined },
 ): SubagentSummaryCounts {
 	const counts: SubagentSummaryCounts = { total: 0, running: 0, idle: 0, inactive: 0 };
-	for (const child of summaries) {
-		if (child.runtimeKind !== "subagent" || child.lifecycle !== "live") continue;
-		if (!isDirectAgentChild(child, parent)) continue;
-		counts.total += 1;
-		counts[child.rosterStatus ?? classifySessionRosterStatus(child)] += 1;
+	const pending = [...summaries].filter((summary) => summary.runtimeKind === "subagent");
+	const parents: Array<{
+		activeSessionId?: string | undefined;
+		sessionId?: string | undefined;
+		sessionFile?: string | undefined;
+	}> = [parent];
+	for (let parentIndex = 0; parentIndex < parents.length; parentIndex++) {
+		const currentParent = parents[parentIndex]!;
+		for (let index = pending.length - 1; index >= 0; index--) {
+			const child = pending[index]!;
+			if (!isDirectAgentChild(child, currentParent)) continue;
+			pending.splice(index, 1);
+			parents.push(child);
+			if (child.lifecycle !== "live") continue;
+			counts.total += 1;
+			counts[child.rosterStatus ?? classifySessionRosterStatus(child)] += 1;
+		}
 	}
 	return counts;
 }
@@ -102,7 +131,7 @@ export class SubagentSummaryLine implements Component, Focusable {
 		if (width < 2) return lines;
 		const safeWidth = width;
 		const inner = safeWidth - 2;
-		const label = theme.fg("accent", "[1msubagents[22m");
+		const label = theme.fg("accent", "\u001b[1msubagents\u001b[22m");
 		const top = truncateToWidth(
 			`${theme.fg("border", "╭─ ")}${label}${theme.fg("border", ` ${"─".repeat(Math.max(0, inner - 3 - visibleWidth(label)))}╮`)}`,
 			safeWidth,
