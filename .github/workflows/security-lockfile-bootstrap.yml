@@ -1,0 +1,41 @@
+name: Security lockfile bootstrap
+
+on:
+  push:
+    branches:
+      - security/patch-transitive-audit-findings
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: security/patch-transitive-audit-findings
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Resolve targeted patched versions
+        run: |
+          npm update nanoid protobufjs --package-lock-only --ignore-scripts
+          test -z "$(git diff --name-only -- package.json packages/*/package.json)"
+          test "$(node -p "require('./package-lock.json').packages['node_modules/nanoid'].version")" = "3.3.19"
+          test "$(node -p "require('./package-lock.json').packages['node_modules/protobufjs'].version")" = "7.6.6"
+          changed="$(git diff --name-only)"
+          test "$changed" = "package-lock.json"
+
+      - name: Commit lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "security: patch transitive audit findings"
+          git push origin HEAD:security/patch-transitive-audit-findings
