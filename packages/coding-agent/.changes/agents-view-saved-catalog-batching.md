@@ -1,0 +1,1 @@
+- Improved agents-view saved-session loading by batching streamed catalog reconciliation, avoiding repeated full rebuilds while preserving progressive updates.
