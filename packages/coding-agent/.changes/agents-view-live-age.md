@@ -1,0 +1,1 @@
+- Reduced agents-view refresh overhead by rendering stale session ages from the current clock without rebuilding the row model.
