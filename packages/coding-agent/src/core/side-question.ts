@@ -90,7 +90,8 @@ export function startSideQuestion(
 			model,
 			systemPrompt: parent.state.systemPrompt,
 			messages: [...structuredClone(parent.state.messages), ...previousTurnMessages],
-			thinkingLevel: "off",
+			// Preserve the main request's thinking parameters so provider prompt caches can be reused.
+			thinkingLevel: parent.state.thinkingLevel,
 			serviceTier: parent.state.serviceTier,
 			tools: [],
 		},

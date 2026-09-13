@@ -1,0 +1,1 @@
+- Fixed `/btw` side questions missing the main conversation's prompt cache by lowering the reasoning level: side requests now preserve the session thinking level so providers whose cache keys include thinking parameters can reuse the cached conversation.
