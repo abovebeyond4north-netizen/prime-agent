@@ -28,12 +28,7 @@ export interface SideQuestionRun {
 }
 
 const SIDE_QUESTION_INSTRUCTION =
-	"The user asked this via `/btw` — a temporary side thread cloned from the main conversation to answer a question without interrupting the main work. Tools (including `ipython`) are deactivated in this side thread and return an error if called; answer using only the conversation context above. The user may send follow-up side questions. Nothing here is added to the main session, so don't start or plan main-session work from this thread.";
-
-const SIDE_QUESTION_TOOL_BLOCKED = "Tools are deactivated in this side thread. Answer from the conversation context.";
-
-/** Backstop for a model that keeps calling deactivated tools instead of answering. */
-const SIDE_QUESTION_MAX_TURNS = 3;
+	"Answer this side question using only the conversation context above. Do not use tools. The user may send follow-up side questions; none of this side conversation is added to the main session.";
 
 function sideQuestionPrompt(question: string, isFirstTurn: boolean): string {
 	const body = isFirstTurn ? `${SIDE_QUESTION_INSTRUCTION}\n\n${question}` : question;
@@ -90,17 +85,15 @@ export function startSideQuestion(
 		} satisfies AssistantMessage,
 	]);
 
-	let turnCount = 0;
 	const sideAgent = new Agent({
 		initialState: {
 			model,
 			systemPrompt: parent.state.systemPrompt,
 			messages: [...structuredClone(parent.state.messages), ...previousTurnMessages],
-			// Match the main thread's request-shaping fields so provider prompt caches can be reused.
+			// Preserve the main request's thinking parameters so provider prompt caches can be reused.
 			thinkingLevel: parent.state.thinkingLevel,
 			serviceTier: parent.state.serviceTier,
-			// Providers serialize tool declarations ahead of the cached prefix; execution is blocked below.
-			tools: parent.state.tools,
+			tools: [],
 		},
 		convertToLlm: parent.convertToLlm,
 		transformContext: parent.transformContext,
@@ -109,22 +102,13 @@ export function startSideQuestion(
 		getApiKey: parent.getApiKey,
 		onPayload: parent.onPayload,
 		onResponse: parent.onResponse,
-		beforeToolCall: async () => ({ block: true, reason: SIDE_QUESTION_TOOL_BLOCKED }),
-		shouldStopAfterTurn: ({ message }) => {
-			turnCount += 1;
-			return turnCount >= SIDE_QUESTION_MAX_TURNS || !message.content.some((block) => block.type === "toolCall");
-		},
+		shouldStopAfterTurn: () => true,
 		sessionId: parent.sessionId,
 		thinkingBudgets: parent.thinkingBudgets,
 		transport: "sse",
 		toolExecution: parent.toolExecution,
 	});
 
-	const clonedMessageCount = sideAgent.state.messages.length;
-	const assistantTurns = () =>
-		sideAgent.state.messages
-			.slice(clonedMessageCount)
-			.filter((message): message is AssistantMessage => message.role === "assistant");
 	let answer = "";
 	let abortRequested = false;
 	let started = false;
@@ -137,7 +121,7 @@ export function startSideQuestion(
 			return;
 		}
 		const nextAnswer = readAssistantText(event.message);
-		if (!nextAnswer || nextAnswer === answer) {
+		if (nextAnswer === answer) {
 			return;
 		}
 		answer = nextAnswer;
@@ -155,7 +139,7 @@ export function startSideQuestion(
 			started = true;
 			// Standalone side agents bypass the session auto-retry loop; retry here instead.
 			let promptedOnce = false;
-			const finalTurn = await completeWithProviderRetry(
+			await completeWithProviderRetry(
 				async () => {
 					if (promptedOnce) {
 						// Session-loop recovery: drop the failed assistant turn and re-run.
@@ -165,11 +149,11 @@ export function startSideQuestion(
 						promptedOnce = true;
 						await sideAgent.prompt(prompt);
 					}
-					const last = assistantTurns().at(-1);
-					if (!last) {
+					const last = sideAgent.state.messages.at(-1);
+					if (last?.role !== "assistant") {
 						throw new Error(sideAgent.state.errorMessage || "Side question produced no assistant message");
 					}
-					return last;
+					return last as AssistantMessage;
 				},
 				{ policy: retry, signal: retryAbortController.signal },
 			);
@@ -181,9 +165,6 @@ export function startSideQuestion(
 				await emit("error", sideAgent.state.errorMessage);
 				return;
 			}
-			answer = finalTurn.content.some((block) => block.type === "toolCall")
-				? (assistantTurns().map(readAssistantText).filter(Boolean).at(-1) ?? "")
-				: readAssistantText(finalTurn);
 			await emit("complete");
 		})
 		.catch(async (error) => {
