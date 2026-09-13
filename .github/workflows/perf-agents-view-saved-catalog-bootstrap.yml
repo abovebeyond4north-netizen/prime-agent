@@ -38,7 +38,11 @@ jobs:
 
       - name: Commit validated patch
         run: |
-          changed="$(git diff --name-only)"
+          git add \
+            packages/coding-agent/src/modes/agents-view/agents-view-mode.ts \
+            packages/coding-agent/test/agents-view-mode.test.ts \
+            packages/coding-agent/.changes/agents-view-saved-catalog-batching.md
+          changed="$(git diff --cached --name-only)"
           echo "$changed"
           for required in \
             packages/coding-agent/src/modes/agents-view/agents-view-mode.ts \
@@ -49,9 +53,5 @@ jobs:
           test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 3
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            packages/coding-agent/src/modes/agents-view/agents-view-mode.ts \
-            packages/coding-agent/test/agents-view-mode.test.ts \
-            packages/coding-agent/.changes/agents-view-saved-catalog-batching.md
           git commit -m "perf: batch agents-view saved catalog reconciles"
           git push origin HEAD:perf/batch-agents-view-saved-catalog
