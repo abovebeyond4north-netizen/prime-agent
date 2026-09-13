@@ -1,0 +1,1 @@
+- Fixed `/btw` side questions missing the main conversation's prompt cache: side requests now preserve the session thinking level and tool declarations while keeping tool execution blocked.
