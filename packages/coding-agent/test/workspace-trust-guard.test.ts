@@ -38,7 +38,7 @@ describe("workspace trust guard", () => {
 		writeFileSync(join(extensionDir, "canary.ts"), "throw new Error('must not execute');\n", "utf-8");
 
 		expect(detectProjectExecutableConfiguration(cwd)).toEqual(
-		expect.arrayContaining([expect.objectContaining({ detail: "project extensions" })]),
+			expect.arrayContaining([expect.objectContaining({ detail: "project extensions" })]),
 		);
 		expect(() => assertWorkspaceTrustedForExecutableConfiguration(cwd, {})).toThrow(/untrusted workspace/);
 	});
@@ -66,7 +66,7 @@ describe("workspace trust guard", () => {
 
 		writeFileSync(settingsPath, JSON.stringify({ packages: ["npm:untrusted-package"] }), "utf-8");
 		expect(detectProjectExecutableConfiguration(cwd)).toEqual(
-		expect.arrayContaining([expect.objectContaining({ detail: "project setting packages" })]),
+			expect.arrayContaining([expect.objectContaining({ detail: "project setting packages" })]),
 		);
 		expect(() => assertWorkspaceTrustedForExecutableConfiguration(cwd, {})).toThrow(/project setting packages/);
 	});
