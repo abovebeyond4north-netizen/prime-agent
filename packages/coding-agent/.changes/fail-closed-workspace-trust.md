@@ -1,0 +1,1 @@
+- Refuse to load project-scoped executable configuration from untrusted workspaces until the user explicitly grants trust for the process.
