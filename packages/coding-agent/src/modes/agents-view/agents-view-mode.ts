@@ -80,6 +80,7 @@ import {
 	formatHeartbeatBadge,
 	getAgentsViewSelectionKey,
 	getAgentsViewSessionTitle,
+	getSessionStatusLabel,
 	getAgentsViewSummaryIdentity as getSummaryIdentity,
 	getUnifiedSessionAncestorSessionIds,
 	hasUnifiedSessionChildren,
@@ -910,8 +911,6 @@ export class AgentsViewMode implements Component, Focusable {
 			const hasRunning = this.rows.some((row) => row.section === "running");
 			const hasStaleAge = this.rows.some((row) => row.summary.lastHeardFromAt !== undefined);
 			if (!hasRunning && !hasStaleAge) return;
-			// Age labels are baked into rows at build time; ticking them needs a rebuild.
-			if (hasStaleAge) this.rebuildRows();
 			if (hasRunning) this.workingIconFrame += 1;
 			this.ui.requestRender();
 		}, WORKING_ICON_INTERVAL_MS);
@@ -2570,9 +2569,11 @@ export class AgentsViewMode implements Component, Focusable {
 		const heartbeat = badge ? `${theme.fg((row.heartbeat?.activeCount ?? 0) > 0 ? "error" : "dim", badge)} ` : "";
 		const title = `${"  ".repeat(row.depth)}${icon}${expand} ${heartbeat}${styleRowTitle(row)}`;
 		const status =
-			row.summary.statusLabel !== undefined || row.summary.lastHeardFromAt !== undefined
-				? row.statusLabel
-				: undefined;
+			row.summary.lastHeardFromAt !== undefined
+				? getSessionStatusLabel(row.summary, row.heartbeat)
+				: row.summary.statusLabel !== undefined
+					? row.statusLabel
+					: undefined;
 		const activity = [status, row.summary.summary].filter(Boolean).join(" · ");
 		const cells = [
 			formatTableCell(title, layout.nameWidth),
