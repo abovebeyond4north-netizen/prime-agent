@@ -36,7 +36,7 @@ jobs:
 
       - name: Commit validated patch
         run: |
-          changed="$(git diff --name-only)"
+          changed="$({ git diff --name-only; git ls-files --others --exclude-standard; } | sort -u)"
           echo "$changed"
           for required in packages/coding-agent/src/modes/agents-view/agents-view-mode.ts packages/coding-agent/src/modes/agents-view/agents-view-state.ts packages/coding-agent/test/agents-view-live-age.test.ts packages/coding-agent/.changes/agents-view-live-age.md; do
             echo "$changed" | grep -Fx "$required"
