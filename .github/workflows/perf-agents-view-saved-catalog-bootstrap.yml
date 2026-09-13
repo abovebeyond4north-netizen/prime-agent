@@ -1,0 +1,55 @@
+name: Agents view saved catalog batching bootstrap
+
+on:
+  push:
+    branches:
+      - perf/batch-agents-view-saved-catalog
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: perf/batch-agents-view-saved-catalog
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Apply focused batching backport
+        run: python .github/scripts/perf_agents_view_saved_catalog_batch.py
+
+      - name: Validate focused change
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+          npm run check
+          npx vitest --run packages/coding-agent/test/agents-view-mode.test.ts
+
+      - name: Commit validated patch
+        run: |
+          changed="$(git diff --name-only)"
+          echo "$changed"
+          for required in \
+            packages/coding-agent/src/modes/agents-view/agents-view-mode.ts \
+            packages/coding-agent/test/agents-view-mode.test.ts \
+            packages/coding-agent/.changes/agents-view-saved-catalog-batching.md; do
+            echo "$changed" | grep -Fx "$required"
+          done
+          test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 3
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            packages/coding-agent/src/modes/agents-view/agents-view-mode.ts \
+            packages/coding-agent/test/agents-view-mode.test.ts \
+            packages/coding-agent/.changes/agents-view-saved-catalog-batching.md
+          git commit -m "perf: batch agents-view saved catalog reconciles"
+          git push origin HEAD:perf/batch-agents-view-saved-catalog
