@@ -22,6 +22,7 @@ import {
 	resolveAgentsViewLeftResult,
 } from "../src/modes/agents-view/agents-view-state.js";
 import type { SessionSummary } from "../src/modes/daemon/daemon-session-list.js";
+import * as savedSessionCatalog from "../src/modes/daemon/saved-session-catalog.js";
 import type { InteractiveModeUiServices } from "../src/modes/interactive/interactive-mode-services.js";
 import { stopThemeWatcher, theme } from "../src/modes/interactive/theme/theme.js";
 
@@ -87,6 +88,40 @@ function invoke(method: string, self: object, ...args: unknown[]): unknown {
 	const member = Reflect.get(AgentsViewMode.prototype, method) as ((...a: unknown[]) => unknown) | undefined;
 	if (typeof member !== "function") throw new Error(`AgentsViewMode.${method} no longer exists`);
 	return member.call(self, ...args);
+}
+
+function savedSession(id: string): AgentConnectionSavedSessionInfo {
+	return {
+		id,
+		path: `/tmp/${id}.jsonl`,
+		cwd: "/tmp",
+		created: new Date(0),
+		modified: new Date(0),
+		messageCount: 1,
+		firstMessage: id,
+		allMessagesText: id,
+	};
+}
+
+function deferredSavedCatalog() {
+	let resolve!: (sessions: AgentConnectionSavedSessionInfo[]) => void;
+	let onSession: ((session: AgentConnectionSavedSessionInfo) => void) | undefined;
+	const promise = new Promise<AgentConnectionSavedSessionInfo[]>((res) => {
+		resolve = res;
+	});
+	vi.spyOn(savedSessionCatalog, "listDaemonSavedSessions").mockImplementationOnce(
+		async (_client, _context, _scope, callbacks) => {
+			onSession = callbacks?.onSession;
+			return promise;
+		},
+	);
+	return {
+		resolve,
+		emit(session: AgentConnectionSavedSessionInfo): void {
+			if (!onSession) throw new Error("Saved catalog refresh has not started");
+			onSession(session);
+		},
+	};
 }
 
 const settingsManager = {
@@ -1100,6 +1135,71 @@ describe("AgentsViewMode", () => {
 		} finally {
 			stopThemeWatcher();
 		}
+	});
+});
+
+describe("AgentsViewMode saved catalog batching", () => {
+	beforeEach(() => vi.useFakeTimers());
+	afterEach(() => vi.useRealTimers());
+
+	it("coalesces streamed saved sessions into bounded progressive reconciles", async () => {
+		const previous = [savedSession("previous")];
+		const persistentState: AgentsViewPersistentState = {
+			savedSessions: previous,
+			lastSuccessfulSavedSessions: previous,
+			savedCatalogLoaded: true,
+		};
+		const view = new AgentsViewMode({ config: {}, uiServices: createUiServices() }, persistentState);
+		Reflect.set(view, "client", {});
+		const reconcile = vi.fn(() => invoke("reconcileCatalogs", view));
+		Reflect.set(view, "reconcileCatalogs", reconcile);
+		const catalog = deferredSavedCatalog();
+		const refresh = invoke("refreshSavedSessions", view) as Promise<boolean>;
+		const first = savedSession("first");
+		const second = savedSession("second");
+		const third = savedSession("third");
+		catalog.emit(first);
+		await vi.advanceTimersByTimeAsync(25);
+		catalog.emit(second);
+		await vi.advanceTimersByTimeAsync(49);
+		catalog.emit(third);
+
+		expect(Reflect.get(view, "savedSessions")).toBe(previous);
+		expect(reconcile).not.toHaveBeenCalled();
+		expect(vi.getTimerCount()).toBe(1);
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(reconcile).toHaveBeenCalledOnce();
+		expect(Reflect.get(view, "savedSessions")).toEqual([previous[0], first, second, third]);
+		expect(persistentState.savedSessions).toBe(Reflect.get(view, "savedSessions"));
+
+		const final = [first, second, third];
+		catalog.resolve(final);
+		await expect(refresh).resolves.toBe(true);
+		expect(Reflect.get(view, "savedSessions")).toBe(final);
+		expect(Reflect.get(view, "savedCatalogReconcileTimer")).toBeUndefined();
+		stopThemeWatcher();
+	});
+
+	it("publishes a completed scan immediately and cancels a pending batch", async () => {
+		const view = new AgentsViewMode({ config: {}, uiServices: createUiServices() }, {});
+		Reflect.set(view, "client", {});
+		const reconcile = vi.fn(() => invoke("reconcileCatalogs", view));
+		Reflect.set(view, "reconcileCatalogs", reconcile);
+		const catalog = deferredSavedCatalog();
+		const refresh = invoke("refreshSavedSessions", view) as Promise<boolean>;
+		catalog.emit(savedSession("partial"));
+		expect(vi.getTimerCount()).toBe(1);
+
+		const final = [savedSession("canonical")];
+		catalog.resolve(final);
+		await expect(refresh).resolves.toBe(true);
+		expect(Reflect.get(view, "savedSessions")).toBe(final);
+		expect(reconcile).toHaveBeenCalledOnce();
+		expect(Reflect.get(view, "savedCatalogReconcileTimer")).toBeUndefined();
+		await vi.advanceTimersByTimeAsync(100);
+		expect(reconcile).toHaveBeenCalledOnce();
+		stopThemeWatcher();
 	});
 });
 
