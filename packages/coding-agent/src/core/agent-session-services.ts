@@ -20,6 +20,7 @@ import { semanticEdgeLedgerPath } from "./semantic-edges.js";
 import type { SessionManager } from "./session-manager.js";
 import { SettingsManager } from "./settings-manager.js";
 import { installAgentTelemetry, isTelemetryEnabled } from "./telemetry.js";
+import { assertWorkspaceTrustedForExecutableConfiguration } from "./workspace-trust.js";
 
 export interface AgentSessionRuntimeDiagnostic {
 	type: "info" | "warning" | "error";
@@ -145,6 +146,10 @@ export async function createAgentSessionServices(
 ): Promise<AgentSessionServices> {
 	const cwd = options.cwd;
 	const agentDir = options.agentDir ?? getAgentDir();
+	// Fail closed before project settings, packages, skills, prompts, or
+	// extensions can be interpreted. This guard is shared by every caller of
+	// session services, including headless/daemon paths.
+	assertWorkspaceTrustedForExecutableConfiguration(cwd);
 	const authStorage = options.authStorage ?? AuthStorage.create(join(agentDir, "auth.json"));
 	const settingsManager = options.settingsManager ?? SettingsManager.create(cwd, agentDir);
 	const modelRegistry = options.modelRegistry ?? ModelRegistry.create(authStorage, join(agentDir, "models.json"));
