@@ -1,0 +1,1 @@
+- Non-interactive daemon attach now fails fast instead of hanging, and `daemon --json` open returns the created session summary without attempting a terminal attach.
