@@ -1,0 +1,1 @@
+- Fixed coding-agent shells hanging on interactive editors, credential prompts, and pagers by forcing non-interactive defaults while preserving per-command inline overrides.
