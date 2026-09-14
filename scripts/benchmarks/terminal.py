@@ -104,10 +104,12 @@ class Terminal:
 
     def until(self, predicate: Callable[[Display], bool], seconds: float) -> float:
         deadline = time.perf_counter() + seconds
-        while time.perf_counter() < deadline:
-            if self.pump() and predicate(self.display):
+        while True:
+            if predicate(self.display):
                 return time.perf_counter()
-        raise TimeoutError("Timed out waiting for the expected terminal state")
+            if time.perf_counter() >= deadline:
+                raise TimeoutError("Timed out waiting for the expected terminal state")
+            self.pump()
 
     def settle(self, seconds: float) -> None:
         deadline = time.perf_counter() + seconds
