@@ -152,9 +152,23 @@ export function getShellEnv(): NodeJS.ProcessEnv {
 	const hasBinDir = pathEntries.includes(binDir);
 	const updatedPath = hasBinDir ? currentPath : [binDir, currentPath].filter(Boolean).join(delimiter);
 
+	// Agent-spawned shells do not have a usable stdin, so inherited interactive
+	// editors, credential prompts, and pagers can hang the worker indefinitely.
+	// Override those ambient settings with fail-fast/no-op defaults. A specific
+	// command can still opt out with an inline assignment such as GIT_EDITOR=vim.
 	return {
 		...process.env,
 		[pathKey]: updatedPath,
+		GIT_EDITOR: "true",
+		GIT_SEQUENCE_EDITOR: "true",
+		GIT_TERMINAL_PROMPTS: "0",
+		GIT_ASKPASS: "true",
+		SSH_ASKPASS_REQUIRE: "never",
+		EDITOR: "true",
+		VISUAL: "true",
+		PAGER: "cat",
+		GIT_PAGER: "cat",
+		DEBIAN_FRONTEND: "noninteractive",
 	};
 }
 
