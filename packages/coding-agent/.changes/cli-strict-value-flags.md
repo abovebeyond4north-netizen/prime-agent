@@ -1,0 +1,1 @@
+- Fixed value-taking CLI flags being silently swallowed when their value is missing, and invalid --mode values being ignored; malformed invocations now fail with clear diagnostics.
