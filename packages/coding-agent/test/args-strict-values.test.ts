@@ -11,7 +11,15 @@ describe("strict CLI value parsing", () => {
 
 	test("invalid mode fails with valid choices", () => {
 		const result = parseArgs(["--mode", "interactive"]);
-		expect(result.diagnostics.some((diagnostic) => diagnostic.type === "error" && diagnostic.message.includes("Invalid mode") && diagnostic.message.includes("text") && diagnostic.message.includes("daemon"))).toBe(true);
+		expect(
+			result.diagnostics.some(
+				(diagnostic) =>
+					diagnostic.type === "error" &&
+					diagnostic.message.includes("Invalid --mode") &&
+					diagnostic.message.includes("text") &&
+					diagnostic.message.includes("daemon"),
+			),
+		).toBe(true);
 	});
 
 	test("value flags do not consume the end-of-options delimiter", () => {
