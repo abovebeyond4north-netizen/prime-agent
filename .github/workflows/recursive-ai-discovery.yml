@@ -1,0 +1,39 @@
+name: Recursive AI discovery verification
+
+on:
+  push:
+    branches: [recursive-ai-lab, recursive-ai-verified-discovery]
+    paths:
+      - "recursive-ai/research/frontier_discovery.py"
+      - "recursive-ai/research/verified_discovery.py"
+      - "recursive-ai/tests/test_frontier_discovery.py"
+      - "recursive-ai/tests/test_verified_discovery.py"
+      - ".github/workflows/recursive-ai-discovery.yml"
+  pull_request:
+    branches: [recursive-ai-lab]
+    paths:
+      - "recursive-ai/research/frontier_discovery.py"
+      - "recursive-ai/research/verified_discovery.py"
+      - "recursive-ai/tests/test_frontier_discovery.py"
+      - "recursive-ai/tests/test_verified_discovery.py"
+      - ".github/workflows/recursive-ai-discovery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discovery-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Verify frontier and verified-discovery invariants
+        working-directory: recursive-ai
+        run: |
+          python3 -m unittest \
+            tests.test_frontier_discovery \
+            tests.test_verified_discovery \
+            -v
