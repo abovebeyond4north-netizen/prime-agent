@@ -1,0 +1,1 @@
+- Fixed deep markdown headings to render as formatted headings at all six levels instead of showing raw `#` prefixes for H3-H6. H1 remains bold+underlined, H2/H3 are bold, H4 is bold+italic, and H5/H6 are italic.
