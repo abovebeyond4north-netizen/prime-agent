@@ -11,7 +11,7 @@ import hashlib
 import json
 import math
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -508,9 +508,6 @@ def run_verified_discovery(
         "completion_record_hash": completed["record_hash"],
         "ledger_verified": ledger.verify(),
     }
-    (attempt_dir / "report.json").write_text(
-        json.dumps(envelope, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
 
     knowledge_record_hash = None
     if status == "verified_under_protocol":
@@ -536,6 +533,9 @@ def run_verified_discovery(
         knowledge_record_hash = record["record_hash"]
 
     envelope["verified_knowledge_record_hash"] = knowledge_record_hash
+    (attempt_dir / "report.json").write_text(
+        json.dumps(envelope, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return envelope
 
 
