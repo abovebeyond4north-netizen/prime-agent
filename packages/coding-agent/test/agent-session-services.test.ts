@@ -107,6 +107,7 @@ describe("createAgentSessionFromServices", () => {
 	});
 
 	it("advertises enabled generic MCP servers and refreshes the prompt on reload", async () => {
+		vi.stubEnv("PRIME_AGENT_TRUST_PROJECT", "1");
 		const tempDir = join(tmpdir(), `pi-session-mcp-prompt-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 		const projectDir = join(tempDir, "project");
 		const agentDir = join(tempDir, "agent");
