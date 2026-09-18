@@ -416,13 +416,20 @@ def _evaluate_once(
     return _trial_row(summary, seed, goal)
 
 
-def _rank_quality_diverse(records, count):
+def _generation_rows(record, generation):
+    return [
+        row for row in record["development_rows"]
+        if row.get("generation") == generation
+    ]
+
+
+def _rank_quality_diverse(records, count, generation):
     if not records:
         return []
     ordered = sorted(
         records,
         key=lambda record: (
-            fitness_vector(summarize_trials(record["development_rows"])),
+            fitness_vector(summarize_trials(_generation_rows(record, generation))),
             record["genome"]["id"],
         ),
         reverse=True,
@@ -442,7 +449,7 @@ def _rank_quality_diverse(records, count):
             )
             return (
                 0.85 * rank_quality[record["genome"]["id"]] + 0.15 * novelty,
-                fitness_vector(summarize_trials(record["development_rows"])),
+                fitness_vector(summarize_trials(_generation_rows(record, generation))),
                 record["genome"]["id"],
             )
         choice = max(remaining, key=score)
@@ -567,13 +574,21 @@ def run_search_policy_evolution(
     if population * generations * development_replicates > 192:
         raise ValueError("search-policy study exceeds the 192 development-trial bound")
 
-    development_seeds = [
-        base_seed + index for index in range(development_replicates)
+    development_seed_matrix = [
+        [
+            base_seed + generation * 10_000 + index
+            for index in range(development_replicates)
+        ]
+        for generation in range(generations)
     ]
     holdout_seeds = [
         base_seed + 100_000 + index for index in range(holdout_replicates)
     ]
-    train_families = _families(train_goal, tier, development_seeds[0], task_count)
+    train_families = set()
+    for seeds in development_seed_matrix:
+        train_families.update(
+            _families(train_goal, tier, seeds[0], task_count)
+        )
     holdout_families = _families(holdout_goal, tier, holdout_seeds[0], task_count)
     overlap = train_families & holdout_families
     if overlap:
@@ -584,7 +599,7 @@ def run_search_policy_evolution(
 
     train_suite = goal_contract(
         train_goal, tier=tier, target=target,
-        task_seed=development_seeds[0], task_count=task_count,
+        task_seed=development_seed_matrix[0][0], task_count=task_count,
     )
     holdout_suite = goal_contract(
         holdout_goal, tier=tier, target=target,
@@ -599,7 +614,7 @@ def run_search_policy_evolution(
         "generations": generations,
         "development_replicates": development_replicates,
         "holdout_replicates": holdout_replicates,
-        "development_seeds": development_seeds,
+        "development_seeds_by_generation": development_seed_matrix,
         "holdout_seeds": holdout_seeds,
         "task_count": task_count,
         "max_attempts": max_attempts,
@@ -657,9 +672,13 @@ def run_search_policy_evolution(
 
         survivors = list(generation_records)
         race_rounds = []
-        for round_index, seed in enumerate(development_seeds):
+        generation_seeds = development_seed_matrix[generation]
+        for round_index, seed in enumerate(generation_seeds):
             for record in survivors:
-                if any(row["seed"] == seed for row in record["development_rows"]):
+                if any(
+                    row["seed"] == seed and row.get("generation") == generation
+                    for row in record["development_rows"]
+                ):
                     continue
                 genome = genome_from_descriptor(record["genome"])
                 row = _evaluate_once(
@@ -668,15 +687,16 @@ def run_search_policy_evolution(
                     train_goal, tier, target, task_count, max_attempts, max_seconds,
                     max_stagnation, max_model_calls, max_containers, provider, image,
                 )
+                row["generation"] = generation
                 record["development_rows"].append(row)
                 actual_development_trials += 1
 
             keep = (
                 max(2, math.ceil(len(survivors) / 2))
-                if round_index + 1 < len(development_seeds)
+                if round_index + 1 < len(generation_seeds)
                 else max(2, min(len(survivors), population // 2))
             )
-            survivors = _rank_quality_diverse(survivors, keep)
+            survivors = _rank_quality_diverse(survivors, keep, generation)
             race_rounds.append({
                 "round": round_index,
                 "seed": seed,
@@ -692,7 +712,7 @@ def run_search_policy_evolution(
             "best": max(
                 survivors,
                 key=lambda record: (
-                    fitness_vector(summarize_trials(record["development_rows"])),
+                    fitness_vector(summarize_trials(_generation_rows(record, generation))),
                     record["genome"]["id"],
                 ),
             )["genome"]["id"],
@@ -710,7 +730,11 @@ def run_search_policy_evolution(
     finalist_record = max(
         final_survivors,
         key=lambda record: (
-            fitness_vector(summarize_trials(record["development_rows"])),
+            fitness_vector(
+                summarize_trials(
+                    _generation_rows(record, generations - 1)
+                )
+            ),
             record["genome"]["id"],
         ),
     )
