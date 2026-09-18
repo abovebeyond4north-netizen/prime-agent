@@ -6,11 +6,13 @@ on:
       - "tools/x402-market/**"
       - "tools/x402-provider/**"
       - ".github/workflows/x402-market.yml"
+      - ".github/workflows/x402-market-daily.yml"
   pull_request:
     paths:
       - "tools/x402-market/**"
       - "tools/x402-provider/**"
       - ".github/workflows/x402-market.yml"
+      - ".github/workflows/x402-market-daily.yml"
 
 permissions:
   contents: read
@@ -22,6 +24,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Syntax check
+        run: python3 -m py_compile tools/x402-market/market_scan.py tools/x402-market/daily_snapshot.py
       - name: Unit tests
         run: python3 -m unittest discover -s tools/x402-market/tests -v
 
