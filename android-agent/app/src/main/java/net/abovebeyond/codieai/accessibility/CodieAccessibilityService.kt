@@ -202,7 +202,7 @@ class CodieAccessibilityService : AccessibilityService() {
 
     private fun webSearch(query: String): ExecutionResult {
         if (query.isBlank()) return ExecutionResult(false, "Search query is blank")
-        val intent = Intent(SearchManager.INTENT_ACTION_WEB_SEARCH)
+        val intent = Intent(Intent.ACTION_WEB_SEARCH)
             .putExtra(SearchManager.QUERY, query)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
