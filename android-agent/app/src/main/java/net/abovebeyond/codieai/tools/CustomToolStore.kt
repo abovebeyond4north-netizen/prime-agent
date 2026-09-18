@@ -8,13 +8,16 @@ data class CustomTool(
     val name: String,
     val description: String,
     val endpoint: String,
-    val method: String
+    val method: String,
+    val authType: String = "none",
+    val secretAlias: String = "",
+    val authHeader: String = ""
 )
 
 object CustomToolStore {
     private const val PREFS = "codie_ai_custom_tools"
     private const val KEY_TOOLS = "tools"
-    private const val MAX_TOOLS = 25
+    private const val MAX_TOOLS = 40
 
     fun importManifest(context: Context, raw: String): String {
         val json = JSONObject(raw)
@@ -29,15 +32,55 @@ object CustomToolStore {
         require(description.isNotBlank() && description.length <= 500) {
             "Tool description must be 1..500 characters"
         }
-        require(method == "POST") { "Custom tools currently support POST only" }
+        require(method == "POST" || method == "GET") {
+            "Custom tools support GET or POST"
+        }
         WebTools.validatePublicHttpsEndpoint(endpoint)
+
+        val auth = json.optJSONObject("auth")
+        val authType = auth?.optString("type", "none")?.trim()?.lowercase() ?: "none"
+        val secretAlias = auth?.optString("secret_alias", "")?.trim()?.lowercase().orEmpty()
+        val authHeader = auth?.optString("header", "")?.trim().orEmpty()
+
+        require(authType in setOf("none", "bearer", "api_key")) {
+            "auth.type must be none, bearer, or api_key"
+        }
+        if (authType != "none") {
+            require(secretAlias.isNotBlank()) {
+                "Authenticated tools require auth.secret_alias"
+            }
+            require(SecretStore.exists(context, secretAlias)) {
+                "Secret alias '" + secretAlias + "' is not stored yet"
+            }
+        }
+        if (authType == "api_key") {
+            val header = authHeader.ifBlank { "X-API-Key" }
+            require(header.matches(Regex("""[A-Za-z0-9-]{1,64}"""))) {
+                "Invalid API key header name"
+            }
+        }
 
         val current = list(context).toMutableList()
         current.removeAll { it.name == name }
         require(current.size < MAX_TOOLS) { "Maximum custom tools reached" }
-        current.add(CustomTool(name, description, endpoint, method))
+
+        current.add(
+            CustomTool(
+                name = name,
+                description = description,
+                endpoint = endpoint,
+                method = method,
+                authType = authType,
+                secretAlias = secretAlias,
+                authHeader = if (authType == "api_key") {
+                    authHeader.ifBlank { "X-API-Key" }
+                } else ""
+            )
+        )
         write(context, current)
-        return "Installed custom tool '" + name + "'"
+
+        return "Installed custom tool '" + name + "'" +
+            if (authType == "none") "" else " using encrypted secret alias '" + secretAlias + "'"
     }
 
     fun list(context: Context): List<CustomTool> {
@@ -55,7 +98,10 @@ object CustomToolStore {
                             name = obj.getString("name"),
                             description = obj.getString("description"),
                             endpoint = obj.getString("endpoint"),
-                            method = obj.optString("method", "POST")
+                            method = obj.optString("method", "POST"),
+                            authType = obj.optString("auth_type", "none"),
+                            secretAlias = obj.optString("secret_alias", ""),
+                            authHeader = obj.optString("auth_header", "")
                         )
                     )
                 }
@@ -77,7 +123,29 @@ object CustomToolStore {
     fun call(context: Context, name: String, argumentsJson: String): String {
         val tool = find(context, name)
             ?: throw IllegalArgumentException("Custom tool not found: " + name)
-        return WebTools.postJsonPublic(tool.endpoint, argumentsJson)
+
+        val headers = authenticatedHeaders(context, tool)
+        return when (tool.method.uppercase()) {
+            "GET" -> WebTools.getJsonPublic(tool.endpoint, argumentsJson, headers)
+            "POST" -> WebTools.postJsonPublic(tool.endpoint, argumentsJson, headers)
+            else -> throw IllegalStateException("Unsupported method: " + tool.method)
+        }
+    }
+
+    private fun authenticatedHeaders(
+        context: Context,
+        tool: CustomTool
+    ): Map<String, String> {
+        if (tool.authType == "none") return emptyMap()
+        val secret = SecretStore.resolve(context, tool.secretAlias)
+
+        return when (tool.authType) {
+            "bearer" -> mapOf("Authorization" to ("Bearer " + secret))
+            "api_key" -> mapOf(
+                tool.authHeader.ifBlank { "X-API-Key" } to secret
+            )
+            else -> throw IllegalStateException("Unsupported auth type")
+        }
     }
 
     private fun write(context: Context, tools: List<CustomTool>) {
@@ -89,6 +157,9 @@ object CustomToolStore {
                     .put("description", tool.description)
                     .put("endpoint", tool.endpoint)
                     .put("method", tool.method)
+                    .put("auth_type", tool.authType)
+                    .put("secret_alias", tool.secretAlias)
+                    .put("auth_header", tool.authHeader)
             )
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

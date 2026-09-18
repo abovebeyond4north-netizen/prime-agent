@@ -132,7 +132,8 @@ object ToolRegistry {
                     val tools = CustomToolStore.list(context)
                     if (tools.isEmpty()) "No custom tools installed."
                     else tools.joinToString("\n", "Custom tools:\n") {
-                        "- " + it.name + ": " + it.description + " [" + it.endpoint + "]"
+                        "- " + it.name + ": " + it.description +
+                            " [" + it.method + " " + it.endpoint + "; auth=" + it.authType + "]"
                     }
                 }
 

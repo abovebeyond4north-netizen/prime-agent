@@ -30,6 +30,7 @@ import net.abovebeyond.codieai.agent.AgentRuntime
 import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import net.abovebeyond.codieai.tools.CustomToolStore
+import net.abovebeyond.codieai.tools.SecretStore
 import net.abovebeyond.codieai.tools.ToolRegistry
 import net.abovebeyond.codieai.tools.WorkspaceTools
 import java.io.ByteArrayOutputStream
@@ -244,6 +245,50 @@ class MainActivity : Activity() {
             }
             startActivityForResult(intent, REQUEST_CUSTOM_TOOL)
         })
+
+        root.addView(label("Encrypted connector secrets"))
+        root.addView(body(
+            "Secrets are encrypted with Android Keystore and are never added to the model prompt or tool results. " +
+                "Custom HTTPS tools can reference them by alias for Bearer or API-key authentication."
+        ))
+
+        val secretAliasInput = edit("", "Secret alias, e.g. github_token")
+        root.addView(secretAliasInput)
+        val secretValueInput = edit("", "Secret/token value").apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        root.addView(secretValueInput)
+
+        val secretButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        secretButtons.addView(button("Save secret") {
+            runCatching {
+                SecretStore.put(
+                    this,
+                    secretAliasInput.text.toString(),
+                    secretValueInput.text.toString()
+                )
+            }.onSuccess {
+                secretValueInput.setText("")
+                appendStatus(it)
+            }.onFailure {
+                appendStatus("Secret save failed: " + (it.message ?: it.javaClass.simpleName))
+            }
+        }, weighted())
+        secretButtons.addView(button("List aliases") {
+            appendStatus(SecretStore.listAliases(this))
+        }, weighted())
+        secretButtons.addView(button("Delete alias") {
+            runCatching {
+                SecretStore.delete(this, secretAliasInput.text.toString())
+            }.onSuccess {
+                appendStatus(it)
+            }.onFailure {
+                appendStatus("Secret delete failed: " + (it.message ?: it.javaClass.simpleName))
+            }
+        }, weighted())
+        root.addView(secretButtons)
 
         root.addView(body("Available planner tools:\n" + ToolRegistry.promptCatalog(this)))
 
@@ -725,7 +770,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.1 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.2 Android")
                 }
 
                 val status = connection.responseCode

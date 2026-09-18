@@ -7,6 +7,7 @@ import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URL
 import java.net.URLEncoder
+import org.json.JSONObject
 
 object WebTools {
     private const val MAX_BYTES = 512_000
@@ -60,22 +61,61 @@ object WebTools {
         validatePublicHttps(URL(url))
     }
 
-    fun postJsonPublic(url: String, bodyJson: String): String {
-        val target = validatePublicHttps(URL(url))
-        val connection = (target.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            connectTimeout = 15_000
-            readTimeout = 30_000
-            doOutput = true
-            instanceFollowRedirects = false
-            setRequestProperty("User-Agent", "CodieAI/0.7 (+Android local assistant)")
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            setRequestProperty("Accept", "application/json,text/plain,text/html;q=0.6")
-        }
-
+    fun postJsonPublic(
+        url: String,
+        bodyJson: String,
+        headers: Map<String, String> = emptyMap()
+    ): String {
         val bytes = bodyJson.toByteArray(Charsets.UTF_8)
         require(bytes.size <= 128_000) { "Custom tool request body is too large" }
-        connection.outputStream.use { it.write(bytes) }
+
+        return customRequest(
+            url = url,
+            method = "POST",
+            headers = headers,
+            body = bytes
+        )
+    }
+
+    fun getJsonPublic(
+        url: String,
+        argumentsJson: String,
+        headers: Map<String, String> = emptyMap()
+    ): String {
+        val args = JSONObject(argumentsJson.ifBlank { "{}" })
+        val target = appendQuery(url, args)
+        return customRequest(
+            url = target,
+            method = "GET",
+            headers = headers,
+            body = null
+        )
+    }
+
+    private fun customRequest(
+        url: String,
+        method: String,
+        headers: Map<String, String>,
+        body: ByteArray?
+    ): String {
+        val target = validatePublicHttps(URL(url))
+        val connection = (target.openConnection() as HttpURLConnection).apply {
+            requestMethod = method
+            connectTimeout = 15_000
+            readTimeout = 30_000
+            instanceFollowRedirects = false
+            setRequestProperty("User-Agent", "CodieAI/1.2 (+Android local assistant)")
+            setRequestProperty("Accept", "application/json,text/plain,text/html;q=0.6")
+            if (method == "POST") {
+                doOutput = true
+                setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            }
+            applySafeHeaders(this, headers)
+        }
+
+        if (body != null) {
+            connection.outputStream.use { it.write(body) }
+        }
 
         val status = connection.responseCode
         require(status !in 300..399) {
@@ -83,25 +123,62 @@ object WebTools {
         }
 
         val stream = if (status in 200..299) connection.inputStream else connection.errorStream
-        val response = stream?.use { input ->
-            val output = java.io.ByteArrayOutputStream()
-            val buffer = ByteArray(8192)
-            var total = 0
-            while (true) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                total += count
-                require(total <= MAX_BYTES) { "Custom tool response exceeds " + MAX_BYTES + " bytes" }
-                output.write(buffer, 0, count)
-            }
-            output.toByteArray().toString(Charsets.UTF_8)
-        }.orEmpty()
-
+        val response = readLimited(stream, "Custom tool response")
         connection.disconnect()
+
         require(status in 200..299) {
             "Custom tool returned HTTP " + status + ": " + response.take(2_000)
         }
         return response.take(MAX_TEXT_CHARS)
+    }
+
+    private fun applySafeHeaders(
+        connection: HttpURLConnection,
+        headers: Map<String, String>
+    ) {
+        val forbidden = setOf(
+            "host",
+            "content-length",
+            "connection",
+            "transfer-encoding",
+            "proxy-authorization",
+            "proxy-connection"
+        )
+
+        headers.forEach { (rawName, value) ->
+            val name = rawName.trim()
+            require(name.matches(Regex("""[A-Za-z0-9-]{1,64}"""))) {
+                "Invalid HTTP header name"
+            }
+            require(name.lowercase() !in forbidden) {
+                "Header is not allowed: " + name
+            }
+            require(value.length <= 16_000) { "HTTP header value is too large" }
+            connection.setRequestProperty(name, value)
+        }
+    }
+
+    private fun appendQuery(url: String, args: JSONObject): String {
+        if (args.length() == 0) return url
+
+        val parts = ArrayList<String>()
+        val keys = args.keys()
+        while (keys.hasNext()) {
+            val key = keys.next()
+            val value = args.opt(key)
+            if (value == null || value == JSONObject.NULL) continue
+            val rendered = when (value) {
+                is String, is Number, is Boolean -> value.toString()
+                else -> value.toString()
+            }
+            parts.add(
+                URLEncoder.encode(key, Charsets.UTF_8.name()) + "=" +
+                    URLEncoder.encode(rendered, Charsets.UTF_8.name())
+            )
+        }
+
+        if (parts.isEmpty()) return url
+        return url + if (url.contains("?")) "&" else "?" + parts.joinToString("&")
     }
 
     private fun request(rawUrl: String, rawHtml: Boolean): String {
@@ -113,7 +190,7 @@ object WebTools {
                 connectTimeout = 15_000
                 readTimeout = 20_000
                 instanceFollowRedirects = false
-                setRequestProperty("User-Agent", "CodieAI/0.7 (+Android local assistant)")
+                setRequestProperty("User-Agent", "CodieAI/1.2 (+Android local assistant)")
                 setRequestProperty(
                     "Accept",
                     "text/html,text/plain,application/json,application/xml;q=0.8,*/*;q=0.3"
@@ -140,22 +217,9 @@ object WebTools {
                     contentType.isBlank()
             require(allowed) { "Unsupported web content type: " + contentType }
 
-            val bytes = connection.inputStream.use { input ->
-                val output = java.io.ByteArrayOutputStream()
-                val buffer = ByteArray(8192)
-                var total = 0
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    total += count
-                    require(total <= MAX_BYTES) { "Web response exceeds " + MAX_BYTES + " bytes" }
-                    output.write(buffer, 0, count)
-                }
-                output.toByteArray()
-            }
+            val decoded = readLimited(connection.inputStream, "Web response")
             connection.disconnect()
 
-            val decoded = bytes.toString(Charsets.UTF_8)
             if (rawHtml) return decoded
 
             return if (
@@ -170,6 +234,26 @@ object WebTools {
         }
 
         throw IllegalStateException("Web request did not complete")
+    }
+
+    private fun readLimited(
+        input: java.io.InputStream?,
+        label: String
+    ): String {
+        if (input == null) return ""
+        return input.use { stream ->
+            val output = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
+            var total = 0
+            while (true) {
+                val count = stream.read(buffer)
+                if (count < 0) break
+                total += count
+                require(total <= MAX_BYTES) { label + " exceeds " + MAX_BYTES + " bytes" }
+                output.write(buffer, 0, count)
+            }
+            output.toByteArray().toString(Charsets.UTF_8)
+        }
     }
 
     private fun validatePublicHttps(url: URL): URL {
