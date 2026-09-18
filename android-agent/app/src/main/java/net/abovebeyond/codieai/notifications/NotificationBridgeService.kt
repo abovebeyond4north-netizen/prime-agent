@@ -39,12 +39,49 @@ class NotificationBridgeService : NotificationListenerService() {
         sbn?.key?.let(NotificationStore::remove)
     }
 
-    private fun reply(index: Int, replyText: String): Result<String> {
-        val summary = NotificationStore.get(index)
-            ?: return Result.failure(IllegalArgumentException("Notification index is no longer available"))
+    private fun active(index: Int): Pair<NotificationSummary, StatusBarNotification>? {
+        val summary = NotificationStore.get(index) ?: return null
+        val sbn = activeNotifications.firstOrNull { it.key == summary.key } ?: return null
+        return summary to sbn
+    }
 
-        val sbn = activeNotifications.firstOrNull { it.key == summary.key }
-            ?: return Result.failure(IllegalStateException("Notification is no longer active"))
+    private fun open(index: Int): Result<String> {
+        val (summary, sbn) = active(index)
+            ?: return Result.failure(IllegalArgumentException("Notification is no longer active"))
+        val pending = sbn.notification.contentIntent
+            ?: return Result.failure(IllegalStateException("Notification has no open action"))
+
+        return runCatching {
+            pending.send()
+            "Opened notification from " + summary.title.ifBlank { summary.packageName }
+        }
+    }
+
+    private fun dismiss(index: Int): Result<String> {
+        val (summary, _) = active(index)
+            ?: return Result.failure(IllegalArgumentException("Notification is no longer active"))
+
+        return runCatching {
+            cancelNotification(summary.key)
+            NotificationStore.remove(summary.key)
+            "Dismissed notification from " + summary.title.ifBlank { summary.packageName }
+        }
+    }
+
+    private fun snooze(index: Int, durationMs: Long): Result<String> {
+        val (summary, _) = active(index)
+            ?: return Result.failure(IllegalArgumentException("Notification is no longer active"))
+        val duration = durationMs.coerceIn(1_000L, 86_400_000L)
+
+        return runCatching {
+            snoozeNotification(summary.key, duration)
+            "Snoozed notification for " + duration / 1000L + " seconds"
+        }
+    }
+
+    private fun reply(index: Int, replyText: String): Result<String> {
+        val (summary, sbn) = active(index)
+            ?: return Result.failure(IllegalArgumentException("Notification is no longer active"))
 
         for (action in sbn.notification.actions.orEmpty()) {
             val remoteInputs = action.remoteInputs ?: continue
@@ -52,7 +89,9 @@ class NotificationBridgeService : NotificationListenerService() {
 
             val fillInIntent = Intent()
             val results = Bundle()
-            remoteInputs.forEach { input -> results.putCharSequence(input.resultKey, replyText) }
+            remoteInputs.forEach { input ->
+                results.putCharSequence(input.resultKey, replyText)
+            }
             RemoteInput.addResultsToIntent(remoteInputs, fillInIntent, results)
 
             return try {
@@ -70,10 +109,36 @@ class NotificationBridgeService : NotificationListenerService() {
         @Volatile
         private var instance: WeakReference<NotificationBridgeService>? = null
 
-        fun replyTo(index: Int, text: String): Result<String> {
-            val service = instance?.get()
-                ?: return Result.failure(IllegalStateException("Notification access service is not connected"))
-            return service.reply(index, text)
+        private fun service(): Result<NotificationBridgeService> {
+            val value = instance?.get()
+                ?: return Result.failure(
+                    IllegalStateException("Notification access service is not connected")
+                )
+            return Result.success(value)
         }
+
+        fun openNotification(index: Int): Result<String> =
+            service().fold(
+                onSuccess = { it.open(index) },
+                onFailure = { Result.failure(it) }
+            )
+
+        fun dismissNotification(index: Int): Result<String> =
+            service().fold(
+                onSuccess = { it.dismiss(index) },
+                onFailure = { Result.failure(it) }
+            )
+
+        fun snoozeNotification(index: Int, durationMs: Long): Result<String> =
+            service().fold(
+                onSuccess = { it.snooze(index, durationMs) },
+                onFailure = { Result.failure(it) }
+            )
+
+        fun replyTo(index: Int, text: String): Result<String> =
+            service().fold(
+                onSuccess = { it.reply(index, text) },
+                onFailure = { Result.failure(it) }
+            )
     }
 }

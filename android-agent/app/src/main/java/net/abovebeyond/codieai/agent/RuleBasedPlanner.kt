@@ -15,6 +15,12 @@ class RuleBasedPlanner : Planner {
             lower == "back" -> AgentAction(ActionType.BACK)
             lower == "home" || lower == "go home" -> AgentAction(ActionType.HOME)
             lower == "recents" || lower == "recent apps" -> AgentAction(ActionType.RECENTS)
+            lower == "take screenshot" || lower == "take a screenshot" || lower == "screenshot" ->
+                AgentAction(ActionType.TAKE_SCREENSHOT)
+            lower == "lock screen" || lower == "lock my phone" || lower == "lock phone" ->
+                AgentAction(ActionType.LOCK_SCREEN)
+            lower == "power menu" || lower == "show power menu" ->
+                AgentAction(ActionType.POWER_DIALOG)
 
             lower.contains("flashlight") && (lower.contains("on") || lower.contains("enable")) ->
                 AgentAction(ActionType.FLASHLIGHT_ON)

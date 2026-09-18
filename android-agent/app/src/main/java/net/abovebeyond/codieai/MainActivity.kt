@@ -222,7 +222,7 @@ class MainActivity : Activity() {
             "Direct capabilities now include flashlight, screen brightness, Do Not Disturb, maps/navigation, " +
                 "camera launch, calendar event creation, web search/URLs, clipboard/share, SMS/email composition, " +
                 "dialer, alarms/timers, media/volume controls, notification replies, app/settings navigation, " +
-                "and accessibility-driven UI interaction."
+                "accessibility-driven UI interaction, screen summarization, screenshots, screen locking, and notification open/dismiss/snooze controls."
         ))
 
         val scroll = ScrollView(this).apply { addView(root) }
@@ -596,7 +596,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/0.3 Android")
+                    setRequestProperty("User-Agent", "CodieAI/0.4 Android")
                 }
 
                 val status = connection.responseCode

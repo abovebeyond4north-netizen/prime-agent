@@ -59,6 +59,9 @@ class CodieAccessibilityService : AccessibilityService() {
                 ActionType.RECENTS -> global(GLOBAL_ACTION_RECENTS, "Recents")
                 ActionType.NOTIFICATIONS -> global(GLOBAL_ACTION_NOTIFICATIONS, "Notifications")
                 ActionType.QUICK_SETTINGS -> global(GLOBAL_ACTION_QUICK_SETTINGS, "Quick settings")
+                ActionType.TAKE_SCREENSHOT -> global(GLOBAL_ACTION_TAKE_SCREENSHOT, "Screenshot")
+                ActionType.LOCK_SCREEN -> global(GLOBAL_ACTION_LOCK_SCREEN, "Lock screen")
+                ActionType.POWER_DIALOG -> global(GLOBAL_ACTION_POWER_DIALOG, "Power dialog")
                 ActionType.SCROLL_FORWARD -> scroll(snapshot, action.nodeId, true)
                 ActionType.SCROLL_BACKWARD -> scroll(snapshot, action.nodeId, false)
                 ActionType.LAUNCH_APP -> launchApp(action.app)
@@ -88,6 +91,10 @@ class CodieAccessibilityService : AccessibilityService() {
                 ActionType.VOLUME_UP -> adjustVolume(AudioManager.ADJUST_RAISE, "Volume up")
                 ActionType.VOLUME_DOWN -> adjustVolume(AudioManager.ADJUST_LOWER, "Volume down")
                 ActionType.VOLUME_MUTE -> adjustVolume(AudioManager.ADJUST_TOGGLE_MUTE, "Mute toggled")
+                ActionType.OPEN_NOTIFICATION -> openNotification(action.notificationIndex)
+                ActionType.DISMISS_NOTIFICATION -> dismissNotification(action.notificationIndex)
+                ActionType.SNOOZE_NOTIFICATION ->
+                    snoozeNotification(action.notificationIndex, action.milliseconds)
                 ActionType.REPLY_NOTIFICATION -> replyNotification(action.notificationIndex, action.text)
                 ActionType.WAIT -> {
                     Thread.sleep(action.milliseconds)
@@ -385,6 +392,21 @@ class CodieAccessibilityService : AccessibilityService() {
         audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI)
         return ExecutionResult(true, label)
     }
+
+    private fun openNotification(index: Int): ExecutionResult =
+        notificationResult(NotificationBridgeService.openNotification(index))
+
+    private fun dismissNotification(index: Int): ExecutionResult =
+        notificationResult(NotificationBridgeService.dismissNotification(index))
+
+    private fun snoozeNotification(index: Int, durationMs: Long): ExecutionResult =
+        notificationResult(NotificationBridgeService.snoozeNotification(index, durationMs))
+
+    private fun notificationResult(result: Result<String>): ExecutionResult =
+        result.fold(
+            onSuccess = { ExecutionResult(true, it) },
+            onFailure = { ExecutionResult(false, it.message ?: "Notification action failed") }
+        )
 
     private fun replyNotification(index: Int, text: String): ExecutionResult {
         if (text.isBlank()) return ExecutionResult(false, "Reply text is blank")

@@ -11,6 +11,9 @@ enum class ActionType {
     RECENTS,
     NOTIFICATIONS,
     QUICK_SETTINGS,
+    TAKE_SCREENSHOT,
+    LOCK_SCREEN,
+    POWER_DIALOG,
     SCROLL_FORWARD,
     SCROLL_BACKWARD,
     LAUNCH_APP,
@@ -39,6 +42,9 @@ enum class ActionType {
     VOLUME_UP,
     VOLUME_DOWN,
     VOLUME_MUTE,
+    OPEN_NOTIFICATION,
+    DISMISS_NOTIFICATION,
+    SNOOZE_NOTIFICATION,
     REPLY_NOTIFICATION,
     WAIT,
     RESPOND,
@@ -100,7 +106,7 @@ data class AgentAction(
                 seconds = json.optInt("seconds", -1),
                 x = json.optInt("x", -1),
                 y = json.optInt("y", -1),
-                milliseconds = json.optLong("milliseconds", 700L).coerceIn(100L, 5_000L),
+                milliseconds = json.optLong("milliseconds", 700L).coerceIn(100L, 3_600_000L),
                 reason = json.optString("reason", "")
             )
         }

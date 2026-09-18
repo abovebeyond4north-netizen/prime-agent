@@ -110,8 +110,14 @@ object AgentRuntime {
                 return@execute
             }
 
-            if (!looksConversational(normalizedGoal)) {
-                moveAwayFromOwnUiIfNeeded(service, appContext.packageName, status)
+            val screenContext = needsExternalScreenContext(normalizedGoal)
+            if (!looksConversational(normalizedGoal) || screenContext) {
+                moveAwayFromOwnUiIfNeeded(
+                    service,
+                    appContext.packageName,
+                    preferBack = screenContext,
+                    status = status
+                )
             }
 
             var lastResult = "No action has run yet."
@@ -186,17 +192,33 @@ object AgentRuntime {
         ).any { lower.startsWith(it) }
     }
 
+    private fun needsExternalScreenContext(goal: String): Boolean {
+        val lower = goal.lowercase(Locale.getDefault())
+        return listOf(
+            "screen", "this page", "this app", "what am i looking",
+            "read this", "summarize this", "what does this say",
+            "what is open", "what's open", "take a screenshot"
+        ).any { lower.contains(it) }
+    }
+
     private fun moveAwayFromOwnUiIfNeeded(
         service: CodieAccessibilityService,
         packageName: String,
+        preferBack: Boolean,
         status: (String) -> Unit
     ) {
         val snapshot = service.captureSnapshot()
         try {
             if (snapshot.text.contains("pkg=" + packageName)) {
-                status("Leaving Codie AI before acting on the phone.")
+                status(
+                    if (preferBack) "Returning to the previous screen for context."
+                    else "Leaving Codie AI before acting on the phone."
+                )
                 service.execute(
-                    AgentAction(ActionType.HOME, reason = "Avoid controlling Codie AI itself"),
+                    AgentAction(
+                        if (preferBack) ActionType.BACK else ActionType.HOME,
+                        reason = "Avoid controlling Codie AI itself"
+                    ),
                     snapshot
                 )
                 Thread.sleep(650L)
