@@ -586,9 +586,10 @@ def run_search_policy_evolution(
     ]
     train_families = set()
     for seeds in development_seed_matrix:
-        train_families.update(
-            _families(train_goal, tier, seeds[0], task_count)
-        )
+        for seed in seeds:
+            train_families.update(
+                _families(train_goal, tier, seed, task_count)
+            )
     holdout_families = _families(holdout_goal, tier, holdout_seeds[0], task_count)
     overlap = train_families & holdout_families
     if overlap:
