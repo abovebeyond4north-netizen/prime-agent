@@ -1,6 +1,7 @@
 package net.abovebeyond.codieai.tools
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Base64
 import org.json.JSONArray
@@ -10,6 +11,7 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -530,10 +532,52 @@ object GitHubSelfDev {
         zip.delete()
         require(outputName.isNotBlank()) { "Artifact ZIP did not contain an APK" }
 
+        val apkFile = WorkspaceTools.file(context, outputName)
+        verifySignerMatchesInstalledApp(context, apkFile)
+
         return "Downloaded verified CI artifact to private workspace file " +
-            outputName + " (" + apkBytes + " bytes). " +
+            outputName + " (" + apkBytes + " bytes). APK signer matches the installed Codie AI. " +
             "Installation still requires the Android package-installer/user approval boundary."
     }
+
+    private fun verifySignerMatchesInstalledApp(context: Context, apk: File) {
+        val flags = PackageManager.GET_SIGNING_CERTIFICATES
+        val installedInfo = context.packageManager.getPackageInfo(
+            context.packageName,
+            flags
+        )
+        val archiveInfo = context.packageManager.getPackageArchiveInfo(
+            apk.absolutePath,
+            flags
+        ) ?: run {
+            apk.delete()
+            throw IllegalStateException("Android could not inspect the downloaded APK signature")
+        }
+
+        val installed = installedInfo.signingInfo
+            ?.apkContentsSigners
+            ?.map { sha256(it.toByteArray()) }
+            ?.toSet()
+            .orEmpty()
+
+        val downloaded = archiveInfo.signingInfo
+            ?.apkContentsSigners
+            ?.map { sha256(it.toByteArray()) }
+            ?.toSet()
+            .orEmpty()
+
+        if (installed.isEmpty() || downloaded.isEmpty() || installed != downloaded) {
+            apk.delete()
+            throw SecurityException(
+                "Refusing self-update artifact because its APK signer does not match the installed Codie AI"
+            )
+        }
+    }
+
+    private fun sha256(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256")
+            .digest(bytes)
+            .joinToString("") { "%02x".format(it) }
 
     private fun refSha(context: Context, branch: String): String {
         val ref = apiJson(
@@ -627,7 +671,7 @@ object GitHubSelfDev {
             instanceFollowRedirects = false
             setRequestProperty("Accept", "application/vnd.github+json")
             setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
-            setRequestProperty("User-Agent", "CodieAI-SelfDev/1.9")
+            setRequestProperty("User-Agent", "CodieAI-SelfDev/2.0")
             if (token.isNotBlank()) {
                 setRequestProperty("Authorization", "Bearer " + token)
             }
@@ -667,7 +711,7 @@ object GitHubSelfDev {
             setRequestProperty("Accept", "application/vnd.github+json")
             setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
             setRequestProperty("Authorization", "Bearer " + token)
-            setRequestProperty("User-Agent", "CodieAI-SelfDev/1.9")
+            setRequestProperty("User-Agent", "CodieAI-SelfDev/2.0")
         }
 
         val status = first.responseCode
@@ -682,7 +726,7 @@ object GitHubSelfDev {
             second.connectTimeout = 15_000
             second.readTimeout = 45_000
             second.instanceFollowRedirects = true
-            second.setRequestProperty("User-Agent", "CodieAI-SelfDev/1.9")
+            second.setRequestProperty("User-Agent", "CodieAI-SelfDev/2.0")
             return second.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
                 val out = StringBuilder()
                 val buffer = CharArray(8192)
@@ -715,7 +759,7 @@ object GitHubSelfDev {
             setRequestProperty("Accept", "application/vnd.github+json")
             setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
             setRequestProperty("Authorization", "Bearer " + token)
-            setRequestProperty("User-Agent", "CodieAI-SelfDev/1.9")
+            setRequestProperty("User-Agent", "CodieAI-SelfDev/2.0")
         }
 
         val status = first.responseCode
@@ -733,7 +777,7 @@ object GitHubSelfDev {
         second.connectTimeout = 20_000
         second.readTimeout = 120_000
         second.instanceFollowRedirects = true
-        second.setRequestProperty("User-Agent", "CodieAI-SelfDev/1.9")
+        second.setRequestProperty("User-Agent", "CodieAI-SelfDev/2.0")
 
         var total = 0L
         destination.outputStream().buffered(1024 * 1024).use { output ->
