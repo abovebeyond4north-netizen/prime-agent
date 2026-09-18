@@ -1,0 +1,34 @@
+name: x402 daily market snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 10 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: x402-daily-market-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - name: Fetch and persist market snapshot
+        run: python3 tools/x402-market/daily_snapshot.py
+      - name: Commit changed market data
+        run: |
+          if git diff --quiet -- tools/x402-market/data; then
+            echo "No market data changes"
+            exit 0
+          fi
+          git config user.name "prime-agent-market-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add tools/x402-market/data/latest.json tools/x402-market/data/history.jsonl
+          git commit -m "chore(x402): update daily market snapshot"
+          git push
