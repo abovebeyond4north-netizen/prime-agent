@@ -138,7 +138,7 @@ jobs:
           from research.search_policy_evolution import run_search_policy_evolution
           report = run_search_policy_evolution(
               '.lab-state-search-policy-smoke',
-              train_goal='compound arithmetic',
+              train_goal='gcd',
               holdout_goal='sorted search',
               tier=1,
               population=2,
