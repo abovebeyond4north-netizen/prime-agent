@@ -18,7 +18,7 @@ class LiteRtPlanner(
     override fun nextAction(goal: String, snapshot: String, step: Int): AgentAction {
         val activeEngine = getOrCreateEngine()
         val config = ConversationConfig(systemInstruction = Contents.of(PlannerPrompt.system))
-        val compactSnapshot = if (snapshot.length > 10_500) snapshot.take(10_500) else snapshot
+        val compactSnapshot = snapshot.take(MAX_STATE_CHARS)
         val response = activeEngine.createConversation(config).use { conversation ->
             conversation.sendMessage(PlannerPrompt.user(goal, compactSnapshot, step)).toString()
         }
@@ -35,7 +35,7 @@ class LiteRtPlanner(
             EngineConfig(
                 modelPath = modelFile.absolutePath,
                 backend = Backend.GPU(),
-                maxNumTokens = 4096,
+                maxNumTokens = MAX_CONTEXT_TOKENS,
                 cacheDir = cacheDir.absolutePath
             )
         )
@@ -48,7 +48,7 @@ class LiteRtPlanner(
                 EngineConfig(
                     modelPath = modelFile.absolutePath,
                     backend = Backend.CPU(),
-                    maxNumTokens = 4096,
+                    maxNumTokens = MAX_CONTEXT_TOKENS,
                     cacheDir = cacheDir.absolutePath
                 )
             )
@@ -56,5 +56,10 @@ class LiteRtPlanner(
             engine = cpu
             return cpu
         }
+    }
+
+    companion object {
+        private const val MAX_CONTEXT_TOKENS = 8192
+        private const val MAX_STATE_CHARS = 8_000
     }
 }
