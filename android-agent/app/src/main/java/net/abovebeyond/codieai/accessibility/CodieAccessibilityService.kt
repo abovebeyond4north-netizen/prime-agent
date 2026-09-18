@@ -107,9 +107,10 @@ class CodieAccessibilityService : AccessibilityService() {
     }
 
     private fun scroll(snapshot: UiSnapshot, nodeId: Int, forward: Boolean): ExecutionResult {
-        val node = if (nodeId >= 0) snapshot.nodes[nodeId]
-        else snapshot.nodes.values.firstOrNull { it.isScrollable }
-        ?: return ExecutionResult(false, "No scrollable node is available")
+        val node = (
+            if (nodeId >= 0) snapshot.nodes[nodeId]
+            else snapshot.nodes.values.firstOrNull { it.isScrollable }
+        ) ?: return ExecutionResult(false, "No scrollable node is available")
 
         val action = if (forward) {
             AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
