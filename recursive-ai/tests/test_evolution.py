@@ -117,8 +117,9 @@ class EvolutionTests(unittest.TestCase):
             )
             edges = memory.lineage("gcd")
             self.assertEqual(len(edges), 2)
-            self.assertEqual(edges[0]["child_digest"], second)
-            self.assertEqual(edges[0]["parent_digest"], first)
+            edge_by_child = {edge["child_digest"]: edge for edge in edges}
+            self.assertEqual(edge_by_child[second]["parent_digest"], first)
+            self.assertEqual(edge_by_child[malformed]["parent_digest"], second)
             parents = memory.parents("gcd", limit=3)
             self.assertEqual({row["digest"] for row in parents}, {first, second})
             self.assertNotIn(malformed, {row["digest"] for row in parents})
