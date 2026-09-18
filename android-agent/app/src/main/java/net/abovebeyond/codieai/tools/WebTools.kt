@@ -178,7 +178,8 @@ object WebTools {
         }
 
         if (parts.isEmpty()) return url
-        return url + if (url.contains("?")) "&" else "?" + parts.joinToString("&")
+        val separator = if (url.contains("?")) "&" else "?"
+        return url + separator + parts.joinToString("&")
     }
 
     private fun request(rawUrl: String, rawHtml: Boolean): String {
