@@ -2,6 +2,7 @@ package net.abovebeyond.codieai.tools
 
 import android.content.Context
 import android.content.Intent
+import net.abovebeyond.codieai.privileged.ShizukuBridge
 import org.json.JSONObject
 
 object ToolRegistry {
@@ -13,6 +14,14 @@ object ToolRegistry {
         "clipboard_read(): read clipboard text when Android permits access",
         "clipboard_write(text): write text to the clipboard",
         "device_sensors(): sample available motion/environment sensors and battery temperature",
+        "shizuku_status(): report Shizuku availability/permission and privileged bridge status",
+        "shizuku_list_packages(): list user-installed packages through the optional Shizuku bridge",
+        "shizuku_package_info(package): inspect one Android package through Shizuku",
+        "shizuku_force_stop(package): force-stop one package; only use when the user explicitly asks",
+        "shizuku_battery_dump(): detailed Android battery diagnostics through Shizuku",
+        "shizuku_meminfo(package): detailed memory diagnostics for one package through Shizuku",
+        "shizuku_animation_scale(value): set all Android animation scales from 0 to 10; state-changing",
+        "shizuku_stay_awake(enabled): keep screen awake while charging; state-changing",
         "memory_put(key,value): save explicit durable local tool memory",
         "memory_get(key): retrieve local tool memory",
         "memory_list(): list local memory keys",
@@ -67,6 +76,36 @@ object ToolRegistry {
                     args.requireString("text")
                 )
                 "device_sensors" -> DeviceTools.sensorReport(context)
+                "shizuku_status" -> ShizukuBridge.status()
+                "shizuku_list_packages" ->
+                    ShizukuBridge.listUserPackages(context).getOrThrow()
+                "shizuku_package_info" ->
+                    ShizukuBridge.packageInfo(
+                        context,
+                        args.requireString("package")
+                    ).getOrThrow()
+                "shizuku_force_stop" ->
+                    ShizukuBridge.forceStop(
+                        context,
+                        args.requireString("package")
+                    ).getOrThrow()
+                "shizuku_battery_dump" ->
+                    ShizukuBridge.batteryDump(context).getOrThrow()
+                "shizuku_meminfo" ->
+                    ShizukuBridge.memoryInfo(
+                        context,
+                        args.requireString("package")
+                    ).getOrThrow()
+                "shizuku_animation_scale" ->
+                    ShizukuBridge.setAnimationScale(
+                        context,
+                        args.optDouble("value", 1.0).toFloat()
+                    ).getOrThrow()
+                "shizuku_stay_awake" ->
+                    ShizukuBridge.setStayAwake(
+                        context,
+                        args.optBoolean("enabled", false)
+                    ).getOrThrow()
 
                 "memory_put" -> MemoryTools.put(
                     context,

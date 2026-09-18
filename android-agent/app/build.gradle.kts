@@ -11,8 +11,12 @@ android {
         applicationId = "net.abovebeyond.codieai"
         minSdk = 30
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.3.0"
+        versionCode = 14
+        versionName = "1.4.0"
+    }
+
+    buildFeatures {
+        aidl = true
     }
 
     compileOptions {
@@ -36,4 +40,6 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.google.mlkit:image-labeling:17.0.9")
     implementation("org.mozilla:rhino:1.9.1")
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 }

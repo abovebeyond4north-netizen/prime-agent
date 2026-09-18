@@ -28,6 +28,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
 import net.abovebeyond.codieai.automation.AutomationScheduler
+import net.abovebeyond.codieai.privileged.ShizukuBridge
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import net.abovebeyond.codieai.tools.CustomToolStore
 import net.abovebeyond.codieai.tools.SecretStore
@@ -38,6 +39,7 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
+import rikka.shizuku.Shizuku
 
 class MainActivity : Activity() {
     private lateinit var endpointInput: EditText
@@ -58,8 +60,24 @@ class MainActivity : Activity() {
     private var pendingHandsFreePermission = false
     private var lastAssistantReply = ""
 
+    private val shizukuPermissionListener =
+        Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+            if (requestCode == ShizukuBridge.REQUEST_CODE) {
+                runOnUiThread {
+                    appendStatus(
+                        if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                            "Shizuku permission granted. Privileged tools are available."
+                        } else {
+                            "Shizuku permission was not granted."
+                        }
+                    )
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
         initializeSpeech()
 
         val root = LinearLayout(this).apply {
@@ -154,6 +172,10 @@ class MainActivity : Activity() {
         })
         root.addView(button("8. Allow scheduled automation") {
             requestExactAlarmAccess()
+        })
+        root.addView(button("9. Enable optional Shizuku deeper control") {
+            appendStatus(ShizukuBridge.requestPermission())
+            appendStatus(ShizukuBridge.status())
         })
 
         val automationButtons = LinearLayout(this).apply {
@@ -355,6 +377,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        runCatching { Shizuku.removeRequestPermissionResultListener(shizukuPermissionListener) }
         stopHandsFreeMode()
         speechRecognizer?.destroy()
         speechRecognizer = null
@@ -770,7 +793,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.3 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.4 Android")
                 }
 
                 val status = connection.responseCode

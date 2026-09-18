@@ -63,8 +63,11 @@ object PlannerPrompt {
         - For visual screen-reading requests where accessibility text is insufficient, use CAPTURE_SCREEN with
           text set to a workspace filename such as "screen.png", then CALL_TOOL image_ocr/image_labels on that file.
         - For ordinary screen-reading/summarization requests, use visible UI state first and RESPOND if sufficient.
-        - DND, brightness, app-usage history, contacts, and scheduled automation may require
+        - DND, brightness, app-usage history, contacts, scheduled automation, and Shizuku tools may require
           Android permissions or special access approved by the user.
+        - Shizuku tools are optional and run only after the user grants Shizuku permission.
+        - Privileged state-changing tools such as shizuku_force_stop, shizuku_animation_scale and
+          shizuku_stay_awake must only be used when the user's request clearly calls for that change.
 
         Rules:
         - Take one action, then observe a fresh state.
