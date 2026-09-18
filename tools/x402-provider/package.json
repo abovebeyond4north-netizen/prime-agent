@@ -1,0 +1,16 @@
+{
+  "name": "prime-agent-x402-provider",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs"
+  },
+  "dependencies": {
+    "@coinbase/cdp-sdk": "latest",
+    "@x402/core": "latest",
+    "@x402/evm": "latest",
+    "@x402/express": "latest",
+    "express": "latest"
+  }
+}
