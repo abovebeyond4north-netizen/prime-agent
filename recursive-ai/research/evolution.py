@@ -279,18 +279,19 @@ def _select_quality_diverse(records, count):
 
 
 def _make_next_population(survivors, population, generation, seed):
-    genomes = [
-        genome_from_descriptor(item["genome"])
-        for item in survivors[: min(2, len(survivors))]
-    ]
+    # Preserve one elite and force the rest of each generation to be new
+    # branches. This keeps even the minimum population size evolutionary.
+    genomes = [genome_from_descriptor(survivors[0]["genome"])]
     seen = {genome.profile_digest for genome in genomes}
     rng = random.Random(seed + generation * 1_000_003)
     attempts = 0
     while len(genomes) < population and attempts < population * 50:
         attempts += 1
         if len(survivors) > 1 and attempts % 2 == 0:
-            left = genome_from_descriptor(survivors[rng.randrange(len(survivors))]["genome"])
-            right = genome_from_descriptor(survivors[rng.randrange(len(survivors))]["genome"])
+            left_index = rng.randrange(len(survivors))
+            right_index = (left_index + 1 + rng.randrange(len(survivors) - 1)) % len(survivors)
+            left = genome_from_descriptor(survivors[left_index]["genome"])
+            right = genome_from_descriptor(survivors[right_index]["genome"])
             child = recombine(left, right, rng.randrange(2**31), generation)
         else:
             parent_record = survivors[rng.randrange(len(survivors))]
