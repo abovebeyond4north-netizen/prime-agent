@@ -374,7 +374,7 @@ class MainActivity : Activity() {
             "Codie AI can now inspect and improve its own Android source through GitHub, work only on " +
                 "isolated codie-selfdev/** branches, run Android CI, read compiler failures, repair the branch, " +
                 "and stage a verified APK artifact. To enable write access, store a fine-grained GitHub token " +
-                "under the encrypted alias github_token with Contents read/write and Actions read access."
+                "under the encrypted alias github_token with Contents read/write and Actions read/write access."
         ))
         root.addView(button("Self-development status") {
             appendStatus(GitHubSelfDev.status(this))
@@ -413,7 +413,7 @@ class MainActivity : Activity() {
             } else if (!SecretStore.exists(this, "github_token")) {
                 appendStatus(
                     "Self-development needs a fine-grained GitHub token stored in the encrypted vault " +
-                        "under alias github_token. The token must have Contents read/write and Actions read."
+                        "under alias github_token. The token must have Contents read/write and Actions read/write."
                 )
             } else {
                 val autonomousGoal =
@@ -890,7 +890,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.8 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.9 Android")
                 }
 
                 val status = connection.responseCode

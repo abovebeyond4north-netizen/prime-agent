@@ -1,14 +1,19 @@
 name: Android Agent APK
+run-name: "Android Agent APK · ${{ github.event.github.event.inputs.source_ref || github.ref_name }}"
 
 on:
   push:
     branches:
       - feature/android-agent
-      - "codie-selfdev/**"
     paths:
       - "android-agent/**"
       - ".github/workflows/android-agent.yml"
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Optional codie-selfdev/** source ref to build in the trusted workflow context"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -20,6 +25,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.source_ref || github.ref }}
 
       - uses: actions/setup-java@v4
         with:

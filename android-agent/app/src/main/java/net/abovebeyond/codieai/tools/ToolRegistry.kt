@@ -50,6 +50,7 @@ object ToolRegistry {
         "selfdev_find(path,query,branch): search one Codie AI source file with line context",
         "selfdev_patch(branch,message,changes): atomically commit bounded source changes; changes=[{path,old,new}|{path,content}]",
         "selfdev_review(branch): compare a self-development branch against feature/android-agent",
+        "selfdev_build(branch): dispatch signed Android CI from the trusted feature/android-agent workflow context",
         "selfdev_ci(branch): inspect the latest Android CI run and job steps for a self-development branch",
         "selfdev_logs(run_id): retrieve redacted CI job logs for diagnosis",
         "selfdev_artifacts(run_id): list verified CI artifacts",
@@ -251,6 +252,10 @@ object ToolRegistry {
                     )
                 }
                 "selfdev_review" -> GitHubSelfDev.review(
+                    context,
+                    args.optString("branch", "")
+                )
+                "selfdev_build" -> GitHubSelfDev.build(
                     context,
                     args.optString("branch", "")
                 )
