@@ -104,12 +104,24 @@ class EvolutionTests(unittest.TestCase):
                 candidate_parents=[first],
                 origin="test_mutation",
             )
+            malformed = memory.archive(
+                task,
+                "def gcd(",
+                report,
+                second,
+                "mutation",
+                0.0,
+                0.01,
+                candidate_parents=[second],
+                origin="syntax_failure",
+            )
             edges = memory.lineage("gcd")
-            self.assertEqual(len(edges), 1)
+            self.assertEqual(len(edges), 2)
             self.assertEqual(edges[0]["child_digest"], second)
             self.assertEqual(edges[0]["parent_digest"], first)
-            parents = memory.parents("gcd", limit=2)
+            parents = memory.parents("gcd", limit=3)
             self.assertEqual({row["digest"] for row in parents}, {first, second})
+            self.assertNotIn(malformed, {row["digest"] for row in parents})
             memory.db.close()
 
     def test_evolution_uses_fresh_holdout_and_requires_non_regression(self):
