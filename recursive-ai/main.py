@@ -19,6 +19,7 @@ from autonomy.tasks import goal_contract
 from research.meta_eval import run_meta_evaluation
 from research.transfer_eval import run_transfer_evaluation
 from research.evolution import run_curriculum_evolution
+from research.search_policy_evolution import run_search_policy_evolution
 
 
 def run(root, iterations, provider, image):
@@ -100,7 +101,7 @@ def rollback(root, commit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum"])
+    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum", "evolve-search-policy"])
     parser.add_argument("--state", default=str(Path(__file__).parent / ".lab-state"))
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--provider", choices=["demo", "search", "api"], default="demo")
@@ -171,6 +172,28 @@ def main():
         report = run_curriculum_evolution(
             args.state,
             goal=args.evolution_goal,
+            tier=args.tier,
+            target=args.target,
+            population=args.population,
+            generations=args.generations,
+            development_replicates=args.replicates,
+            holdout_replicates=args.holdout_replicates,
+            base_seed=args.base_seed,
+            task_count=args.task_count,
+            max_attempts=args.max_attempts,
+            max_seconds=args.max_seconds,
+            max_stagnation=args.max_stagnation,
+            max_model_calls=args.max_model_calls,
+            max_containers=args.max_containers,
+            provider=provider,
+            image=args.image,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+    elif args.command == "evolve-search-policy":
+        report = run_search_policy_evolution(
+            args.state,
+            train_goal=args.train_goal,
+            holdout_goal=args.holdout_goal,
             tier=args.tier,
             target=args.target,
             population=args.population,
