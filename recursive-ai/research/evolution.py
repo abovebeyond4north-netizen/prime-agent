@@ -23,6 +23,22 @@ from autonomy.curriculum import (
 from autonomy.tasks import goal_contract
 
 
+def evolution_protocol_digest():
+    """Fingerprint every trusted module that can change evolutionary outcomes."""
+    root = Path(__file__).resolve().parents[1]
+    paths = (
+        "research/evolution.py",
+        "autonomy/controller.py",
+        "autonomy/curriculum.py",
+        "autonomy/memory.py",
+        "autonomy/policy.py",
+        "autonomy/search.py",
+    )
+    return hashlib.sha256(
+        b"".join((root / path).read_bytes() for path in paths)
+    ).hexdigest()
+
+
 @dataclass(frozen=True)
 class CurriculumGenome:
     retry_weight: float
@@ -403,6 +419,7 @@ def run_curriculum_evolution(
         "provider": provider,
         "image": image,
         "suite_digest": suite["suite_digest"],
+        "evolution_protocol_digest": evolution_protocol_digest(),
         "evolvable_surface": list(CURRICULUM_PROFILE_KEYS),
         "immutable_boundary": [
             "task families and oracles",
