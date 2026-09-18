@@ -163,6 +163,16 @@ class MainActivity : Activity() {
     }
 
     private fun downloadRecommendedModel() {
+        val available = StatFs(filesDir.absolutePath).availableBytes
+        if (available < RECOMMENDED_MODEL_MIN_FREE_BYTES) {
+            appendStatus(
+                "Not enough free storage for the local model. Need about " +
+                    formatBytes(RECOMMENDED_MODEL_MIN_FREE_BYTES) + " free; available: " +
+                    formatBytes(available) + "."
+            )
+            return
+        }
+
         appendStatus("Downloading Gemma 4 E2B. Wi-Fi is recommended (~2.6 GB).")
         Thread {
             val destination = AgentRuntime.localModelFile(this)
@@ -185,6 +195,15 @@ class MainActivity : Activity() {
                 require(status in 200..299) { "Model server returned HTTP " + status }
 
                 val expected = connection.contentLengthLong
+                if (expected > 0L) {
+                    val freeNow = StatFs(filesDir.absolutePath).availableBytes
+                    val required = expected + DOWNLOAD_RESERVE_BYTES
+                    require(freeNow >= required) {
+                        "Need " + formatBytes(required) + " free for this download; available: " +
+                            formatBytes(freeNow)
+                    }
+                }
+
                 var copied = 0L
                 var lastReportedPercent = -1
                 val buffer = ByteArray(1024 * 1024)
@@ -338,6 +357,8 @@ class MainActivity : Activity() {
         private const val REQUEST_MODEL = 42
         private const val REQUEST_VOICE = 43
         private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
+        private const val RECOMMENDED_MODEL_MIN_FREE_BYTES = 3_200_000_000L
+        private const val DOWNLOAD_RESERVE_BYTES = 536_870_912L
         private const val RECOMMENDED_MODEL_URL =
             "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm"
     }
