@@ -79,6 +79,19 @@ def genome_from_profile(profile=None, parents=(), generation=0):
     )
 
 
+def genome_from_descriptor(descriptor):
+    if not isinstance(descriptor, dict):
+        raise ValueError("genome descriptor must be a mapping")
+    genome = genome_from_profile(
+        descriptor.get("profile"),
+        parents=tuple(descriptor.get("parents", ())),
+        generation=descriptor.get("generation", 0),
+    )
+    if descriptor.get("id") is not None and descriptor["id"] != genome.id:
+        raise ValueError("genome descriptor id mismatch")
+    return genome
+
+
 def _bounded(value):
     return round(min(4.0, max(0.0, float(value))), 6)
 
@@ -267,11 +280,7 @@ def _select_quality_diverse(records, count):
 
 def _make_next_population(survivors, population, generation, seed):
     genomes = [
-        genome_from_profile(
-            item["genome"]["profile"],
-            parents=tuple(item["genome"]["parents"]),
-            generation=item["genome"]["generation"],
-        )
+        genome_from_descriptor(item["genome"])
         for item in survivors[: min(2, len(survivors))]
     ]
     seen = {genome.profile_digest for genome in genomes}
@@ -280,12 +289,12 @@ def _make_next_population(survivors, population, generation, seed):
     while len(genomes) < population and attempts < population * 50:
         attempts += 1
         if len(survivors) > 1 and attempts % 2 == 0:
-            left = genome_from_profile(survivors[rng.randrange(len(survivors))]["genome"]["profile"])
-            right = genome_from_profile(survivors[rng.randrange(len(survivors))]["genome"]["profile"])
+            left = genome_from_descriptor(survivors[rng.randrange(len(survivors))]["genome"])
+            right = genome_from_descriptor(survivors[rng.randrange(len(survivors))]["genome"])
             child = recombine(left, right, rng.randrange(2**31), generation)
         else:
             parent_record = survivors[rng.randrange(len(survivors))]
-            parent = genome_from_profile(parent_record["genome"]["profile"])
+            parent = genome_from_descriptor(parent_record["genome"])
             child = mutate(parent, rng.randrange(2**31), generation)
         if child.profile_digest not in seen:
             seen.add(child.profile_digest)
@@ -461,7 +470,7 @@ def run_curriculum_evolution(
             record["genome"]["id"],
         ),
     )
-    finalist = genome_from_profile(finalist_record["genome"]["profile"])
+    finalist = genome_from_descriptor(finalist_record["genome"])
     baseline = genome_from_profile(DEFAULT_CURRICULUM_PROFILE)
 
     finalist_holdout = _evaluate_genome(
