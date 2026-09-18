@@ -6,13 +6,13 @@ The service uses Coinbase's public Bazaar catalog as its upstream dataset, so th
 
 ## Credentials
 
-The provider uses Coinbase CDP's official x402 resource-server integration. Supply these as environment variables at runtime:
+The service starts in public-analysis mode when payment credentials are absent. To activate paid x402 settlement through Coinbase CDP, supply these environment variables at runtime:
 
 - `CDP_API_KEY_ID`
 - `CDP_API_KEY_SECRET`
 - `CDP_WALLET_SECRET`
 
-No private key or credential is stored in this repository. `createX402Server` provisions/manages the receiver wallet through CDP.
+No private key or credential is stored in this repository. When all three values are present, `createX402Server` activates the x402 payment gate. Without them, the same market-analysis endpoint remains available publicly so hosting, monitoring, and demand validation can run safely.
 
 Optional runtime settings:
 
@@ -40,7 +40,7 @@ Paid route:
 GET /v1/x402/opportunities?limit=25&organicOnly=true
 ```
 
-The official CDP x402 integration returns `402 Payment Required` to unpaid clients and settles a valid x402 payment before the route handler runs. Routes created with `createX402Server` are eligible for CDP Bazaar discovery after real settlement through the CDP facilitator.
+When payment credentials are configured, the official CDP x402 integration returns `402 Payment Required` to unpaid clients and settles a valid x402 payment before the route handler runs. Routes created with `createX402Server` are eligible for CDP Bazaar discovery after real settlement through the CDP facilitator. In public-analysis mode the endpoint is intentionally unmetered.
 
 ## Product logic
 
