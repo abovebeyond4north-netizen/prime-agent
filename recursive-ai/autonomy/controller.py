@@ -164,10 +164,18 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         gain = max(0.0, after - before)
         elapsed = time.monotonic() - candidate_start
         failed_gate = next((gate["name"] for gate in report.get("gates", []) if not gate["passed"]), None)
+        if origin in ("archive_return_repair", "ast_mutation"):
+            used_parent_digests = parent_digests[:1]
+        elif origin == "ast_crossover":
+            used_parent_digests = parent_digests[:2]
+        elif origin == "model":
+            used_parent_digests = parent_digests[:3]
+        else:
+            used_parent_digests = []
         episode = {"goal_id": contract["id"], "attempt": attempt, "task": task.descriptor(),
                    "operator": operator, "origin": origin, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
-                   "parent": parents[0]["digest"] if parents else None,
-                   "candidate_parents": parent_digests, "report": report,
+                   "parent": used_parent_digests[0] if used_parent_digests else None,
+                   "candidate_parents": used_parent_digests, "report": report,
                    "delta": gain, "coverage": after, "seconds": elapsed,
                    "provider": provider, "policy_mode": policy_mode, "policy_prior_digest": prior_digest,
                    "prior_strength": prior_strength, "curriculum_profile_digest": curriculum_digest,
@@ -182,7 +190,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
             if source:
                 memory.archive(
                     task, source, report, episode["parent"], operator, float(passed), elapsed,
-                    candidate_parents=parent_digests, origin=origin,
+                    candidate_parents=used_parent_digests, origin=origin,
                 )
             if policy_source:
                 episode["policy_digest"] = (memory.save_policy(policy_source, evidence) if policy_mode == "learned"
