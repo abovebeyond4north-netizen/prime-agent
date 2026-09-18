@@ -1,7 +1,5 @@
 package net.abovebeyond.codieai.agent
 
-import net.abovebeyond.codieai.tools.ToolRegistry
-
 interface Planner {
     fun nextAction(goal: String, snapshot: String, step: Int): AgentAction
 }
@@ -86,6 +84,5 @@ object PlannerPrompt {
     fun user(goal: String, snapshot: String, step: Int): String =
         "GOAL:\n" + goal +
             "\nSTEP:" + step +
-            "\nTOOL_CATALOG:\n" + ToolRegistry.promptCatalog() +
             "\nSTATE:\n" + snapshot
 }

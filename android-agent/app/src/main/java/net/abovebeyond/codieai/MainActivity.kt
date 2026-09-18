@@ -653,12 +653,29 @@ class MainActivity : Activity() {
     }
 
     private fun handleLaunchIntent(launchIntent: Intent?) {
-        if (launchIntent?.getBooleanExtra(EXTRA_START_VOICE, false) == true) {
+        if (launchIntent == null) return
+
+        if (launchIntent.getBooleanExtra(EXTRA_START_VOICE, false)) {
             launchIntent.removeExtra(EXTRA_START_VOICE)
             handler.postDelayed({
                 if (handsFreeEnabled) startHandsFreeListening()
                 else startVoiceInput()
             }, 350L)
+        }
+
+        val sharedText = when (launchIntent.action) {
+            Intent.ACTION_SEND -> launchIntent.getStringExtra(Intent.EXTRA_TEXT)
+            Intent.ACTION_PROCESS_TEXT ->
+                launchIntent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+            else -> null
+        }?.trim().orEmpty()
+
+        if (sharedText.isNotBlank()) {
+            goalInput.setText(
+                "Use this shared text as context and help me with it:\n\n" + sharedText.take(20_000)
+            )
+            appendStatus("Received shared text from another Android app.")
+            launchIntent.action = null
         }
     }
 

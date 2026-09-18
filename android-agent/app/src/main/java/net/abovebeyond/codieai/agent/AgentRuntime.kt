@@ -12,6 +12,7 @@ import android.os.StatFs
 import net.abovebeyond.codieai.accessibility.CodieAccessibilityService
 import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.notifications.NotificationStore
+import net.abovebeyond.codieai.tools.ToolRegistry
 import net.abovebeyond.codieai.tools.UsageTools
 import java.io.File
 import java.lang.ref.WeakReference
@@ -137,6 +138,8 @@ object AgentRuntime {
                     val state = buildString {
                         append("SYSTEM:\n")
                         append(systemState(appContext))
+                        append("\nTOOL_CATALOG:\n")
+                        append(ToolRegistry.promptCatalog(appContext))
                         append("\nLAST_RESULT:\n")
                         append(lastResult.take(3_600))
                         append("\nRECENT_CONVERSATION:\n")

@@ -53,9 +53,55 @@ object WebTools {
         }
     }
 
-    fun fetch(url: String): String {
-        val htmlOrText = request(url.trim(), rawHtml = false)
-        return htmlOrText.take(MAX_TEXT_CHARS)
+    fun fetch(url: String): String =
+        request(url.trim(), rawHtml = false).take(MAX_TEXT_CHARS)
+
+    fun validatePublicHttpsEndpoint(url: String) {
+        validatePublicHttps(URL(url))
+    }
+
+    fun postJsonPublic(url: String, bodyJson: String): String {
+        val target = validatePublicHttps(URL(url))
+        val connection = (target.openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 15_000
+            readTimeout = 30_000
+            doOutput = true
+            instanceFollowRedirects = false
+            setRequestProperty("User-Agent", "CodieAI/0.7 (+Android local assistant)")
+            setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            setRequestProperty("Accept", "application/json,text/plain,text/html;q=0.6")
+        }
+
+        val bytes = bodyJson.toByteArray(Charsets.UTF_8)
+        require(bytes.size <= 128_000) { "Custom tool request body is too large" }
+        connection.outputStream.use { it.write(bytes) }
+
+        val status = connection.responseCode
+        require(status !in 300..399) {
+            "Custom tool redirects are blocked; configure the final HTTPS endpoint"
+        }
+
+        val stream = if (status in 200..299) connection.inputStream else connection.errorStream
+        val response = stream?.use { input ->
+            val output = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
+            var total = 0
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                total += count
+                require(total <= MAX_BYTES) { "Custom tool response exceeds " + MAX_BYTES + " bytes" }
+                output.write(buffer, 0, count)
+            }
+            output.toByteArray().toString(Charsets.UTF_8)
+        }.orEmpty()
+
+        connection.disconnect()
+        require(status in 200..299) {
+            "Custom tool returned HTTP " + status + ": " + response.take(2_000)
+        }
+        return response.take(MAX_TEXT_CHARS)
     }
 
     private fun request(rawUrl: String, rawHtml: Boolean): String {
@@ -67,8 +113,11 @@ object WebTools {
                 connectTimeout = 15_000
                 readTimeout = 20_000
                 instanceFollowRedirects = false
-                setRequestProperty("User-Agent", "CodieAI/0.6 (+Android local assistant)")
-                setRequestProperty("Accept", "text/html,text/plain,application/json,application/xml;q=0.8,*/*;q=0.3")
+                setRequestProperty("User-Agent", "CodieAI/0.7 (+Android local assistant)")
+                setRequestProperty(
+                    "Accept",
+                    "text/html,text/plain,application/json,application/xml;q=0.8,*/*;q=0.3"
+                )
             }
 
             val status = connection.responseCode
@@ -77,9 +126,7 @@ object WebTools {
                     ?: throw IllegalStateException("Redirect had no Location header")
                 connection.disconnect()
                 current = validatePublicHttps(URL(current, location))
-                if (redirectCount == 3) {
-                    throw IllegalStateException("Too many redirects")
-                }
+                if (redirectCount == 3) throw IllegalStateException("Too many redirects")
                 return@repeat
             }
 
@@ -111,7 +158,9 @@ object WebTools {
             val decoded = bytes.toString(Charsets.UTF_8)
             if (rawHtml) return decoded
 
-            return if (contentType.contains("html") || decoded.trimStart().startsWith("<!DOCTYPE", true) ||
+            return if (
+                contentType.contains("html") ||
+                decoded.trimStart().startsWith("<!DOCTYPE", true) ||
                 decoded.trimStart().startsWith("<html", true)
             ) {
                 htmlToText(decoded)
@@ -125,21 +174,21 @@ object WebTools {
 
     private fun validatePublicHttps(url: URL): URL {
         require(url.protocol.equals("https", ignoreCase = true)) {
-            "web_fetch only allows public HTTPS URLs"
+            "Only public HTTPS URLs are allowed"
         }
+
         val host = url.host.trim().lowercase()
         require(host.isNotBlank()) { "URL host is blank" }
         require(host != "localhost" && !host.endsWith(".local")) {
-            "Local/private hosts are blocked for the web tool"
+            "Local/private hosts are blocked"
         }
 
         val addresses = InetAddress.getAllByName(host)
         require(addresses.isNotEmpty()) { "Could not resolve host" }
         addresses.forEach { address ->
-            require(!isPrivate(address)) {
-                "Private/local network addresses are blocked for the web tool"
-            }
+            require(!isPrivate(address)) { "Private/local network addresses are blocked" }
         }
+
         return url
     }
 
