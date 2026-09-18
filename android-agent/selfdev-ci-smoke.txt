@@ -1,0 +1,1 @@
+Codie AI v1.8 self-development branch CI trigger verification.\nThis file is intentionally inert and exists only to prove codie-selfdev/** branches build.\n
