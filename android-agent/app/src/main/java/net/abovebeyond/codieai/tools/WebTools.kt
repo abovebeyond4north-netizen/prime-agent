@@ -104,7 +104,7 @@ object WebTools {
             connectTimeout = 15_000
             readTimeout = 30_000
             instanceFollowRedirects = false
-            setRequestProperty("User-Agent", "CodieAI/1.2 (+Android local assistant)")
+            setRequestProperty("User-Agent", "CodieAI/1.3 (+Android local assistant)")
             setRequestProperty("Accept", "application/json,text/plain,text/html;q=0.6")
             if (method == "POST") {
                 doOutput = true
@@ -190,7 +190,7 @@ object WebTools {
                 connectTimeout = 15_000
                 readTimeout = 20_000
                 instanceFollowRedirects = false
-                setRequestProperty("User-Agent", "CodieAI/1.2 (+Android local assistant)")
+                setRequestProperty("User-Agent", "CodieAI/1.3 (+Android local assistant)")
                 setRequestProperty(
                     "Accept",
                     "text/html,text/plain,application/json,application/xml;q=0.8,*/*;q=0.3"

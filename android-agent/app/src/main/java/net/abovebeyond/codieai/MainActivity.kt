@@ -238,7 +238,7 @@ class MainActivity : Activity() {
         }, weighted())
         root.addView(toolButtons)
 
-        root.addView(button("Import custom HTTPS tool manifest") {
+        root.addView(button("Import HTTPS connector manifest/bundle") {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "application/json"
@@ -249,7 +249,7 @@ class MainActivity : Activity() {
         root.addView(label("Encrypted connector secrets"))
         root.addView(body(
             "Secrets are encrypted with Android Keystore and are never added to the model prompt or tool results. " +
-                "Custom HTTPS tools can reference them by alias for Bearer or API-key authentication."
+                "Custom HTTPS tools can reference them by alias for Bearer or API-key authentication. Connector bundles may install multiple tools and use {path_parameter} placeholders while keeping the HTTPS host fixed."
         ))
 
         val secretAliasInput = edit("", "Secret alias, e.g. github_token")
@@ -770,7 +770,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.2 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.3 Android")
                 }
 
                 val status = connection.responseCode

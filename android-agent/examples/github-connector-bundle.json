@@ -1,0 +1,24 @@
+{
+  "tools": [
+    {
+      "name": "github_repo",
+      "description": "Get metadata for a GitHub repository owned by the user or publicly accessible.",
+      "endpoint": "https://api.github.com/repos/{owner}/{repo}",
+      "method": "GET",
+      "auth": {
+        "type": "bearer",
+        "secret_alias": "github_token"
+      }
+    },
+    {
+      "name": "github_create_issue",
+      "description": "Create a GitHub issue. Arguments: owner, repo, title, body.",
+      "endpoint": "https://api.github.com/repos/{owner}/{repo}/issues",
+      "method": "POST",
+      "auth": {
+        "type": "bearer",
+        "secret_alias": "github_token"
+      }
+    }
+  ]
+}
