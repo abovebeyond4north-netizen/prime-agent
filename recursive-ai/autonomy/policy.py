@@ -58,14 +58,21 @@ def combine_evidence(local, prior=None, strength=4.0):
             for local_row, prior_row in zip(local_rows, prior_rows)]
 
 
-def choose(evidence):
-    """UCB1 policy used by the adaptive condition."""
+def choose(evidence, exploration=2.0):
+    """UCB policy used by the adaptive condition."""
     evidence = _validate_evidence(evidence)
+    if (
+        not isinstance(exploration, (int, float))
+        or isinstance(exploration, bool)
+        or not math.isfinite(exploration)
+        or not 0.05 <= float(exploration) <= 8.0
+    ):
+        raise ValueError("exploration must be in [0.05,8]")
     for index, (attempts, _, _) in enumerate(evidence):
         if attempts == 0:
             return index
     total = sum(row[0] for row in evidence)
-    scores = [reward / attempts + math.sqrt(2 * math.log(total) / attempts)
+    scores = [reward / attempts + math.sqrt(float(exploration) * math.log(total) / attempts)
               for attempts, reward, _ in evidence]
     return max(range(len(scores)), key=scores.__getitem__)
 
@@ -77,12 +84,23 @@ def choose_fixed(evidence):
     return int(attempts) % len(OPERATORS)
 
 
-def compile_policy(evidence):
+def compile_policy(evidence, exploration=2.0):
     evidence = _validate_evidence(evidence)
-    # Beta-style optimism decays as evidence accumulates. Coefficients change from outcomes.
+    if (
+        not isinstance(exploration, (int, float))
+        or isinstance(exploration, bool)
+        or not math.isfinite(exploration)
+        or not 0.05 <= float(exploration) <= 8.0
+    ):
+        raise ValueError("exploration must be in [0.05,8]")
+    # Optimism decays as evidence accumulates. The exploration coefficient is
+    # a bounded experiment parameter, not self-modifying executable code.
     total = max(1.0, sum(row[0] for row in evidence))
-    scores = [reward / attempts + math.sqrt(2 * math.log(total) / attempts) if attempts else 1_000_000
-              for attempts, reward, _ in evidence]
+    scores = [
+        reward / attempts + math.sqrt(float(exploration) * math.log(total) / attempts)
+        if attempts else 1_000_000
+        for attempts, reward, _ in evidence
+    ]
     source = "def choose_operator():\n    scores = " + repr(scores) + "\n    best = 0\n    for index in range(1, len(scores)):\n        if scores[index] > scores[best]:\n            best = index\n    return best\n"
     validate(parse(source))
     return source
@@ -103,9 +121,9 @@ def _execute_policy(runner, source, expected):
     return OPERATORS[expected], source
 
 
-def dispatch(runner, evidence):
-    source = compile_policy(evidence)
-    return _execute_policy(runner, source, choose(evidence))
+def dispatch(runner, evidence, exploration=2.0):
+    source = compile_policy(evidence, exploration)
+    return _execute_policy(runner, source, choose(evidence, exploration))
 
 
 def dispatch_fixed(runner, evidence):

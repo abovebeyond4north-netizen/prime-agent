@@ -13,6 +13,10 @@ from autonomy.curriculum import (
 )
 from autonomy.memory import ResearchMemory
 from autonomy.policy import combine_evidence, dispatch, dispatch_fixed
+from autonomy.search_profile import (
+    DEFAULT_SEARCH_PROFILE, normalize_search_profile, normalized_parent_weights,
+    search_profile_digest,
+)
 from autonomy.search import SearchEngine
 from autonomy.tasks import goal_contract, task_from_key
 from autonomy.verifier import TaskVerifier
@@ -23,7 +27,7 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                  max_model_calls=12, max_containers=2000,
                  provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6,
                  policy_mode="learned", policy_prior=None, prior_strength=4.0,
-                 curriculum_profile=None):
+                 curriculum_profile=None, search_profile=None):
     for name, value, ceiling in (("attempts", max_attempts, 1000), ("stagnation", max_stagnation, 1000),
                                   ("model calls", max_model_calls, 1000), ("containers", max_containers, 10000)):
         if type(value) is not int or not (0 if name == "model calls" else 1) <= value <= ceiling:
@@ -45,6 +49,9 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                     if policy_prior is not None else None)
     curriculum_profile = normalize_curriculum_profile(curriculum_profile)
     curriculum_digest = curriculum_profile_digest(curriculum_profile)
+    search_profile = normalize_search_profile(search_profile)
+    search_digest = search_profile_digest(search_profile)
+    parent_quality, parent_novelty, parent_size = normalized_parent_weights(search_profile)
     contract = goal_contract(description, tier, target, task_seed, task_count)
     root = Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -56,14 +63,16 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
             return _session(memory, root, contract, start, max_attempts, max_seconds,
                             max_stagnation, max_model_calls, max_containers, provider, image,
                             policy_mode, policy_prior, prior_strength, prior_digest,
-                            curriculum_profile, curriculum_digest)
+                            curriculum_profile, curriculum_digest, search_profile,
+                            search_digest, parent_quality, parent_novelty, parent_size)
         finally:
             memory.db.close()
 
 
 def _session(memory, root, contract, start, max_attempts, max_seconds,
              max_stagnation, max_model_calls, max_containers, provider, image, policy_mode,
-             policy_prior, prior_strength, prior_digest, curriculum_profile, curriculum_digest):
+             policy_prior, prior_strength, prior_digest, curriculum_profile, curriculum_digest,
+             search_profile, search_digest, parent_quality, parent_novelty, parent_size):
     memory.register(contract)
     vcs = VersionController(root)
     runner = SandboxRunner(image)
@@ -85,7 +94,11 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                 and previous_summary.get(
                     "curriculum_profile_digest",
                     curriculum_profile_digest(DEFAULT_CURRICULUM_PROFILE),
-                ) == curriculum_digest):
+                ) == curriculum_digest
+                and previous_summary.get(
+                    "search_profile_digest",
+                    search_profile_digest(DEFAULT_SEARCH_PROFILE),
+                ) == search_digest):
             return previous_summary
     initial = coverage(contract, active)
     stagnant = 0
@@ -95,7 +108,8 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
     memory.event({"goal_started": contract["id"], "contract": contract, "initial_coverage": initial,
                   "policy_mode": policy_mode, "policy_prior_digest": prior_digest,
                   "prior_strength": prior_strength, "curriculum_profile": curriculum_profile,
-                  "curriculum_profile_digest": curriculum_digest})
+                  "curriculum_profile_digest": curriculum_digest,
+                  "search_profile": search_profile, "search_profile_digest": search_digest})
 
     def budget_reason():
         if runner.stop_file.exists():
@@ -136,15 +150,24 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         local_evidence = memory.operators(task.family)
         evidence = (combine_evidence(local_evidence, policy_prior, prior_strength)
                     if policy_mode == "learned" else local_evidence)
-        parents = memory.parents(task.family)
+        parents = memory.parents(
+            task.family,
+            limit=search_profile["parent_limit"],
+            quality_weight=parent_quality,
+            novelty_weight=parent_novelty,
+            size_weight=parent_size,
+        )
         parent_digests = [item["digest"] for item in parents]
         error = None
         try:
             if any(task_from_key(key).family == task.family for key in certified(active)):
                 operator = "transfer"
             else:
-                operator, policy_source = (dispatch(runner, evidence) if policy_mode == "learned"
-                                           else dispatch_fixed(runner, evidence))
+                operator, policy_source = (
+                    dispatch(runner, evidence, search_profile["ucb_exploration"])
+                    if policy_mode == "learned"
+                    else dispatch_fixed(runner, evidence)
+                )
             if provider == "api" and operator in ("direct", "repair"):
                 memory.reserve_model_call(contract["id"], max_model_calls)
             source, origin = search.propose(task, operator, parents, certified(active), task_attempt,
@@ -179,6 +202,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                    "delta": gain, "coverage": after, "seconds": elapsed,
                    "provider": provider, "policy_mode": policy_mode, "policy_prior_digest": prior_digest,
                    "prior_strength": prior_strength, "curriculum_profile_digest": curriculum_digest,
+                   "search_profile_digest": search_digest,
                    "model_usage": search.model.last_usage,
                    "error_type": error, "failed_gate": failed_gate, "promoted": passed}
         memory.db.execute("BEGIN IMMEDIATE")
@@ -222,6 +246,8 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                "policy_prior_digest": prior_digest, "prior_strength": prior_strength,
                "curriculum_profile": curriculum_profile,
                "curriculum_profile_digest": curriculum_digest,
+               "search_profile": search_profile,
+               "search_profile_digest": search_digest,
                "candidate_lineage_edges": memory.db.execute(
                    "SELECT count(*) FROM candidate_lineage"
                ).fetchone()[0],
