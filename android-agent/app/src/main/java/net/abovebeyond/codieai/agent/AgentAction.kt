@@ -28,9 +28,17 @@ enum class ActionType {
     DIAL,
     COMPOSE_SMS,
     COMPOSE_EMAIL,
+    LOOKUP_CONTACT,
+    DIAL_CONTACT,
+    COMPOSE_SMS_CONTACT,
+    COMPOSE_EMAIL_CONTACT,
     CREATE_CALENDAR_EVENT,
     SET_ALARM,
     SET_TIMER,
+    SCHEDULE_GOAL,
+    LIST_SCHEDULED,
+    CANCEL_SCHEDULED,
+    APP_USAGE_REPORT,
     FLASHLIGHT_ON,
     FLASHLIGHT_OFF,
     SET_BRIGHTNESS,
@@ -106,7 +114,7 @@ data class AgentAction(
                 seconds = json.optInt("seconds", -1),
                 x = json.optInt("x", -1),
                 y = json.optInt("y", -1),
-                milliseconds = json.optLong("milliseconds", 700L).coerceIn(100L, 3_600_000L),
+                milliseconds = json.optLong("milliseconds", 700L).coerceIn(100L, 86_400_000L),
                 reason = json.optString("reason", "")
             )
         }

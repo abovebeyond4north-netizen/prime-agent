@@ -2,6 +2,7 @@ package net.abovebeyond.codieai
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlarmManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -25,6 +26,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
+import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import java.io.File
 import java.net.HttpURLConnection
@@ -138,6 +140,26 @@ class MainActivity : Activity() {
         root.addView(button("5. Allow Do Not Disturb control") {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
         })
+        root.addView(button("6. Allow contact lookup") {
+            requestContactPermission()
+        })
+        root.addView(button("7. Allow app usage access") {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        })
+        root.addView(button("8. Allow scheduled automation") {
+            requestExactAlarmAccess()
+        })
+
+        val automationButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        automationButtons.addView(button("Show scheduled goals") {
+            appendStatus(AutomationScheduler.render(this))
+        }, weighted())
+        automationButtons.addView(button("Open alarm access") {
+            requestExactAlarmAccess()
+        }, weighted())
+        root.addView(automationButtons)
 
         val bubbleButtons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -222,7 +244,9 @@ class MainActivity : Activity() {
             "Direct capabilities now include flashlight, screen brightness, Do Not Disturb, maps/navigation, " +
                 "camera launch, calendar event creation, web search/URLs, clipboard/share, SMS/email composition, " +
                 "dialer, alarms/timers, media/volume controls, notification replies, app/settings navigation, " +
-                "accessibility-driven UI interaction, screen summarization, screenshots, screen locking, and notification open/dismiss/snooze controls."
+                "accessibility-driven UI interaction, screen summarization, screenshots, screen locking, " +
+                "notification open/dismiss/snooze controls, contact-aware communication, app-usage reports, " +
+                "and exact user-scheduled autonomous goals."
         ))
 
         val scroll = ScrollView(this).apply { addView(root) }
@@ -266,6 +290,13 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_RUNTIME_PERMISSIONS) {
             appendStatus("Runtime permission request completed.")
+        } else if (requestCode == REQUEST_CONTACTS_PERMISSION) {
+            val granted = grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            appendStatus(
+                if (granted) "Contact lookup enabled."
+                else "Contact lookup permission was not granted."
+            )
         } else if (requestCode == REQUEST_HANDS_FREE_PERMISSION) {
             val granted = grantResults.isNotEmpty() &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -519,6 +550,42 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun requestContactPermission() {
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            appendStatus("Contact lookup is already enabled.")
+        } else {
+            requestPermissions(
+                arrayOf(Manifest.permission.READ_CONTACTS),
+                REQUEST_CONTACTS_PERMISSION
+            )
+        }
+    }
+
+    private fun requestExactAlarmAccess() {
+        if (Build.VERSION.SDK_INT < 31) {
+            appendStatus("This Android version does not require special exact-alarm access.")
+            return
+        }
+
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        if (alarmManager.canScheduleExactAlarms()) {
+            appendStatus("Scheduled automation access is already enabled.")
+            return
+        }
+
+        appendStatus(
+            "Enable 'Alarms & reminders' so Codie AI can execute user-scheduled goals at the requested time."
+        )
+        startActivity(
+            Intent(
+                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                Uri.parse("package:" + packageName)
+            )
+        )
+    }
+
     private fun requestAssistantRuntimePermissions() {
         val permissions = mutableListOf(
             Manifest.permission.RECORD_AUDIO,
@@ -596,7 +663,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/0.4 Android")
+                    setRequestProperty("User-Agent", "CodieAI/0.5 Android")
                 }
 
                 val status = connection.responseCode
@@ -756,6 +823,7 @@ class MainActivity : Activity() {
         private const val REQUEST_VOICE = 43
         private const val REQUEST_RUNTIME_PERMISSIONS = 44
         private const val REQUEST_HANDS_FREE_PERMISSION = 45
+        private const val REQUEST_CONTACTS_PERMISSION = 46
         private const val MAX_LOG_CHARS = 20_000
         private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
         private const val RECOMMENDED_MODEL_MIN_FREE_BYTES = 3_200_000_000L

@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.AlarmClock
 import android.provider.CalendarContract
@@ -25,7 +26,10 @@ import android.view.accessibility.AccessibilityNodeInfo
 import net.abovebeyond.codieai.agent.ActionType
 import net.abovebeyond.codieai.agent.AgentAction
 import net.abovebeyond.codieai.agent.AgentRuntime
+import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.notifications.NotificationBridgeService
+import net.abovebeyond.codieai.tools.ContactTools
+import net.abovebeyond.codieai.tools.UsageTools
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -76,10 +80,23 @@ class CodieAccessibilityService : AccessibilityService() {
                 ActionType.DIAL -> dial(action.number)
                 ActionType.COMPOSE_SMS -> composeSms(action.number, action.text)
                 ActionType.COMPOSE_EMAIL -> composeEmail(action.number, action.subject, action.text)
+                ActionType.LOOKUP_CONTACT -> toolResult(ContactTools.describe(this, action.query))
+                ActionType.DIAL_CONTACT -> toolResult(ContactTools.dial(this, action.query))
+                ActionType.COMPOSE_SMS_CONTACT ->
+                    toolResult(ContactTools.composeSms(this, action.query, action.text))
+                ActionType.COMPOSE_EMAIL_CONTACT ->
+                    toolResult(ContactTools.composeEmail(this, action.query, action.subject, action.text))
                 ActionType.CREATE_CALENDAR_EVENT ->
                     createCalendarEvent(action.title, action.start, action.end)
                 ActionType.SET_ALARM -> setAlarm(action.hour, action.minute)
                 ActionType.SET_TIMER -> setTimer(action.seconds)
+                ActionType.SCHEDULE_GOAL -> scheduleGoal(action.start, action.text)
+                ActionType.LIST_SCHEDULED ->
+                    ExecutionResult(true, AutomationScheduler.render(this))
+                ActionType.CANCEL_SCHEDULED ->
+                    toolResult(AutomationScheduler.cancel(this, action.value))
+                ActionType.APP_USAGE_REPORT ->
+                    toolResult(UsageTools.report(this, if (action.value > 0) action.value else 24))
                 ActionType.FLASHLIGHT_ON -> setFlashlight(true)
                 ActionType.FLASHLIGHT_OFF -> setFlashlight(false)
                 ActionType.SET_BRIGHTNESS -> setBrightness(action.value)
@@ -192,22 +209,41 @@ class CodieAccessibilityService : AccessibilityService() {
     }
 
     private fun openSettings(setting: String): ExecutionResult {
-        val action = when (setting.trim().lowercase()) {
-            "wifi", "wi-fi" -> Settings.ACTION_WIFI_SETTINGS
-            "bluetooth" -> Settings.ACTION_BLUETOOTH_SETTINGS
-            "accessibility" -> Settings.ACTION_ACCESSIBILITY_SETTINGS
-            "notification_access", "notifications" -> Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
-            "apps" -> Settings.ACTION_APPLICATION_SETTINGS
-            "display" -> Settings.ACTION_DISPLAY_SETTINGS
-            "sound", "volume" -> Settings.ACTION_SOUND_SETTINGS
-            "battery" -> Settings.ACTION_BATTERY_SAVER_SETTINGS
-            "location" -> Settings.ACTION_LOCATION_SOURCE_SETTINGS
-            "privacy" -> Settings.ACTION_PRIVACY_SETTINGS
-            "write_settings", "modify_system_settings" -> Settings.ACTION_MANAGE_WRITE_SETTINGS
-            "dnd", "do_not_disturb" -> Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS
-            else -> Settings.ACTION_SETTINGS
+        val key = setting.trim().lowercase()
+        val intent = when (key) {
+            "wifi", "wi-fi" -> Intent(Settings.ACTION_WIFI_SETTINGS)
+            "bluetooth" -> Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+            "accessibility" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            "notification_access", "notifications" ->
+                Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            "apps" -> Intent(Settings.ACTION_APPLICATION_SETTINGS)
+            "display" -> Intent(Settings.ACTION_DISPLAY_SETTINGS)
+            "sound", "volume" -> Intent(Settings.ACTION_SOUND_SETTINGS)
+            "battery" -> Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
+            "location" -> Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            "privacy" -> Intent(Settings.ACTION_PRIVACY_SETTINGS)
+            "usage_access" -> Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            "write_settings", "modify_system_settings" ->
+                Intent(
+                    Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + packageName)
+                )
+            "dnd", "do_not_disturb" ->
+                Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+            "exact_alarms", "scheduled_automation" -> {
+                if (Build.VERSION.SDK_INT >= 31) {
+                    Intent(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        Uri.parse("package:" + packageName)
+                    )
+                } else {
+                    Intent(Settings.ACTION_SETTINGS)
+                }
+            }
+            else -> Intent(Settings.ACTION_SETTINGS)
         }
-        startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+
+        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         return ExecutionResult(true, "Opened settings: " + setting)
     }
 
@@ -341,6 +377,33 @@ class CodieAccessibilityService : AccessibilityService() {
         )
         return ExecutionResult(true, "Opened timer for " + seconds + " seconds")
     }
+
+    private fun scheduleGoal(start: String, goal: String): ExecutionResult {
+        val result = AutomationScheduler.schedule(this, start, goal)
+        return result.fold(
+            onSuccess = { task ->
+                val formatter = java.text.SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss Z",
+                    java.util.Locale.getDefault()
+                )
+                ExecutionResult(
+                    true,
+                    "Scheduled goal #" + task.id + " for " +
+                        formatter.format(java.util.Date(task.triggerAtMillis)) +
+                        ": " + task.goal
+                )
+            },
+            onFailure = {
+                ExecutionResult(false, it.message ?: "Could not schedule goal")
+            }
+        )
+    }
+
+    private fun toolResult(result: Result<String>): ExecutionResult =
+        result.fold(
+            onSuccess = { ExecutionResult(true, it) },
+            onFailure = { ExecutionResult(false, it.message ?: "Tool action failed") }
+        )
 
     private fun setFlashlight(enabled: Boolean): ExecutionResult {
         val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager

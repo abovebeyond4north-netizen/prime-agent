@@ -10,6 +10,7 @@ class RuleBasedPlanner : Planner {
 
         val trimmed = goal.trim()
         val lower = trimmed.lowercase()
+        val contactMessage = parseContactMessage(trimmed)
 
         val action = when {
             lower == "back" -> AgentAction(ActionType.BACK)
@@ -65,6 +66,18 @@ class RuleBasedPlanner : Planner {
                 AgentAction(ActionType.SET_CLIPBOARD, text = trimmed.substring(5))
             lower.startsWith("share ") ->
                 AgentAction(ActionType.SHARE_TEXT, text = trimmed.substring(6))
+            lower.startsWith("find contact ") ->
+                AgentAction(ActionType.LOOKUP_CONTACT, query = trimmed.substring(13).trim())
+            lower.startsWith("look up contact ") ->
+                AgentAction(ActionType.LOOKUP_CONTACT, query = trimmed.substring(16).trim())
+            contactMessage != null ->
+                AgentAction(
+                    ActionType.COMPOSE_SMS_CONTACT,
+                    query = contactMessage.first,
+                    text = contactMessage.second
+                )
+            lower.startsWith("call ") ->
+                AgentAction(ActionType.DIAL_CONTACT, query = trimmed.substring(5).trim())
             lower.startsWith("dial ") ->
                 AgentAction(ActionType.DIAL, number = trimmed.substring(5).trim())
 
@@ -83,6 +96,12 @@ class RuleBasedPlanner : Planner {
 
             parseTimerSeconds(lower) > 0 ->
                 AgentAction(ActionType.SET_TIMER, seconds = parseTimerSeconds(lower))
+
+            lower == "show scheduled goals" || lower == "list scheduled goals" ->
+                AgentAction(ActionType.LIST_SCHEDULED)
+            lower == "app usage" || lower == "show app usage" ||
+                lower == "screen time" || lower == "show screen time" ->
+                AgentAction(ActionType.APP_USAGE_REPORT, value = 24)
 
             lower.startsWith("open wifi settings") || lower.startsWith("open wi-fi settings") ->
                 AgentAction(ActionType.OPEN_SETTINGS, setting = "wifi")
@@ -115,6 +134,17 @@ class RuleBasedPlanner : Planner {
 
         if (action.type != ActionType.FAIL) executed = true
         return action
+    }
+
+    private fun parseContactMessage(text: String): Pair<String, String>? {
+        val match = Regex(
+            """^(?:text|message)\s+(.+?)\s+(?:saying|that|:)\s+(.+)$""",
+            RegexOption.IGNORE_CASE
+        ).find(text) ?: return null
+
+        val name = match.groupValues[1].trim()
+        val message = match.groupValues[2].trim()
+        return if (name.isBlank() || message.isBlank()) null else name to message
     }
 
     private fun parseBrightness(lower: String): Int {

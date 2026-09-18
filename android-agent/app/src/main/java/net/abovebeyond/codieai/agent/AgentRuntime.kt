@@ -1,13 +1,18 @@
 package net.abovebeyond.codieai.agent
 
+import android.Manifest
 import android.app.ActivityManager
+import android.app.AlarmManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.StatFs
 import net.abovebeyond.codieai.accessibility.CodieAccessibilityService
+import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.notifications.NotificationStore
+import net.abovebeyond.codieai.tools.UsageTools
 import java.io.File
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
@@ -269,6 +274,15 @@ object AgentRuntime {
 
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.getDefault()).format(Date())
         val localModel = localModelFile(context)
+        val contactsGranted =
+            context.checkSelfPermission(Manifest.permission.READ_CONTACTS) ==
+                PackageManager.PERMISSION_GRANTED
+        val usageGranted = UsageTools.hasAccess(context)
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val exactAlarmGranted =
+            android.os.Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()
+        val scheduledCount = AutomationScheduler.tasks(context).size
+
         val plannerMode = when {
             plannerEndpoint(context).isNotBlank() -> "gpt_oss_endpoint"
             localModel.isFile -> "local_litert"
@@ -284,6 +298,10 @@ object AgentRuntime {
             append(" storage_free_mb=").append(stat.availableBytes / 1_048_576L)
             append(" storage_total_mb=").append(stat.totalBytes / 1_048_576L)
             append(" planner=").append(plannerMode)
+            append(" contacts_access=").append(contactsGranted)
+            append(" usage_access=").append(usageGranted)
+            append(" exact_alarm_access=").append(exactAlarmGranted)
+            append(" scheduled_goals=").append(scheduledCount)
         }
     }
 
