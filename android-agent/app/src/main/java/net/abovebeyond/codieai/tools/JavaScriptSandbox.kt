@@ -76,7 +76,7 @@ object JavaScriptSandbox {
             val context = super.makeContext()
             context.optimizationLevel = -1
             context.instructionObserverThreshold = 10_000
-            context.classShutter = ClassShutter { false }
+            context.setClassShutter(ClassShutter { false })
             return context
         }
 
