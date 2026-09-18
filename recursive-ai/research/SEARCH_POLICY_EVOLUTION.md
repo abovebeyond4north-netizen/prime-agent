@@ -31,6 +31,24 @@ agent design:
 - **Automated Design of Agentic Systems / Meta Agent Search** treats agent architecture
   itself as a searchable artifact and tests transfer across domains/models.
   https://arxiv.org/abs/2408.08435
+- **Dream-RSI (September 2026)** makes exploration policy explicit and programmable,
+  then uses accumulated discovery trees as a replay simulator for low-cost off-policy
+  policy improvement before redeploying the policy online.
+  https://arxiv.org/abs/2609.14858
+- **RSIAgent (September 2026)** combines curriculum, actor, and verifier roles with
+  broad-then-deep exploration and validated environment-specific causal memory.
+  https://arxiv.org/abs/2609.15364
+- **ScienceBuddy (September 2026)** separates an inner harness-evolution loop from an
+  outer model-learning loop, an example of nested improvement timescales.
+  https://arxiv.org/abs/2609.17523
+- **Discovery Loop (September 2026)** reports a lightweight program-evolution system
+  that broke ten accepted circle-packing records in a small number of iterations and
+  emphasizes cost-aware plateau detection.
+  https://arxiv.org/abs/2609.05093
+- **Recursive Self-Improvement in AI (2026 survey)** argues that measured progress
+  remains strongly coupled to evaluator quality and distinguishes bounded,
+  outcome-verifiable improvement from open-ended RSI.
+  https://arxiv.org/abs/2607.07663
 
 The present change does **not** attempt unrestricted self-modification. It selects a
 small, auditable search-policy surface whose effects can be measured independently.
