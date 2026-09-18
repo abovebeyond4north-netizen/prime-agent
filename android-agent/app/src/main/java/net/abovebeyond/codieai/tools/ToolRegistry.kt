@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import net.abovebeyond.codieai.agent.DurableAgentService
 import net.abovebeyond.codieai.agent.DurableTaskStore
+import net.abovebeyond.codieai.agent.TaskPlanStore
 import net.abovebeyond.codieai.privileged.ShizukuBridge
 import org.json.JSONObject
 
@@ -30,12 +31,18 @@ object ToolRegistry {
         "mcp_resource_read(server,uri): read one MCP resource as context",
         "mcp_prompts(server): list reusable prompts exposed by one MCP server",
         "mcp_prompt_get(server,name,arguments): retrieve one MCP prompt/template",
+        "mcp_pending(): list pending MCP multi-round-trip requests that need more input",
+        "mcp_continue(pending_id,input_responses): resume a pending MCP request with protocol inputResponses",
         "knowledge_reindex(): rebuild full-text index of text/code files in the private workspace",
         "knowledge_search(query,limit): search indexed workspace knowledge",
         "durable_enqueue(goal): queue a persistent autonomous goal in the foreground durable-agent service",
         "durable_tasks(): list persistent task state/checkpoints",
         "durable_cancel(id): cancel a queued/running durable task",
         "durable_resume(): resume any queued durable task when Android permits a foreground service start",
+        "task_plan_create(goal,steps): create a dependency graph; steps is [{id,goal,depends_on:[ids]}]",
+        "task_plan_run(id): dispatch all currently-ready plan nodes to the durable queue",
+        "task_plan_status(id): inspect a plan and every dependency-linked node",
+        "task_plan_cancel(id): cancel a plan and its queued/running nodes",
         "memory_put(key,value): save explicit durable local tool memory",
         "memory_get(key): retrieve local tool memory",
         "memory_list(): list local memory keys",
@@ -149,6 +156,12 @@ object ToolRegistry {
                         promptArgs
                     )
                 }
+                "mcp_pending" -> McpPendingStore.render(context)
+                "mcp_continue" -> McpClient.continuePending(
+                    context,
+                    args.optInt("pending_id", -1),
+                    (args.optJSONObject("input_responses") ?: JSONObject()).toString()
+                )
                 "knowledge_reindex" -> KnowledgeIndex.reindex(context)
                 "knowledge_search" -> KnowledgeIndex.search(
                     context,
@@ -171,6 +184,29 @@ object ToolRegistry {
                 "durable_resume" ->
                     "durable_service_started=" +
                         DurableAgentService.startIfPending(context)
+                "task_plan_create" -> {
+                    val steps = args.optJSONArray("steps")
+                        ?: throw IllegalArgumentException("Missing tool argument: steps")
+                    val plan = TaskPlanStore.create(
+                        context,
+                        args.requireString("goal"),
+                        steps.toString()
+                    )
+                    "Created task plan #" + plan.id +
+                        " with " + plan.nodes.size + " node(s)."
+                }
+                "task_plan_run" -> TaskPlanStore.run(
+                    context,
+                    args.optInt("id", -1)
+                )
+                "task_plan_status" -> TaskPlanStore.render(
+                    context,
+                    args.optInt("id", -1).takeIf { it >= 0 }
+                )
+                "task_plan_cancel" -> TaskPlanStore.cancel(
+                    context,
+                    args.optInt("id", -1)
+                )
 
                 "memory_put" -> MemoryTools.put(
                     context,

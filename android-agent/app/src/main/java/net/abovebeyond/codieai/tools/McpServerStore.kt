@@ -213,6 +213,9 @@ object McpServerStore {
     fun isExposedTool(name: String): Boolean =
         parseExposedName(name) != null
 
+    fun server(context: Context, name: String): McpServerDefinition? =
+        find(context, name)
+
     private fun find(context: Context, name: String): McpServerDefinition? {
         val normalized = normalizeName(name)
         return list(context).firstOrNull { it.name == normalized }

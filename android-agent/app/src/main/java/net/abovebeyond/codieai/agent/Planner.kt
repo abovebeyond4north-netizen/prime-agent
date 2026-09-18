@@ -76,6 +76,13 @@ object PlannerPrompt {
           automatically after workspace changes, but knowledge_reindex can force a rebuild.
         - durable_enqueue creates a separate persistent task. Use it only when the user clearly asks for a
           long-running/resumable queued task; never recursively enqueue the goal currently executing.
+        - task_plan_create/task_plan_run are for non-trivial persistent work with real dependencies.
+          Do not create a task plan for a simple one-step request, and a task-plan node must not create
+          another plan for itself.
+        - If an MCP result says MCP_INPUT_REQUIRED, inspect mcp_pending. If the request contains
+          elicitation/create for user-specific information, credentials, consent, or a choice, ask the user
+          rather than inventing an answer. Resume only with mcp_continue using matching input_responses.
+        - Treat MCP requestState as opaque protocol state. Never edit, summarize, or fabricate it.
         - Do not invoke an external MCP/custom tool that changes remote state unless the user's request
           clearly calls for that external action.
 

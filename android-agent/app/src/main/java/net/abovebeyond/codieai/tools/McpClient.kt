@@ -56,10 +56,72 @@ object McpClient {
             .put("name", toolName)
             .put("arguments", JSONObject(argumentsJson.ifBlank { "{}" }))
 
-        val result = completeResult(
-            request(context, server, "tools/call", params, toolName)
-        )
+        val response = request(context, server, "tools/call", params, toolName)
+        val result = response.getJSONObject("result")
+        if (result.optString("resultType", "complete") == "input_required") {
+            val pending = McpPendingStore.save(
+                context = context,
+                server = server.name,
+                method = "tools/call",
+                targetName = toolName,
+                params = params,
+                result = result
+            )
+            return renderInputRequired(pending)
+        }
         return renderToolResult(result).take(MAX_RESULT_CHARS)
+    }
+
+    fun continuePending(
+        context: Context,
+        pendingId: Int,
+        inputResponsesJson: String
+    ): String {
+        val pending = McpPendingStore.get(context, pendingId)
+        require(pending.rounds < 10) {
+            "MCP multi-round-trip exceeded 10 rounds"
+        }
+
+        val server = McpServerStore.server(context, pending.server)
+            ?: throw IllegalArgumentException("MCP server not found: " + pending.server)
+
+        val params = JSONObject(pending.paramsJson)
+        params.put(
+            "inputResponses",
+            JSONObject(inputResponsesJson.ifBlank { "{}" })
+        )
+        if (pending.requestState.isNotBlank()) {
+            params.put("requestState", pending.requestState)
+        }
+
+        val response = request(
+            context = context,
+            server = server,
+            method = pending.method,
+            params = params,
+            targetName = pending.targetName.ifBlank { null }
+        )
+        val result = response.getJSONObject("result")
+
+        if (result.optString("resultType", "complete") == "input_required") {
+            val updated = McpPendingStore.save(
+                context = context,
+                server = pending.server,
+                method = pending.method,
+                targetName = pending.targetName,
+                params = JSONObject(pending.paramsJson),
+                result = result,
+                existingId = pending.id,
+                rounds = pending.rounds + 1
+            )
+            return renderInputRequired(updated)
+        }
+
+        McpPendingStore.remove(context, pending.id)
+        return when (pending.method) {
+            "tools/call" -> renderToolResult(result).take(MAX_RESULT_CHARS)
+            else -> result.toString().take(MAX_RESULT_CHARS)
+        }
     }
 
     fun listResources(
@@ -264,7 +326,7 @@ object McpClient {
             if (!targetName.isNullOrBlank()) {
                 setRequestProperty("Mcp-Name", targetName)
             }
-            setRequestProperty("User-Agent", "CodieAI/1.6 MCP client")
+            setRequestProperty("User-Agent", "CodieAI/1.7 MCP client")
             authHeaders(context, server).forEach { (header, value) ->
                 setRequestProperty(header, value)
             }
@@ -314,6 +376,19 @@ object McpClient {
         return response
     }
 
+    private fun renderInputRequired(pending: McpPendingRequest): String =
+        buildString {
+            append("MCP_INPUT_REQUIRED pending_id=").append(pending.id)
+            append(" rounds=").append(pending.rounds)
+            append("\nThe server needs additional input before this request can complete.")
+            append("\ninputRequests=").append(pending.inputRequestsJson.take(8_000))
+            if (pending.requestState.isNotBlank()) {
+                append("\nrequestState is stored opaquely and will be echoed on retry.")
+            }
+            append("\nUse mcp_continue with this pending_id and an input_responses object.")
+            append(" Do not invent user-specific elicitation answers; ask the user when required.")
+        }.take(MAX_RESULT_CHARS)
+
     private fun completeResult(response: JSONObject): JSONObject {
         val result = response.getJSONObject("result")
         if (result.optString("resultType", "complete") == "input_required") {
@@ -334,15 +409,16 @@ object McpClient {
             .put(
                 "io.modelcontextprotocol/clientCapabilities",
                 JSONObject()
-                    .put("tools", JSONObject())
-                    .put("resources", JSONObject())
-                    .put("prompts", JSONObject())
+                    .put(
+                        "elicitation",
+                        JSONObject().put("form", JSONObject())
+                    )
             )
             .put(
                 "io.modelcontextprotocol/clientInfo",
                 JSONObject()
                     .put("name", "codie-ai-android")
-                    .put("version", "1.6.0")
+                    .put("version", "1.7.0")
             )
 
     private fun authHeaders(

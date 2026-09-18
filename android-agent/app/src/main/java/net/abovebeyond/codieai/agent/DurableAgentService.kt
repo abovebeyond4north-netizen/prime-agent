@@ -76,12 +76,22 @@ class DurableAgentService : Service() {
 
                     if (!completed) {
                         AgentRuntime.cancelCurrentGoal()
+                        val timeoutMessage = "Durable task timed out after 35 minutes."
                         DurableTaskStore.finish(
                             this,
                             task.id,
                             success = false,
-                            message = "Durable task timed out after 35 minutes."
+                            message = timeoutMessage
                         )
+                        if (task.planId >= 0 && task.nodeId.isNotBlank()) {
+                            TaskPlanStore.onTaskFinished(
+                                this,
+                                task.planId,
+                                task.nodeId,
+                                success = false,
+                                message = timeoutMessage
+                            )
+                        }
                         continue
                     }
 
@@ -94,12 +104,23 @@ class DurableAgentService : Service() {
                         finalMessage.startsWith("Reply: ") ||
                         finalMessage.startsWith("Complete: ")
 
+                    val completionMessage =
+                        finalMessage.ifBlank { "Task ended without a final message." }
                     DurableTaskStore.finish(
                         this,
                         task.id,
                         success = success,
-                        message = finalMessage.ifBlank { "Task ended without a final message." }
+                        message = completionMessage
                     )
+                    if (task.planId >= 0 && task.nodeId.isNotBlank()) {
+                        TaskPlanStore.onTaskFinished(
+                            this,
+                            task.planId,
+                            task.nodeId,
+                            success = success,
+                            message = completionMessage
+                        )
+                    }
                 }
             } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
@@ -182,9 +203,19 @@ class DurableAgentService : Service() {
         }
 
         fun cancelTask(context: Context, id: Int): String {
+            val task = DurableTaskStore.find(context, id)
             val message = DurableTaskStore.cancel(context, id)
             if (currentTaskId.get() == id) {
                 AgentRuntime.cancelCurrentGoal()
+            }
+            if (task != null && task.planId >= 0 && task.nodeId.isNotBlank()) {
+                TaskPlanStore.onTaskFinished(
+                    context,
+                    task.planId,
+                    task.nodeId,
+                    success = false,
+                    message = "Durable task cancelled."
+                )
             }
             return message
         }

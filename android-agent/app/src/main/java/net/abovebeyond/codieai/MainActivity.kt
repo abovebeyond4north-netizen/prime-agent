@@ -29,11 +29,13 @@ import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
 import net.abovebeyond.codieai.agent.DurableAgentService
 import net.abovebeyond.codieai.agent.DurableTaskStore
+import net.abovebeyond.codieai.agent.TaskPlanStore
 import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.privileged.ShizukuBridge
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import net.abovebeyond.codieai.tools.CustomToolStore
 import net.abovebeyond.codieai.tools.KnowledgeIndex
+import net.abovebeyond.codieai.tools.McpPendingStore
 import net.abovebeyond.codieai.tools.McpServerStore
 import net.abovebeyond.codieai.tools.SecretStore
 import net.abovebeyond.codieai.tools.ToolRegistry
@@ -205,6 +207,10 @@ class MainActivity : Activity() {
         }, weighted())
         root.addView(durableButtons)
 
+        root.addView(button("Show dependency task plans") {
+            appendStatus(TaskPlanStore.render(this))
+        })
+
         val bubbleButtons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
@@ -313,6 +319,10 @@ class MainActivity : Activity() {
             appendStatus(McpServerStore.render(this))
         }, weighted())
         root.addView(mcpButtons)
+
+        root.addView(button("Show pending MCP input requests") {
+            appendStatus(McpPendingStore.render(this))
+        })
 
         root.addView(label("Encrypted connector secrets"))
         root.addView(body(
@@ -843,7 +853,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.6 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.7 Android")
                 }
 
                 val status = connection.responseCode
