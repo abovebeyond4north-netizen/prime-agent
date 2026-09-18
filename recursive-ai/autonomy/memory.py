@@ -144,6 +144,9 @@ class ResearchMemory(MemoryEngine):
                 "_profile": profile,
             })
 
+        if not pool:
+            return []
+
         selected = [pool.pop(0)]
         while pool and len(selected) < limit:
             def score(candidate):
