@@ -85,6 +85,11 @@ object DurableTaskStore {
     fun find(context: Context, id: Int): DurableTask? =
         tasks(context).firstOrNull { it.id == id }
 
+    fun findPlanNode(context: Context, planId: Int, nodeId: String): DurableTask? =
+        tasks(context)
+            .filter { it.planId == planId && it.nodeId == nodeId }
+            .maxByOrNull { it.updatedAt }
+
     fun next(context: Context): DurableTask? =
         tasks(context)
             .filter { it.state == "running" || it.state == "queued" }
