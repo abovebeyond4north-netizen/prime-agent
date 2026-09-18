@@ -27,7 +27,7 @@ The current client can:
 - accept typed or voice-entered goals
 - stop a running goal
 - run a bounded 32-step observe/reason/act loop
-- use a phone-resident LiteRT-LM model
+- download and use a phone-resident LiteRT-LM model
 - use GPT-OSS or another model through an OpenAI-compatible local/LAN/HTTPS endpoint
 - fall back to deterministic one-step commands when no model is configured
 
@@ -35,9 +35,11 @@ The current client can:
 
 The Galaxy S25 FE variant targeted here has 8 GB RAM. GPT-OSS-20B is therefore treated as the high-capability external planner rather than the default phone-resident model.
 
-For phone-only operation, import a LiteRT-LM model into the app. The recommended target for this hardware is Gemma 3n E2B INT4 because Google publishes an Android LiteRT-LM build intended for 8 GB devices.
+For phone-only operation, the app can directly download Gemma 4 E2B for LiteRT-LM. This model is sized for 8 GB devices and gives the phone an offline reasoning path without API charges.
 
 For maximum reasoning quality with zero recurring API cost, run GPT-OSS-20B on a computer on the same private network and enter its OpenAI-compatible chat-completions endpoint in the app. The Android client sends only the current accessibility text state, recent notification summaries, the user goal, and the previous action result.
+
+If a GPT-OSS endpoint is configured, it takes priority. Otherwise the phone-local model is used. If neither is available, deterministic one-step controls remain available.
 
 Cleartext HTTP endpoints are accepted only for localhost, .local hosts, and private RFC1918 LAN addresses. Remote planners must use HTTPS.
 
@@ -62,7 +64,7 @@ After installing the APK:
 1. Open Codie AI.
 2. Tap Enable phone control and enable Codie AI phone control.
 3. Optionally tap Enable notification context and approve Codie AI.
-4. Either import a compatible .litertlm model, or enter an OpenAI-compatible GPT-OSS endpoint.
+4. Tap Download recommended Gemma 4 E2B for phone-only AI, or enter an OpenAI-compatible GPT-OSS endpoint.
 5. Enter a goal and tap Run.
 
 No root access is required.
