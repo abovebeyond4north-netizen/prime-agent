@@ -11,7 +11,7 @@ object PlannerPrompt {
 
         Core UI/system:
         TAP_NODE(node), TAP_COORDINATE(x,y), SET_TEXT(node,text), BACK, HOME, RECENTS,
-        NOTIFICATIONS, QUICK_SETTINGS, TAKE_SCREENSHOT, LOCK_SCREEN, POWER_DIALOG,
+        NOTIFICATIONS, QUICK_SETTINGS, CAPTURE_SCREEN(text), TAKE_SCREENSHOT, LOCK_SCREEN, POWER_DIALOG,
         SCROLL_FORWARD(node), SCROLL_BACKWARD(node), LAUNCH_APP(app), OPEN_SETTINGS(setting),
         WAIT(milliseconds).
 
@@ -56,7 +56,9 @@ object PlannerPrompt {
           the user names a person rather than inventing a phone number or email address.
         - OPEN_MAP searches for a place. NAVIGATE starts navigation.
         - Notification indexes come from the current NOTIFICATIONS section and may change.
-        - For screen-reading/summarization requests, use the visible UI state and RESPOND.
+        - For visual screen-reading requests where accessibility text is insufficient, use CAPTURE_SCREEN with
+          text set to a workspace filename such as "screen.png", then CALL_TOOL image_ocr/image_labels on that file.
+        - For ordinary screen-reading/summarization requests, use visible UI state first and RESPOND if sufficient.
         - DND, brightness, app-usage history, contacts, and scheduled automation may require
           Android permissions or special access approved by the user.
 

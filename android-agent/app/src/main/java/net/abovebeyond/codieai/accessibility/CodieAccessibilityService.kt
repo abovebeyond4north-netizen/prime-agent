@@ -8,6 +8,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Path
 import android.graphics.Rect
 import android.hardware.camera2.CameraCharacteristics
@@ -20,6 +21,7 @@ import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.provider.Settings
+import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -31,9 +33,13 @@ import net.abovebeyond.codieai.notifications.NotificationBridgeService
 import net.abovebeyond.codieai.tools.ContactTools
 import net.abovebeyond.codieai.tools.ToolRegistry
 import net.abovebeyond.codieai.tools.UsageTools
+import net.abovebeyond.codieai.tools.WorkspaceTools
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 data class ExecutionResult(val ok: Boolean, val message: String)
 
@@ -64,6 +70,7 @@ class CodieAccessibilityService : AccessibilityService() {
                 ActionType.RECENTS -> global(GLOBAL_ACTION_RECENTS, "Recents")
                 ActionType.NOTIFICATIONS -> global(GLOBAL_ACTION_NOTIFICATIONS, "Notifications")
                 ActionType.QUICK_SETTINGS -> global(GLOBAL_ACTION_QUICK_SETTINGS, "Quick settings")
+                ActionType.CAPTURE_SCREEN -> captureScreen(action.text)
                 ActionType.TAKE_SCREENSHOT -> global(GLOBAL_ACTION_TAKE_SCREENSHOT, "Screenshot")
                 ActionType.LOCK_SCREEN -> global(GLOBAL_ACTION_LOCK_SCREEN, "Lock screen")
                 ActionType.POWER_DIALOG -> global(GLOBAL_ACTION_POWER_DIALOG, "Power dialog")
@@ -127,6 +134,65 @@ class CodieAccessibilityService : AccessibilityService() {
         } catch (error: Throwable) {
             ExecutionResult(false, error.message ?: error.javaClass.simpleName)
         }
+    }
+
+    private fun captureScreen(requestedName: String): ExecutionResult {
+        val name = requestedName.trim().ifBlank { "screen.png" }
+        val latch = CountDownLatch(1)
+        val result = AtomicReference<ExecutionResult>()
+
+        takeScreenshot(
+            Display.DEFAULT_DISPLAY,
+            mainExecutor,
+            object : TakeScreenshotCallback {
+                override fun onSuccess(screenshot: ScreenshotResult) {
+                    try {
+                        val hardware = screenshot.hardwareBuffer
+                        val wrapped = Bitmap.wrapHardwareBuffer(hardware, screenshot.colorSpace)
+                            ?: throw IllegalStateException("Could not wrap screenshot buffer")
+                        val bitmap = wrapped.copy(Bitmap.Config.ARGB_8888, false)
+                            ?: throw IllegalStateException("Could not copy screenshot bitmap")
+                        wrapped.recycle()
+                        hardware.close()
+
+                        val file = WorkspaceTools.file(this@CodieAccessibilityService, name)
+                        file.outputStream().use { output ->
+                            require(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) {
+                                "Could not encode screenshot"
+                            }
+                        }
+                        bitmap.recycle()
+                        result.set(
+                            ExecutionResult(
+                                true,
+                                "Captured screen to workspace file " + file.name
+                            )
+                        )
+                    } catch (error: Throwable) {
+                        result.set(
+                            ExecutionResult(
+                                false,
+                                error.message ?: error.javaClass.simpleName
+                            )
+                        )
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+
+                override fun onFailure(errorCode: Int) {
+                    result.set(
+                        ExecutionResult(false, "Screenshot capture failed with code " + errorCode)
+                    )
+                    latch.countDown()
+                }
+            }
+        )
+
+        if (!latch.await(8, TimeUnit.SECONDS)) {
+            return ExecutionResult(false, "Screenshot capture timed out")
+        }
+        return result.get() ?: ExecutionResult(false, "Screenshot capture returned no result")
     }
 
     private fun tapNode(node: AccessibilityNodeInfo?): ExecutionResult {
