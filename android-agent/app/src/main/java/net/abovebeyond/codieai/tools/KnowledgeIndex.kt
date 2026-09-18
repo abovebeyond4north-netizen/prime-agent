@@ -83,14 +83,14 @@ object KnowledgeIndex {
 
         val terms = Regex("""[\p{L}\p{N}_-]{2,40}""")
             .findAll(cleaned)
-            .map { it.value.replace(""", "") }
+            .map { it.value.replace("\"", "") }
             .distinct()
             .take(12)
             .toList()
 
         require(terms.isNotEmpty()) { "Knowledge search has no searchable terms" }
 
-        val match = terms.joinToString(" OR ") { """ + it + """ }
+        val match = terms.joinToString(" OR ") { "\"" + it + "\"" }
         val bounded = limit.coerceIn(1, 20)
         val db = Helper(context.applicationContext).readableDatabase
         val results = ArrayList<String>()
