@@ -11,8 +11,8 @@ android {
         applicationId = "net.abovebeyond.codieai"
         minSdk = 30
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.8.0"
+        versionCode = 9
+        versionName = "0.9.0"
     }
 
     compileOptions {
@@ -35,4 +35,5 @@ dependencies {
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.17.1")
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.google.mlkit:image-labeling:17.0.9")
+    implementation("org.mozilla:rhino:1.9.1")
 }

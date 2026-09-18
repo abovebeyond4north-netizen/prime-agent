@@ -28,6 +28,7 @@ object ToolRegistry {
         "skill_delete(name): delete a saved skill",
         "image_ocr(name): extract text from an imported workspace image on-device",
         "image_labels(name): identify general objects/places/activities in a workspace image on-device",
+        "js_sandbox(code): execute pure sandboxed JavaScript for logic/data transformation; no Java/Android/network/filesystem access",
         "custom_tool_list(): list user-installed HTTPS tools"
     )
 
@@ -104,6 +105,9 @@ object ToolRegistry {
                 "image_labels" -> VisualTools.labels(
                     context,
                     args.requireString("name")
+                )
+                "js_sandbox" -> JavaScriptSandbox.execute(
+                    args.requireString("code")
                 )
 
                 "skill_save" -> SkillStore.save(
