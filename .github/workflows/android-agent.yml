@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/android-agent
+      - feature/autonomous-bounty-bot
     paths:
       - "android-agent/**"
       - ".github/workflows/android-agent.yml"
@@ -45,6 +46,12 @@ jobs:
 
       - name: Build debug APK
         run: gradle -p android-agent :app:assembleDebug --stacktrace
+
+      - name: Verify bounty triage policy
+        run: |
+          mkdir -p /tmp/bounty-tests
+          javac -d /tmp/bounty-tests android-agent/app/src/main/java/net/abovebeyond/codieai/bounty/BountyPolicy.java android-agent/tests/BountyPolicyTest.java
+          java -cp /tmp/bounty-tests BountyPolicyTest
 
       - uses: actions/upload-artifact@v4
         with:

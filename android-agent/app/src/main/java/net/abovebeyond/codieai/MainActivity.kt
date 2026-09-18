@@ -25,6 +25,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
+import net.abovebeyond.codieai.bounty.BountyActivity
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import java.io.File
 import java.net.HttpURLConnection
@@ -60,6 +61,9 @@ class MainActivity : Activity() {
         }
 
         root.addView(title("Codie AI"))
+        root.addView(button("Bounty bot dashboard") {
+            startActivity(Intent(this, BountyActivity::class.java))
+        })
         root.addView(body(
             "Local-first Android assistant with phone control, spoken replies, persistent chat memory, " +
                 "hands-free conversation, a floating assistant bubble, LiteRT reasoning, and optional GPT-OSS."
