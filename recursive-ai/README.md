@@ -57,6 +57,29 @@ Each curriculum genome contains only three bounded numeric weights: retry pressu
 
 The candidate program archive also records parent lineage and uses a deterministic quality-diversity selector: the strongest candidate is retained first, then additional parents balance gate quality, AST-structural novelty, and source-size efficiency. Candidate code is parsed for structure but still executes only in Docker. See [research/EVOLUTION.md](research/EVOLUTION.md) for the protocol and boundaries.
 
+## Search-policy evolution
+
+The laboratory can now evolve a bounded version of its **search procedure itself**. The
+evolvable genome controls UCB exploration pressure, archive quality/novelty/size weights,
+and parent breadth. Defaults exactly reproduce the prior behavior.
+
+```sh
+python3 main.py evolve-search-policy \
+  --train-goal "compound arithmetic" \
+  --holdout-goal "sorted search" \
+  --tier 1 --task-count 4 \
+  --population 4 --generations 2 \
+  --replicates 2 --holdout-replicates 2 \
+  --base-seed 2000 --max-model-calls 0
+```
+
+Search-policy studies use quality-diversity archives, novelty rejection, and
+successive-halving style racing so weaker configurations receive fewer evaluations.
+The final policy is compared with the immutable default on a **disjoint task-family
+holdout**. The study reports whether it improves, matches, regresses, or fails, but it
+cannot install its own result. See
+[research/SEARCH_POLICY_EVOLUTION.md](research/SEARCH_POLICY_EVOLUTION.md).
+
 ## Original single-task run
 
 Requires Linux, Python 3.12+, Git, and a Docker daemon with working cgroup v2 limits and its default seccomp profile. Docker Desktop's Linux VM is also suitable for evaluation, but the controller uses POSIX file locking. Colab without Docker cannot run candidates: there is deliberately no host-execution fallback.
