@@ -1,6 +1,7 @@
 import ast
 import hashlib
 import json
+import math
 from collections import Counter
 from memory.skill_store import MemoryEngine
 
@@ -95,15 +96,31 @@ class ResearchMemory(MemoryEngine):
                 )
         return digest
 
-    def parents(self, family, limit=8):
+    def parents(self, family, limit=8, quality_weight=0.70, novelty_weight=0.25, size_weight=0.05):
         """Select high-quality parents while retaining structural diversity.
 
-        The archive is bounded to the 64 best stored candidates before diversity
-        scoring, keeping selection deterministic and cheap. Candidate code is
-        parsed but never executed on the host.
+        Ranking weights are bounded data supplied by the trusted controller. The
+        archive is bounded to 64 candidates before diversity scoring, keeping
+        selection deterministic and cheap. Candidate code is parsed but never
+        executed on the host.
         """
         if type(limit) is not int or not 1 <= limit <= 16:
             raise ValueError("parent limit must be in [1,16]")
+        weights = (quality_weight, novelty_weight, size_weight)
+        if any(
+            not isinstance(value, (int, float))
+            or isinstance(value, bool)
+            or not math.isfinite(value)
+            or value < 0
+            for value in weights
+        ):
+            raise ValueError("parent ranking weights must be finite and nonnegative")
+        total_weight = math.fsum(weights)
+        if total_weight <= 0:
+            raise ValueError("at least one parent ranking weight must be positive")
+        quality_weight, novelty_weight, size_weight = (
+            value / total_weight for value in weights
+        )
         rows = self.db.execute(
             "SELECT digest,source,quality FROM candidate_archive "
             "WHERE family=? ORDER BY quality DESC,length(source),digest LIMIT 64",
@@ -135,7 +152,11 @@ class ResearchMemory(MemoryEngine):
                     for item in selected
                 )
                 size_score = 1.0 / (1.0 + len(candidate["source"]) / 1000.0)
-                combined = 0.70 * candidate["quality"] + 0.25 * novelty + 0.05 * size_score
+                combined = (
+                    quality_weight * candidate["quality"]
+                    + novelty_weight * novelty
+                    + size_weight * size_score
+                )
                 return (combined, candidate["quality"], -len(candidate["source"]), candidate["digest"])
 
             choice = max(pool, key=score)
