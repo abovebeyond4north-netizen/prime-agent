@@ -34,6 +34,7 @@ import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.privileged.ShizukuBridge
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import net.abovebeyond.codieai.tools.CustomToolStore
+import net.abovebeyond.codieai.tools.GitHubSelfDev
 import net.abovebeyond.codieai.tools.KnowledgeIndex
 import net.abovebeyond.codieai.tools.McpPendingStore
 import net.abovebeyond.codieai.tools.McpServerStore
@@ -368,6 +369,17 @@ class MainActivity : Activity() {
         }, weighted())
         root.addView(secretButtons)
 
+        root.addView(label("Autonomous self-development"))
+        root.addView(body(
+            "Codie AI can now inspect and improve its own Android source through GitHub, work only on " +
+                "isolated codie-selfdev/** branches, run Android CI, read compiler failures, repair the branch, " +
+                "and stage a verified APK artifact. To enable write access, store a fine-grained GitHub token " +
+                "under the encrypted alias github_token with Contents read/write and Actions read access."
+        ))
+        root.addView(button("Self-development status") {
+            appendStatus(GitHubSelfDev.status(this))
+        })
+
         root.addView(body("Available planner tools:\n" + ToolRegistry.promptCatalog(this)))
 
         root.addView(label("Ask or command"))
@@ -393,6 +405,31 @@ class MainActivity : Activity() {
             if (handsFreeEnabled) scheduleHandsFreeListening()
         }, weighted())
         root.addView(goalButtons)
+
+        root.addView(button("Develop Codie AI from this goal") {
+            val improvement = goalInput.text.toString().trim()
+            if (improvement.isBlank()) {
+                appendStatus("Enter the self-development goal first.")
+            } else if (!SecretStore.exists(this, "github_token")) {
+                appendStatus(
+                    "Self-development needs a fine-grained GitHub token stored in the encrypted vault " +
+                        "under alias github_token. The token must have Contents read/write and Actions read."
+                )
+            } else {
+                val autonomousGoal =
+                    "SELF-DEVELOPMENT: Improve Codie AI itself for this goal: " + improvement +
+                        "\nUse selfdev_begin exactly once, inspect only the relevant android-agent source, " +
+                        "make bounded changes with selfdev_patch, review them, poll selfdev_ci, read selfdev_logs " +
+                        "if CI fails, repair and retry until Android CI succeeds or a real blocker exists. " +
+                        "Never merge, never change main or feature/android-agent, never expose secrets, and " +
+                        "never claim success without a successful CI run. If CI succeeds, verify artifacts."
+                val (task, started) = DurableAgentService.enqueueAndStart(this, autonomousGoal)
+                appendStatus(
+                    "Queued autonomous self-development task #" + task.id +
+                        "; durable_service_started=" + started
+                )
+            }
+        })
 
         root.addView(label("Execution log"))
         statusView = body("")
@@ -853,7 +890,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.7 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.8 Android")
                 }
 
                 val status = connection.responseCode

@@ -43,6 +43,17 @@ object ToolRegistry {
         "task_plan_run(id): dispatch all currently-ready plan nodes to the durable queue",
         "task_plan_status(id): inspect a plan and every dependency-linked node",
         "task_plan_cancel(id): cancel a plan and its queued/running nodes",
+        "selfdev_status(): report Codie AI self-development repository/branch/token readiness",
+        "selfdev_begin(goal): create an isolated codie-selfdev/** branch from the verified Android base",
+        "selfdev_tree(branch): list Codie AI android-agent source files",
+        "selfdev_read(path,branch,offset,max_chars): read Codie AI source from GitHub",
+        "selfdev_find(path,query,branch): search one Codie AI source file with line context",
+        "selfdev_patch(branch,message,changes): atomically commit bounded source changes; changes=[{path,old,new}|{path,content}]",
+        "selfdev_review(branch): compare a self-development branch against feature/android-agent",
+        "selfdev_ci(branch): inspect the latest Android CI run and job steps for a self-development branch",
+        "selfdev_logs(run_id): retrieve redacted CI job logs for diagnosis",
+        "selfdev_artifacts(run_id): list verified CI artifacts",
+        "selfdev_fetch_apk(run_id): download a successful CI APK artifact into the private workspace",
         "memory_put(key,value): save explicit durable local tool memory",
         "memory_get(key): retrieve local tool memory",
         "memory_list(): list local memory keys",
@@ -206,6 +217,58 @@ object ToolRegistry {
                 "task_plan_cancel" -> TaskPlanStore.cancel(
                     context,
                     args.optInt("id", -1)
+                )
+                "selfdev_status" -> GitHubSelfDev.status(context)
+                "selfdev_begin" -> GitHubSelfDev.begin(
+                    context,
+                    args.requireString("goal")
+                )
+                "selfdev_tree" -> GitHubSelfDev.tree(
+                    context,
+                    args.optString("branch", "")
+                )
+                "selfdev_read" -> GitHubSelfDev.read(
+                    context = context,
+                    pathArg = args.requireString("path"),
+                    branchArg = args.optString("branch", ""),
+                    offset = args.optInt("offset", 0),
+                    maxChars = args.optInt("max_chars", 6_000)
+                )
+                "selfdev_find" -> GitHubSelfDev.find(
+                    context = context,
+                    pathArg = args.requireString("path"),
+                    query = args.requireString("query"),
+                    branchArg = args.optString("branch", "")
+                )
+                "selfdev_patch" -> {
+                    val changes = args.optJSONArray("changes")
+                        ?: throw IllegalArgumentException("Missing tool argument: changes")
+                    GitHubSelfDev.patch(
+                        context = context,
+                        branchArg = args.optString("branch", ""),
+                        message = args.requireString("message"),
+                        changesJson = changes.toString()
+                    )
+                }
+                "selfdev_review" -> GitHubSelfDev.review(
+                    context,
+                    args.optString("branch", "")
+                )
+                "selfdev_ci" -> GitHubSelfDev.ci(
+                    context,
+                    args.optString("branch", "")
+                )
+                "selfdev_logs" -> GitHubSelfDev.logs(
+                    context,
+                    args.optLong("run_id", -1L)
+                )
+                "selfdev_artifacts" -> GitHubSelfDev.artifacts(
+                    context,
+                    args.optLong("run_id", -1L)
+                )
+                "selfdev_fetch_apk" -> GitHubSelfDev.fetchApk(
+                    context,
+                    args.optLong("run_id", -1L)
                 )
 
                 "memory_put" -> MemoryTools.put(

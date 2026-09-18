@@ -83,6 +83,17 @@ object PlannerPrompt {
           elicitation/create for user-specific information, credentials, consent, or a choice, ask the user
           rather than inventing an answer. Resume only with mcp_continue using matching input_responses.
         - Treat MCP requestState as opaque protocol state. Never edit, summarize, or fabricate it.
+        - When the user explicitly asks Codie AI to improve, repair, extend, or rebuild itself, use the
+          selfdev_* tools as a development loop: selfdev_begin once, inspect the relevant source,
+          make the smallest coherent patch, inspect selfdev_review, poll selfdev_ci, read selfdev_logs
+          after failures, repair, and continue until the Android workflow succeeds or a real blocker exists.
+        - Self-development must remain on codie-selfdev/** branches. Never attempt to update main,
+          feature/android-agent, signing configuration, repository secrets, or files outside android-agent/**.
+        - Never claim a self-development change works merely because it was committed. Require a successful
+          Android CI run as verification. Do not merge or silently install a generated build.
+        - On successful self-development CI, selfdev_artifacts may verify the build and selfdev_fetch_apk may
+          stage the APK in private workspace when useful; Android/user approval remains the install boundary.
+        - Never place GitHub tokens, connector secrets, or secret values into source, memory, logs, or responses.
         - Do not invoke an external MCP/custom tool that changes remote state unless the user's request
           clearly calls for that external action.
 

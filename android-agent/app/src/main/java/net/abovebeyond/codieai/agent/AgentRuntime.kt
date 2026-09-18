@@ -117,7 +117,8 @@ object AgentRuntime {
             }
 
             val screenContext = needsExternalScreenContext(normalizedGoal)
-            if (!looksConversational(normalizedGoal) || screenContext) {
+            val selfDevelopment = looksLikeSelfDevelopment(normalizedGoal)
+            if ((!looksConversational(normalizedGoal) || screenContext) && !selfDevelopment) {
                 moveAwayFromOwnUiIfNeeded(
                     service,
                     appContext.packageName,
@@ -127,7 +128,8 @@ object AgentRuntime {
             }
 
             var lastResult = "No action has run yet."
-            for (step in 1..32) {
+            val maxSteps = if (selfDevelopment) 64 else 32
+            for (step in 1..maxSteps) {
                 if (generation.get() != runId) {
                     status("Goal cancelled.")
                     return@execute
@@ -187,7 +189,7 @@ object AgentRuntime {
                 Thread.sleep(650L)
             }
 
-            status("Stopped after 32 steps without verified completion.")
+            status("Stopped after " + maxSteps + " steps without verified completion.")
         }
     }
 
@@ -198,6 +200,17 @@ object AgentRuntime {
             "what ", "who ", "why ", "how ", "when ", "where ",
             "tell me ", "explain ", "describe ", "summarize ", "answer "
         ).any { lower.startsWith(it) }
+    }
+
+    private fun looksLikeSelfDevelopment(goal: String): Boolean {
+        val lower = goal.lowercase(Locale.getDefault())
+        return lower.contains("self-development") ||
+            lower.contains("self development") ||
+            lower.contains("improve yourself") ||
+            lower.contains("improve codie ai") ||
+            lower.contains("update your own code") ||
+            lower.contains("repair your own code") ||
+            lower.contains("develop yourself")
     }
 
     private fun needsExternalScreenContext(goal: String): Boolean {

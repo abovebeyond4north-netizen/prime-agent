@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/android-agent
+      - "codie-selfdev/**"
     paths:
       - "android-agent/**"
       - ".github/workflows/android-agent.yml"
