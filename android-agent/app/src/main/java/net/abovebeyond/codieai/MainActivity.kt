@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.StatFs
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -28,6 +29,9 @@ import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
 import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.service.AssistantOverlayService
+import net.abovebeyond.codieai.tools.ToolRegistry
+import net.abovebeyond.codieai.tools.WorkspaceTools
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -211,6 +215,29 @@ class MainActivity : Activity() {
             startActivityForResult(intent, REQUEST_MODEL)
         })
 
+        root.addView(label("AI tool workspace"))
+        root.addView(body(
+            "The planner can call zero-cost tools for calculation, public-web research, installed apps, " +
+                "durable local memory, and private workspace files. Imported files stay inside Codie AI."
+        ))
+
+        val toolButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        toolButtons.addView(button("Import tool file") {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "text/*"
+            }
+            startActivityForResult(intent, REQUEST_WORKSPACE_FILE)
+        }, weighted())
+        toolButtons.addView(button("List workspace") {
+            appendStatus(WorkspaceTools.list(this))
+        }, weighted())
+        root.addView(toolButtons)
+
+        root.addView(body("Available planner tools:\n" + ToolRegistry.promptCatalog()))
+
         root.addView(label("Ask or command"))
         goalInput = edit("", "Example: Navigate home, turn on flashlight, or tell me the battery level")
         goalInput.minLines = 3
@@ -319,6 +346,10 @@ class MainActivity : Activity() {
             REQUEST_MODEL -> {
                 val uri = data?.data ?: return
                 importModel(uri)
+            }
+            REQUEST_WORKSPACE_FILE -> {
+                val uri = data?.data ?: return
+                importWorkspaceFile(uri)
             }
             REQUEST_VOICE -> {
                 val text = data
@@ -663,7 +694,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/0.5 Android")
+                    setRequestProperty("User-Agent", "CodieAI/0.6 Android")
                 }
 
                 val status = connection.responseCode
@@ -730,6 +761,50 @@ class MainActivity : Activity() {
                 }
             } finally {
                 connection?.disconnect()
+            }
+        }.start()
+    }
+
+    private fun importWorkspaceFile(uri: Uri) {
+        appendStatus("Importing file into Codie AI's private tool workspace...")
+        Thread {
+            try {
+                val name = contentResolver.query(
+                    uri,
+                    arrayOf(OpenableColumns.DISPLAY_NAME),
+                    null,
+                    null,
+                    null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                }.orEmpty().ifBlank { "imported.txt" }
+
+                val bytes = contentResolver.openInputStream(uri).use { input ->
+                    requireNotNull(input) { "Could not open selected file" }
+                    val output = ByteArrayOutputStream()
+                    val buffer = ByteArray(8192)
+                    var total = 0
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        total += count
+                        require(total <= 5_000_000) { "Tool workspace imports are limited to 5 MB" }
+                        output.write(buffer, 0, count)
+                    }
+                    output.toByteArray()
+                }
+
+                val storedName = WorkspaceTools.importFile(this, name, bytes)
+                runOnUiThread {
+                    appendStatus("Imported workspace file: " + storedName)
+                }
+            } catch (error: Throwable) {
+                runOnUiThread {
+                    appendStatus(
+                        "Workspace import failed: " +
+                            (error.message ?: error.javaClass.simpleName)
+                    )
+                }
             }
         }.start()
     }
@@ -824,6 +899,7 @@ class MainActivity : Activity() {
         private const val REQUEST_RUNTIME_PERMISSIONS = 44
         private const val REQUEST_HANDS_FREE_PERMISSION = 45
         private const val REQUEST_CONTACTS_PERMISSION = 46
+        private const val REQUEST_WORKSPACE_FILE = 47
         private const val MAX_LOG_CHARS = 20_000
         private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
         private const val RECOMMENDED_MODEL_MIN_FREE_BYTES = 3_200_000_000L

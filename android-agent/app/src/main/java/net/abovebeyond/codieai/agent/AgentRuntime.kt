@@ -26,8 +26,8 @@ object AgentRuntime {
     private const val KEY_ENDPOINT = "planner_endpoint"
     private const val KEY_MODEL = "planner_model"
     private const val KEY_CONVERSATION = "conversation_history"
-    private const val MAX_UI_CHARS = 4_200
-    private const val MAX_CONVERSATION_CHARS = 1_200
+    private const val MAX_UI_CHARS = 2_400
+    private const val MAX_CONVERSATION_CHARS = 700
     private const val MAX_STORED_CONVERSATION_CHARS = 8_000
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -137,14 +137,14 @@ object AgentRuntime {
                     val state = buildString {
                         append("SYSTEM:\n")
                         append(systemState(appContext))
+                        append("\nLAST_RESULT:\n")
+                        append(lastResult.take(3_600))
                         append("\nRECENT_CONVERSATION:\n")
                         append(conversationContext(appContext))
+                        append("\nNOTIFICATIONS:\n")
+                        append(NotificationStore.render(limit = 2))
                         append("\nUI:\n")
                         append(compactUi(snapshot.text))
-                        append("\nNOTIFICATIONS:\n")
-                        append(NotificationStore.render(limit = 4))
-                        append("\nLAST_RESULT:\n")
-                        append(lastResult.take(400))
                     }
 
                     status("Step " + step + ": reasoning over current phone state")

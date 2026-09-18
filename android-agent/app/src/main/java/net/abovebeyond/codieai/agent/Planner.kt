@@ -1,5 +1,7 @@
 package net.abovebeyond.codieai.agent
 
+import net.abovebeyond.codieai.tools.ToolRegistry
+
 interface Planner {
     fun nextAction(goal: String, snapshot: String, step: Int): AgentAction
 }
@@ -36,6 +38,10 @@ object PlannerPrompt {
         OPEN_NOTIFICATION(notification), DISMISS_NOTIFICATION(notification),
         SNOOZE_NOTIFICATION(notification,milliseconds), REPLY_NOTIFICATION(notification,text).
 
+        Extensible tools:
+        CALL_TOOL(tool,arguments). Use this for calculator, public-web research, installed-app inventory,
+        explicit durable memory, and the private file workspace. Tool names/arguments are provided in TOOL_CATALOG.
+
         Terminal:
         RESPOND(text), DONE(reason), FAIL(reason).
 
@@ -69,11 +75,17 @@ object PlannerPrompt {
         - DISMISS_NOTIFICATION permanently dismisses the selected notification; use only when explicitly requested.
         - LOCK_SCREEN locks immediately; use only when explicitly requested.
         - SCHEDULE_GOAL is only for a time the user explicitly requested.
+        - CALL_TOOL returns a TOOL_RESULT in the next state. Read that result before deciding the next action.
+        - Chain tools when needed: for example web_search -> web_fetch -> RESPOND, or workspace_read -> another workspace_read.
+        - memory_put is only for durable information/task state that is useful to retain; do not store secrets unnecessarily.
         - Never invent success. DONE requires visible or tool-result evidence.
         - Do not repeat an action that failed to change the state.
         - Use the available state or return FAIL rather than fabricating missing facts.
     """.trimIndent()
 
     fun user(goal: String, snapshot: String, step: Int): String =
-        "GOAL:\n" + goal + "\nSTEP:" + step + "\nSTATE:\n" + snapshot
+        "GOAL:\n" + goal +
+            "\nSTEP:" + step +
+            "\nTOOL_CATALOG:\n" + ToolRegistry.promptCatalog() +
+            "\nSTATE:\n" + snapshot
 }

@@ -29,6 +29,7 @@ import net.abovebeyond.codieai.agent.AgentRuntime
 import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.notifications.NotificationBridgeService
 import net.abovebeyond.codieai.tools.ContactTools
+import net.abovebeyond.codieai.tools.ToolRegistry
 import net.abovebeyond.codieai.tools.UsageTools
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -113,6 +114,8 @@ class CodieAccessibilityService : AccessibilityService() {
                 ActionType.SNOOZE_NOTIFICATION ->
                     snoozeNotification(action.notificationIndex, action.milliseconds)
                 ActionType.REPLY_NOTIFICATION -> replyNotification(action.notificationIndex, action.text)
+                ActionType.CALL_TOOL ->
+                    toolResult(ToolRegistry.execute(this, action.tool, action.argumentsJson))
                 ActionType.WAIT -> {
                     Thread.sleep(action.milliseconds)
                     ExecutionResult(true, "Waited " + action.milliseconds + " ms")
