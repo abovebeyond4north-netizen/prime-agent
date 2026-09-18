@@ -22,6 +22,8 @@ object ToolRegistry {
         "shizuku_meminfo(package): detailed memory diagnostics for one package through Shizuku",
         "shizuku_animation_scale(value): set all Android animation scales from 0 to 10; state-changing",
         "shizuku_stay_awake(enabled): keep screen awake while charging; state-changing",
+        "mcp_servers(): list installed MCP Streamable HTTP servers and cached tool counts",
+        "mcp_refresh(server): discover/refresh the current tools exposed by one MCP server",
         "memory_put(key,value): save explicit durable local tool memory",
         "memory_get(key): retrieve local tool memory",
         "memory_list(): list local memory keys",
@@ -52,12 +54,14 @@ object ToolRegistry {
                 tool.name + "(arguments): USER-INSTALLED HTTPS TOOL — " + tool.description
             )
         }
+        lines.addAll(McpServerStore.catalogLines(context))
         return lines.joinToString("\n- ", prefix = "- ")
     }
 
     fun execute(context: Context, tool: String, argumentsJson: String): Result<String> =
         runCatching {
-            val name = tool.trim().lowercase()
+            val requestedName = tool.trim()
+            val name = requestedName.lowercase()
             val args = JSONObject(argumentsJson.ifBlank { "{}" })
 
             val output = when (name) {
@@ -106,6 +110,11 @@ object ToolRegistry {
                         context,
                         args.optBoolean("enabled", false)
                     ).getOrThrow()
+                "mcp_servers" -> McpServerStore.render(context)
+                "mcp_refresh" -> McpServerStore.refresh(
+                    context,
+                    args.requireString("server")
+                )
 
                 "memory_put" -> MemoryTools.put(
                     context,
@@ -177,10 +186,16 @@ object ToolRegistry {
                 }
 
                 else -> {
-                    if (CustomToolStore.find(context, name) != null) {
-                        CustomToolStore.call(context, name, argumentsJson)
-                    } else {
-                        throw IllegalArgumentException("Unknown tool: " + tool)
+                    when {
+                        McpServerStore.isExposedTool(requestedName) ->
+                            McpServerStore.callExposed(
+                                context,
+                                requestedName,
+                                argumentsJson
+                            )
+                        CustomToolStore.find(context, name) != null ->
+                            CustomToolStore.call(context, name, argumentsJson)
+                        else -> throw IllegalArgumentException("Unknown tool: " + tool)
                     }
                 }
             }

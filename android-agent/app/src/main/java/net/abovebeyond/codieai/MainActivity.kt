@@ -31,6 +31,7 @@ import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.privileged.ShizukuBridge
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import net.abovebeyond.codieai.tools.CustomToolStore
+import net.abovebeyond.codieai.tools.McpServerStore
 import net.abovebeyond.codieai.tools.SecretStore
 import net.abovebeyond.codieai.tools.ToolRegistry
 import net.abovebeyond.codieai.tools.WorkspaceTools
@@ -268,6 +269,21 @@ class MainActivity : Activity() {
             startActivityForResult(intent, REQUEST_CUSTOM_TOOL)
         })
 
+        val mcpButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        mcpButtons.addView(button("Import MCP server") {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+            }
+            startActivityForResult(intent, REQUEST_MCP_MANIFEST)
+        }, weighted())
+        mcpButtons.addView(button("List MCP servers") {
+            appendStatus(McpServerStore.render(this))
+        }, weighted())
+        root.addView(mcpButtons)
+
         root.addView(label("Encrypted connector secrets"))
         root.addView(body(
             "Secrets are encrypted with Android Keystore and are never added to the model prompt or tool results. " +
@@ -432,6 +448,10 @@ class MainActivity : Activity() {
             REQUEST_CUSTOM_TOOL -> {
                 val uri = data?.data ?: return
                 importCustomToolManifest(uri)
+            }
+            REQUEST_MCP_MANIFEST -> {
+                val uri = data?.data ?: return
+                importMcpManifest(uri)
             }
             REQUEST_VOICE -> {
                 val text = data
@@ -793,7 +813,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.4 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.5 Android")
                 }
 
                 val status = connection.responseCode
@@ -860,6 +880,32 @@ class MainActivity : Activity() {
                 }
             } finally {
                 connection?.disconnect()
+            }
+        }.start()
+    }
+
+    private fun importMcpManifest(uri: Uri) {
+        Thread {
+            try {
+                val raw = contentResolver.openInputStream(uri).use { input ->
+                    requireNotNull(input) { "Could not open MCP manifest" }
+                    input.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                }
+                require(raw.length <= 50_000) { "MCP manifest is too large" }
+                val message = McpServerStore.importManifest(this, raw)
+                val serverName = org.json.JSONObject(raw).getString("name")
+                val refresh = McpServerStore.refresh(this, serverName)
+                runOnUiThread {
+                    appendStatus(message)
+                    appendStatus(refresh)
+                }
+            } catch (error: Throwable) {
+                runOnUiThread {
+                    appendStatus(
+                        "MCP import failed: " +
+                            (error.message ?: error.javaClass.simpleName)
+                    )
+                }
             }
         }.start()
     }
@@ -1021,6 +1067,7 @@ class MainActivity : Activity() {
         private const val REQUEST_CONTACTS_PERMISSION = 46
         private const val REQUEST_WORKSPACE_FILE = 47
         private const val REQUEST_CUSTOM_TOOL = 48
+        private const val REQUEST_MCP_MANIFEST = 49
         private const val MAX_LOG_CHARS = 20_000
         private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
         private const val RECOMMENDED_MODEL_MIN_FREE_BYTES = 3_200_000_000L
