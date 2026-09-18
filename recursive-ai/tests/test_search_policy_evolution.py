@@ -100,6 +100,21 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
                 )
             memory.db.close()
 
+        with tempfile.TemporaryDirectory() as root:
+            memory = ResearchMemory(root)
+            task = Task("gcd")
+            memory.archive(
+                task,
+                "def gcd(",
+                {"gates": []},
+                None,
+                "direct",
+                0.0,
+                0.01,
+            )
+            self.assertEqual(memory.parents("gcd"), [])
+            memory.db.close()
+
     def test_genome_mutation_recombination_and_novelty(self):
         population = initial_population(4, seed=19)
         child_a = mutate(population[0], seed=7, generation=1)
