@@ -2,7 +2,7 @@ name: Recursive AI laboratory
 
 on:
   push:
-    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization]
+    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization, recursive-ai-evolution-lab]
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
@@ -26,7 +26,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_evolution tests.test_docker -v
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
