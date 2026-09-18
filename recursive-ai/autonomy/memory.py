@@ -117,7 +117,9 @@ class ResearchMemory(MemoryEngine):
             try:
                 profile = _structure_profile(source)
             except SyntaxError:
-                profile = {}
+                # Keep malformed attempts in the archive for failure memory, but
+                # never feed unparsable code back into mutation or crossover.
+                continue
             pool.append({
                 "digest": digest,
                 "source": source,
