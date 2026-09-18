@@ -285,6 +285,8 @@ object AgentRuntime {
         val exactAlarmGranted =
             android.os.Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()
         val scheduledCount = AutomationScheduler.tasks(context).size
+        val durableActiveCount = DurableTaskStore.tasks(context)
+            .count { it.state == "queued" || it.state == "running" }
 
         val plannerMode = when {
             plannerEndpoint(context).isNotBlank() -> "gpt_oss_endpoint"
@@ -305,6 +307,7 @@ object AgentRuntime {
             append(" usage_access=").append(usageGranted)
             append(" exact_alarm_access=").append(exactAlarmGranted)
             append(" scheduled_goals=").append(scheduledCount)
+            append(" durable_tasks_active=").append(durableActiveCount)
         }
     }
 

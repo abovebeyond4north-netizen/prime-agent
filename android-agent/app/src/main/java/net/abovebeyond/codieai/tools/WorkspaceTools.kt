@@ -45,6 +45,7 @@ object WorkspaceTools {
         val file = resolve(context, name)
         file.parentFile?.mkdirs()
         file.writeText(content, Charsets.UTF_8)
+        KnowledgeIndex.markDirty(context)
         return "Wrote " + file.name + " (" + file.length() + " bytes)"
     }
 
@@ -52,6 +53,7 @@ object WorkspaceTools {
         val file = resolve(context, name)
         require(file.isFile) { "Workspace file not found: " + file.name }
         require(file.delete()) { "Could not delete " + file.name }
+        KnowledgeIndex.markDirty(context)
         return "Deleted " + file.name
     }
 
@@ -59,6 +61,7 @@ object WorkspaceTools {
         require(bytes.size <= 5_000_000) { "Imported file exceeds 5 MB" }
         val file = resolve(context, displayName)
         file.writeBytes(bytes)
+        KnowledgeIndex.markDirty(context)
         return file.name
     }
 

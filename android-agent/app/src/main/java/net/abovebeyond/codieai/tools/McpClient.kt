@@ -3,8 +3,6 @@ package net.abovebeyond.codieai.tools
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.atomic.AtomicLong
@@ -23,27 +21,22 @@ object McpClient {
         var cursor: String? = null
 
         repeat(5) {
-            val params = JSONObject()
-                .put("_meta", requestMeta())
+            val params = baseParams()
             if (!cursor.isNullOrBlank()) params.put("cursor", cursor)
 
-            val response = request(
-                context = context,
-                server = server,
-                method = "tools/list",
-                params = params,
-                toolName = null
+            val result = completeResult(
+                request(context, server, "tools/list", params, null)
             )
-
-            val result = response.getJSONObject("result")
             val array = result.optJSONArray("tools") ?: JSONArray()
             for (i in 0 until array.length()) {
                 val tool = array.getJSONObject(i)
-                val name = tool.getString("name")
-                val description = tool.optString("description", "")
-                val inputSchema = tool.optJSONObject("inputSchema")?.toString()
-                    ?: "{}"
-                tools.add(McpToolDefinition(name, description, inputSchema))
+                tools.add(
+                    McpToolDefinition(
+                        name = tool.getString("name"),
+                        description = tool.optString("description", ""),
+                        inputSchema = tool.optJSONObject("inputSchema")?.toString() ?: "{}"
+                    )
+                )
             }
 
             cursor = result.optString("nextCursor", "").ifBlank { null }
@@ -59,22 +52,186 @@ object McpClient {
         toolName: String,
         argumentsJson: String
     ): String {
-        val arguments = JSONObject(argumentsJson.ifBlank { "{}" })
-        val params = JSONObject()
-            .put("_meta", requestMeta())
+        val params = baseParams()
             .put("name", toolName)
-            .put("arguments", arguments)
+            .put("arguments", JSONObject(argumentsJson.ifBlank { "{}" }))
 
-        val response = request(
-            context = context,
-            server = server,
-            method = "tools/call",
-            params = params,
-            toolName = toolName
+        val result = completeResult(
+            request(context, server, "tools/call", params, toolName)
+        )
+        return renderToolResult(result).take(MAX_RESULT_CHARS)
+    }
+
+    fun listResources(
+        context: Context,
+        server: McpServerDefinition
+    ): String {
+        val results = ArrayList<String>()
+        var cursor: String? = null
+
+        repeat(5) {
+            val params = baseParams()
+            if (!cursor.isNullOrBlank()) params.put("cursor", cursor)
+
+            val result = completeResult(
+                request(context, server, "resources/list", params, null)
+            )
+            val array = result.optJSONArray("resources") ?: JSONArray()
+            for (i in 0 until array.length()) {
+                val resource = array.getJSONObject(i)
+                results.add(
+                    buildString {
+                        append(resource.optString("name", resource.optString("uri", "resource")))
+                        append(" | uri=").append(resource.optString("uri", ""))
+                        resource.optString("mimeType", "").takeIf { it.isNotBlank() }?.let {
+                            append(" | mime=").append(it)
+                        }
+                        resource.optString("description", "").takeIf { it.isNotBlank() }?.let {
+                            append(" | ").append(it.take(500))
+                        }
+                    }
+                )
+                if (results.size >= 100) return@repeat
+            }
+
+            cursor = result.optString("nextCursor", "").ifBlank { null }
+            if (cursor == null || results.size >= 100) {
+                return if (results.isEmpty()) {
+                    "MCP server exposes no direct resources."
+                } else {
+                    "MCP resources:\n" + results.joinToString("\n") { "- " + it }
+                }
+            }
+        }
+
+        return if (results.isEmpty()) {
+            "MCP server exposes no direct resources."
+        } else {
+            "MCP resources:\n" + results.joinToString("\n") { "- " + it }
+        }
+    }
+
+    fun readResource(
+        context: Context,
+        server: McpServerDefinition,
+        uri: String
+    ): String {
+        val params = baseParams().put("uri", uri)
+        val result = completeResult(
+            request(context, server, "resources/read", params, null)
+        )
+        val contents = result.optJSONArray("contents") ?: JSONArray()
+
+        if (contents.length() == 0) return "MCP resource returned no content."
+
+        return buildString {
+            append("MCP resource ").append(uri).append(":")
+            for (i in 0 until contents.length()) {
+                val item = contents.optJSONObject(i) ?: continue
+                append("\n\n")
+                append(item.optString("uri", uri))
+                item.optString("mimeType", "").takeIf { it.isNotBlank() }?.let {
+                    append(" [").append(it).append("]")
+                }
+
+                when {
+                    item.has("text") -> {
+                        append("\n").append(item.optString("text", "").take(18_000))
+                    }
+                    item.has("blob") -> {
+                        val blob = item.optString("blob", "")
+                        append("\n[binary resource, base64_chars=")
+                            .append(blob.length)
+                            .append("]")
+                    }
+                    else -> append("\n").append(item.toString().take(4_000))
+                }
+            }
+        }.take(MAX_RESULT_CHARS)
+    }
+
+    fun listPrompts(
+        context: Context,
+        server: McpServerDefinition
+    ): String {
+        val results = ArrayList<String>()
+        var cursor: String? = null
+
+        repeat(5) {
+            val params = baseParams()
+            if (!cursor.isNullOrBlank()) params.put("cursor", cursor)
+
+            val result = completeResult(
+                request(context, server, "prompts/list", params, null)
+            )
+            val array = result.optJSONArray("prompts") ?: JSONArray()
+
+            for (i in 0 until array.length()) {
+                val prompt = array.getJSONObject(i)
+                val args = prompt.optJSONArray("arguments")
+                results.add(
+                    buildString {
+                        append(prompt.getString("name"))
+                        prompt.optString("description", "").takeIf { it.isNotBlank() }?.let {
+                            append(" — ").append(it.take(500))
+                        }
+                        if (args != null && args.length() > 0) {
+                            append(" | args=")
+                            val names = ArrayList<String>()
+                            for (j in 0 until args.length()) {
+                                val arg = args.optJSONObject(j) ?: continue
+                                names.add(
+                                    arg.optString("name", "arg") +
+                                        if (arg.optBoolean("required", false)) "*" else ""
+                                )
+                            }
+                            append(names.joinToString(","))
+                        }
+                    }
+                )
+                if (results.size >= 100) return@repeat
+            }
+
+            cursor = result.optString("nextCursor", "").ifBlank { null }
+            if (cursor == null || results.size >= 100) {
+                return if (results.isEmpty()) {
+                    "MCP server exposes no prompts."
+                } else {
+                    "MCP prompts:\n" + results.joinToString("\n") { "- " + it }
+                }
+            }
+        }
+
+        return if (results.isEmpty()) "MCP server exposes no prompts."
+        else "MCP prompts:\n" + results.joinToString("\n") { "- " + it }
+    }
+
+    fun getPrompt(
+        context: Context,
+        server: McpServerDefinition,
+        name: String,
+        argumentsJson: String
+    ): String {
+        val params = baseParams()
+            .put("name", name)
+            .put("arguments", JSONObject(argumentsJson.ifBlank { "{}" }))
+
+        val result = completeResult(
+            request(context, server, "prompts/get", params, null)
         )
 
-        val result = response.getJSONObject("result")
-        return renderToolResult(result).take(MAX_RESULT_CHARS)
+        return buildString {
+            result.optString("description", "").takeIf { it.isNotBlank() }?.let {
+                append("Prompt description: ").append(it).append("\n")
+            }
+
+            val messages = result.optJSONArray("messages") ?: JSONArray()
+            for (i in 0 until messages.length()) {
+                val message = messages.optJSONObject(i) ?: continue
+                append("\n").append(message.optString("role", "user")).append(": ")
+                append(renderContent(message.opt("content")))
+            }
+        }.take(MAX_RESULT_CHARS)
     }
 
     private fun request(
@@ -82,7 +239,7 @@ object McpClient {
         server: McpServerDefinition,
         method: String,
         params: JSONObject,
-        toolName: String?
+        targetName: String?
     ): JSONObject {
         WebTools.validatePublicHttpsEndpoint(server.endpoint)
         val requestId = nextId.incrementAndGet()
@@ -104,12 +261,12 @@ object McpClient {
             setRequestProperty("Accept", "application/json, text/event-stream")
             setRequestProperty("MCP-Protocol-Version", PROTOCOL_VERSION)
             setRequestProperty("Mcp-Method", method)
-            if (!toolName.isNullOrBlank()) {
-                setRequestProperty("Mcp-Name", toolName)
+            if (!targetName.isNullOrBlank()) {
+                setRequestProperty("Mcp-Name", targetName)
             }
-            setRequestProperty("User-Agent", "CodieAI/1.5 MCP client")
-            authHeaders(context, server).forEach { (name, value) ->
-                setRequestProperty(name, value)
+            setRequestProperty("User-Agent", "CodieAI/1.6 MCP client")
+            authHeaders(context, server).forEach { (header, value) ->
+                setRequestProperty(header, value)
             }
         }
 
@@ -157,21 +314,35 @@ object McpClient {
         return response
     }
 
+    private fun completeResult(response: JSONObject): JSONObject {
+        val result = response.getJSONObject("result")
+        if (result.optString("resultType", "complete") == "input_required") {
+            throw IllegalStateException(
+                "MCP server requires an additional user/model input round trip; " +
+                    "automatic elicitation is not enabled for this request."
+            )
+        }
+        return result
+    }
+
+    private fun baseParams(): JSONObject =
+        JSONObject().put("_meta", requestMeta())
+
     private fun requestMeta(): JSONObject =
         JSONObject()
-            .put(
-                "io.modelcontextprotocol/protocolVersion",
-                PROTOCOL_VERSION
-            )
+            .put("io.modelcontextprotocol/protocolVersion", PROTOCOL_VERSION)
             .put(
                 "io.modelcontextprotocol/clientCapabilities",
-                JSONObject().put("tools", JSONObject())
+                JSONObject()
+                    .put("tools", JSONObject())
+                    .put("resources", JSONObject())
+                    .put("prompts", JSONObject())
             )
             .put(
                 "io.modelcontextprotocol/clientInfo",
                 JSONObject()
                     .put("name", "codie-ai-android")
-                    .put("version", "1.5.0")
+                    .put("version", "1.6.0")
             )
 
     private fun authHeaders(
@@ -241,6 +412,30 @@ object McpClient {
         )
     }
 
+    private fun renderContent(content: Any?): String =
+        when (content) {
+            null, JSONObject.NULL -> ""
+            is JSONObject -> {
+                when (content.optString("type")) {
+                    "text" -> content.optString("text", "")
+                    "resource" -> content.optJSONObject("resource")?.let { resource ->
+                        resource.optString("text", "").ifBlank {
+                            "[embedded resource " + resource.optString("uri", "") + "]"
+                        }
+                    } ?: content.toString()
+                    else -> content.toString()
+                }
+            }
+            is JSONArray -> {
+                val parts = ArrayList<String>()
+                for (i in 0 until content.length()) {
+                    parts.add(renderContent(content.opt(i)))
+                }
+                parts.joinToString("\n")
+            }
+            else -> content.toString()
+        }
+
     private fun renderToolResult(result: JSONObject): String {
         val textParts = ArrayList<String>()
         val content = result.optJSONArray("content") ?: JSONArray()
@@ -259,6 +454,10 @@ object McpClient {
                 "audio" -> textParts.add(
                     "[MCP audio content: " +
                         item.optString("mimeType", "unknown type") + "]"
+                )
+                "resource" -> textParts.add(renderContent(item))
+                "resource_link" -> textParts.add(
+                    "[MCP resource link: " + item.optString("uri", "") + "]"
                 )
                 else -> textParts.add(item.toString())
             }

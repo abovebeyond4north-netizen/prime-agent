@@ -139,6 +139,35 @@ object McpServerStore {
             discovered.size + " tool(s)."
     }
 
+    fun resources(context: Context, serverName: String): String {
+        val server = find(context, serverName)
+            ?: throw IllegalArgumentException("MCP server not found: " + serverName)
+        return McpClient.listResources(context, server)
+    }
+
+    fun readResource(context: Context, serverName: String, uri: String): String {
+        val server = find(context, serverName)
+            ?: throw IllegalArgumentException("MCP server not found: " + serverName)
+        return McpClient.readResource(context, server, uri)
+    }
+
+    fun prompts(context: Context, serverName: String): String {
+        val server = find(context, serverName)
+            ?: throw IllegalArgumentException("MCP server not found: " + serverName)
+        return McpClient.listPrompts(context, server)
+    }
+
+    fun prompt(
+        context: Context,
+        serverName: String,
+        name: String,
+        argumentsJson: String
+    ): String {
+        val server = find(context, serverName)
+            ?: throw IllegalArgumentException("MCP server not found: " + serverName)
+        return McpClient.getPrompt(context, server, name, argumentsJson)
+    }
+
     fun remove(context: Context, serverName: String): String {
         val normalized = normalizeName(serverName)
         val current = list(context)

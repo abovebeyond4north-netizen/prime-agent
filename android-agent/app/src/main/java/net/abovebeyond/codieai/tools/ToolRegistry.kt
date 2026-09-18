@@ -2,6 +2,8 @@ package net.abovebeyond.codieai.tools
 
 import android.content.Context
 import android.content.Intent
+import net.abovebeyond.codieai.agent.DurableAgentService
+import net.abovebeyond.codieai.agent.DurableTaskStore
 import net.abovebeyond.codieai.privileged.ShizukuBridge
 import org.json.JSONObject
 
@@ -24,6 +26,16 @@ object ToolRegistry {
         "shizuku_stay_awake(enabled): keep screen awake while charging; state-changing",
         "mcp_servers(): list installed MCP Streamable HTTP servers and cached tool counts",
         "mcp_refresh(server): discover/refresh the current tools exposed by one MCP server",
+        "mcp_resources(server): list direct resources exposed by one MCP server",
+        "mcp_resource_read(server,uri): read one MCP resource as context",
+        "mcp_prompts(server): list reusable prompts exposed by one MCP server",
+        "mcp_prompt_get(server,name,arguments): retrieve one MCP prompt/template",
+        "knowledge_reindex(): rebuild full-text index of text/code files in the private workspace",
+        "knowledge_search(query,limit): search indexed workspace knowledge",
+        "durable_enqueue(goal): queue a persistent autonomous goal in the foreground durable-agent service",
+        "durable_tasks(): list persistent task state/checkpoints",
+        "durable_cancel(id): cancel a queued/running durable task",
+        "durable_resume(): resume any queued durable task when Android permits a foreground service start",
         "memory_put(key,value): save explicit durable local tool memory",
         "memory_get(key): retrieve local tool memory",
         "memory_list(): list local memory keys",
@@ -115,6 +127,50 @@ object ToolRegistry {
                     context,
                     args.requireString("server")
                 )
+                "mcp_resources" -> McpServerStore.resources(
+                    context,
+                    args.requireString("server")
+                )
+                "mcp_resource_read" -> McpServerStore.readResource(
+                    context,
+                    args.requireString("server"),
+                    args.requireString("uri")
+                )
+                "mcp_prompts" -> McpServerStore.prompts(
+                    context,
+                    args.requireString("server")
+                )
+                "mcp_prompt_get" -> {
+                    val promptArgs = args.optJSONObject("arguments")?.toString() ?: "{}"
+                    McpServerStore.prompt(
+                        context,
+                        args.requireString("server"),
+                        args.requireString("name"),
+                        promptArgs
+                    )
+                }
+                "knowledge_reindex" -> KnowledgeIndex.reindex(context)
+                "knowledge_search" -> KnowledgeIndex.search(
+                    context,
+                    args.requireString("query"),
+                    args.optInt("limit", 8)
+                )
+                "durable_enqueue" -> {
+                    val (task, started) = DurableAgentService.enqueueAndStart(
+                        context,
+                        args.requireString("goal")
+                    )
+                    "Queued durable task #" + task.id +
+                        "; foreground_service_started=" + started
+                }
+                "durable_tasks" -> DurableTaskStore.render(context)
+                "durable_cancel" -> DurableAgentService.cancelTask(
+                    context,
+                    args.optInt("id", -1)
+                )
+                "durable_resume" ->
+                    "durable_service_started=" +
+                        DurableAgentService.startIfPending(context)
 
                 "memory_put" -> MemoryTools.put(
                     context,

@@ -100,6 +100,15 @@
         </receiver>
 
         <service
+            android:name=".agent.DurableAgentService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Runs persistent user-created autonomous AI task queue with visible notification" />
+        </service>
+
+        <service
             android:name=".automation.ScheduledGoalService"
             android:exported="false"
             android:foregroundServiceType="specialUse">

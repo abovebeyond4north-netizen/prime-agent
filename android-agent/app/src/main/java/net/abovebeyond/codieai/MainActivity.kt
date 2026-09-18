@@ -27,10 +27,13 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
+import net.abovebeyond.codieai.agent.DurableAgentService
+import net.abovebeyond.codieai.agent.DurableTaskStore
 import net.abovebeyond.codieai.automation.AutomationScheduler
 import net.abovebeyond.codieai.privileged.ShizukuBridge
 import net.abovebeyond.codieai.service.AssistantOverlayService
 import net.abovebeyond.codieai.tools.CustomToolStore
+import net.abovebeyond.codieai.tools.KnowledgeIndex
 import net.abovebeyond.codieai.tools.McpServerStore
 import net.abovebeyond.codieai.tools.SecretStore
 import net.abovebeyond.codieai.tools.ToolRegistry
@@ -190,6 +193,18 @@ class MainActivity : Activity() {
         }, weighted())
         root.addView(automationButtons)
 
+        val durableButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        durableButtons.addView(button("Show durable tasks") {
+            appendStatus(DurableTaskStore.render(this))
+        }, weighted())
+        durableButtons.addView(button("Resume durable tasks") {
+            val started = DurableAgentService.startIfPending(this)
+            appendStatus("Durable agent service started=" + started)
+        }, weighted())
+        root.addView(durableButtons)
+
         val bubbleButtons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
@@ -260,6 +275,21 @@ class MainActivity : Activity() {
             appendStatus(WorkspaceTools.list(this))
         }, weighted())
         root.addView(toolButtons)
+
+        val knowledgeButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        knowledgeButtons.addView(button("Rebuild knowledge index") {
+            Thread {
+                val message = runCatching { KnowledgeIndex.reindex(this) }
+                    .getOrElse { "Knowledge indexing failed: " + (it.message ?: it.javaClass.simpleName) }
+                runOnUiThread { appendStatus(message) }
+            }.start()
+        }, weighted())
+        knowledgeButtons.addView(button("Show durable queue") {
+            appendStatus(DurableTaskStore.render(this))
+        }, weighted())
+        root.addView(knowledgeButtons)
 
         root.addView(button("Import HTTPS connector manifest/bundle") {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -813,7 +843,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.5 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.6 Android")
                 }
 
                 val status = connection.responseCode
