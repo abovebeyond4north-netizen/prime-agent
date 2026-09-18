@@ -10,6 +10,9 @@ object ToolRegistry {
         "web_search(query): search the public web without a paid API",
         "web_fetch(url): read a public HTTPS page; localhost/private LAN targets are blocked",
         "apps_list(): list launchable installed apps and package names",
+        "clipboard_read(): read clipboard text when Android permits access",
+        "clipboard_write(text): write text to the clipboard",
+        "device_sensors(): sample available motion/environment sensors and battery temperature",
         "memory_put(key,value): save explicit durable local tool memory",
         "memory_get(key): retrieve local tool memory",
         "memory_list(): list local memory keys",
@@ -58,6 +61,12 @@ object ToolRegistry {
                 "web_search" -> WebTools.search(args.requireString("query"))
                 "web_fetch" -> WebTools.fetch(args.requireString("url"))
                 "apps_list" -> listApps(context)
+                "clipboard_read" -> DeviceTools.clipboardRead(context)
+                "clipboard_write" -> DeviceTools.clipboardWrite(
+                    context,
+                    args.requireString("text")
+                )
+                "device_sensors" -> DeviceTools.sensorReport(context)
 
                 "memory_put" -> MemoryTools.put(
                     context,

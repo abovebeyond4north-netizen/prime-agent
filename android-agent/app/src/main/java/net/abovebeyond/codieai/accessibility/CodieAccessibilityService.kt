@@ -99,6 +99,8 @@ class CodieAccessibilityService : AccessibilityService() {
                 ActionType.SET_ALARM -> setAlarm(action.hour, action.minute)
                 ActionType.SET_TIMER -> setTimer(action.seconds)
                 ActionType.SCHEDULE_GOAL -> scheduleGoal(action.start, action.text)
+                ActionType.SCHEDULE_RECURRING ->
+                    scheduleRecurringGoal(action.start, action.text, action.value)
                 ActionType.LIST_SCHEDULED ->
                     ExecutionResult(true, AutomationScheduler.render(this))
                 ActionType.CANCEL_SCHEDULED ->
@@ -464,6 +466,31 @@ class CodieAccessibilityService : AccessibilityService() {
             },
             onFailure = {
                 ExecutionResult(false, it.message ?: "Could not schedule goal")
+            }
+        )
+    }
+
+    private fun scheduleRecurringGoal(
+        start: String,
+        goal: String,
+        repeatMinutes: Int
+    ): ExecutionResult {
+        val result = AutomationScheduler.scheduleRecurring(this, start, goal, repeatMinutes)
+        return result.fold(
+            onSuccess = { task ->
+                val formatter = java.text.SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss Z",
+                    java.util.Locale.getDefault()
+                )
+                ExecutionResult(
+                    true,
+                    "Scheduled recurring goal #" + task.id + " for " +
+                        formatter.format(java.util.Date(task.triggerAtMillis)) +
+                        " every " + task.repeatMinutes + " minutes: " + task.goal
+                )
+            },
+            onFailure = {
+                ExecutionResult(false, it.message ?: "Could not schedule recurring goal")
             }
         )
     }

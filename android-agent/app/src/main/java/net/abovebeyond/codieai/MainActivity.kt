@@ -282,7 +282,8 @@ class MainActivity : Activity() {
                 "dialer, alarms/timers, media/volume controls, notification replies, app/settings navigation, " +
                 "accessibility-driven UI interaction, screen summarization, screenshots, screen locking, " +
                 "notification open/dismiss/snooze controls, contact-aware communication, app-usage reports, " +
-                "and exact user-scheduled autonomous goals."
+                "exact and recurring autonomous goals that restore after reboot, sensor awareness, " +
+                "and clipboard read/write tools."
         ))
 
         val scroll = ScrollView(this).apply { addView(root) }
@@ -724,7 +725,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/1.0 Android")
+                    setRequestProperty("User-Agent", "CodieAI/1.1 Android")
                 }
 
                 val status = connection.responseCode

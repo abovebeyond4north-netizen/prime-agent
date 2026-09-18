@@ -26,7 +26,8 @@ object PlannerPrompt {
         CREATE_CALENDAR_EVENT(title,start,end), SET_ALARM(hour,minute), SET_TIMER(seconds).
 
         Scheduled automation:
-        SCHEDULE_GOAL(start,text), LIST_SCHEDULED, CANCEL_SCHEDULED(value).
+        SCHEDULE_GOAL(start,text), SCHEDULE_RECURRING(start,text,value),
+        LIST_SCHEDULED, CANCEL_SCHEDULED(value).
 
         Device controls:
         FLASHLIGHT_ON, FLASHLIGHT_OFF, SET_BRIGHTNESS(value), DND_ON, DND_OFF,
@@ -50,6 +51,9 @@ object PlannerPrompt {
         - SCHEDULE_GOAL start MUST be an ISO-8601 future timestamp. Its text is only the future
           action, not the scheduling phrase. Example:
           {"action":"SCHEDULE_GOAL","start":"2026-09-18T19:30:00-04:00","text":"turn on Do Not Disturb"}
+        - SCHEDULE_RECURRING uses value as repeat interval in minutes; minimum 15.
+          Example: {"action":"SCHEDULE_RECURRING","start":"2026-09-19T08:00:00-04:00","text":"summarize my notifications","value":1440}
+        - Recurring schedules survive app updates and are restored after device reboot.
         - LIST_SCHEDULED returns the current autonomous schedule.
         - CANCEL_SCHEDULED value is the numeric scheduled-goal id.
         - Contact actions use the user's local Android contacts. Prefer contact-aware actions when

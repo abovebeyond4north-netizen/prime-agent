@@ -18,7 +18,9 @@ class ScheduledGoalService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val taskId = intent?.getIntExtra(EXTRA_TASK_ID, -1) ?: -1
-        val goal = intent?.getStringExtra(EXTRA_GOAL).orEmpty().trim()
+        val fallbackGoal = intent?.getStringExtra(EXTRA_GOAL).orEmpty().trim()
+        val triggeredTask = if (taskId >= 0) AutomationScheduler.handleTrigger(this, taskId) else null
+        val goal = triggeredTask?.goal ?: fallbackGoal
 
         if (taskId < 0 || goal.isBlank()) {
             stopSelf()
@@ -29,7 +31,6 @@ class ScheduledGoalService : Service() {
             NOTIFICATION_ID_BASE + (taskId % 10_000),
             buildNotification("Running scheduled goal", goal)
         )
-        AutomationScheduler.markTriggered(this, taskId)
 
         AgentRuntime.executeGoal(this, goal) { message ->
             val terminal =
@@ -43,10 +44,17 @@ class ScheduledGoalService : Service() {
                 message.startsWith("Enable Codie AI")
 
             if (terminal) {
+                val repeatNote = if ((triggeredTask?.repeatMinutes ?: 0) > 0) {
+                    " Recurs every " + triggeredTask!!.repeatMinutes + " minutes."
+                } else ""
+
                 val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                 manager.notify(
                     COMPLETION_NOTIFICATION_BASE + (taskId % 10_000),
-                    buildNotification("Scheduled goal finished", message.take(500))
+                    buildNotification(
+                        "Scheduled goal finished",
+                        (message + repeatNote).take(700)
+                    )
                 )
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf(startId)
@@ -66,7 +74,7 @@ class ScheduledGoalService : Service() {
                 "Codie AI scheduled automation",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Runs user-scheduled Codie AI goals."
+                description = "Runs user-scheduled and recurring Codie AI goals."
             }
         )
     }
