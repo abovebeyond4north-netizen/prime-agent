@@ -62,6 +62,8 @@ object WorkspaceTools {
         return file.name
     }
 
+    fun file(context: Context, rawName: String): File = resolve(context, rawName)
+
     private fun resolve(context: Context, rawName: String): File {
         val cleaned = rawName.trim()
             .replace(Regex("""[^A-Za-z0-9._ -]"""), "_")

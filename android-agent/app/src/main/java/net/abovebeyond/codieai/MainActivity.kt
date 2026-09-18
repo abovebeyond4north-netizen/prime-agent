@@ -724,7 +724,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/0.7 Android")
+                    setRequestProperty("User-Agent", "CodieAI/0.8 Android")
                 }
 
                 val status = connection.responseCode

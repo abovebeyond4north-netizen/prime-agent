@@ -26,6 +26,8 @@ object ToolRegistry {
         "skill_get(name): retrieve a saved skill",
         "skill_list(): list saved skills",
         "skill_delete(name): delete a saved skill",
+        "image_ocr(name): extract text from an imported workspace image on-device",
+        "image_labels(name): identify general objects/places/activities in a workspace image on-device",
         "custom_tool_list(): list user-installed HTTPS tools"
     )
 
@@ -92,6 +94,14 @@ object ToolRegistry {
                     args.optString("path", "")
                 )
                 "file_sha256" -> DataTools.sha256(
+                    context,
+                    args.requireString("name")
+                )
+                "image_ocr" -> VisualTools.ocr(
+                    context,
+                    args.requireString("name")
+                )
+                "image_labels" -> VisualTools.labels(
                     context,
                     args.requireString("name")
                 )
