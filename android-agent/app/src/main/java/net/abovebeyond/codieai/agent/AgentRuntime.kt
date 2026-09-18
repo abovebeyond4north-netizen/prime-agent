@@ -1,7 +1,11 @@
 package net.abovebeyond.codieai.agent
 
+import android.app.ActivityManager
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.BatteryManager
+import android.os.StatFs
 import net.abovebeyond.codieai.accessibility.CodieAccessibilityService
 import net.abovebeyond.codieai.notifications.NotificationStore
 import java.io.File
@@ -23,6 +27,7 @@ object AgentRuntime {
 
     private val executor = Executors.newSingleThreadExecutor()
     private val generation = AtomicLong(0L)
+
     @Volatile
     private var serviceRef: WeakReference<CodieAccessibilityService>? = null
 
@@ -167,6 +172,7 @@ object AgentRuntime {
                 }
                 Thread.sleep(650L)
             }
+
             status("Stopped after 32 steps without verified completion.")
         }
     }
@@ -203,23 +209,60 @@ object AgentRuntime {
     private fun appendConversation(context: Context, speaker: String, text: String) {
         val cleaned = text.replace('\n', ' ').replace('\r', ' ').trim()
         if (cleaned.isBlank()) return
+
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val old = prefs.getString(KEY_CONVERSATION, "").orEmpty()
         val entry = speaker + ": " + cleaned
         val combined = (if (old.isBlank()) entry else old + "\n" + entry)
             .takeLast(MAX_STORED_CONVERSATION_CHARS)
+
         prefs.edit().putString(KEY_CONVERSATION, combined).apply()
     }
 
     private fun conversationContext(context: Context): String =
-        conversationTranscript(context).takeLast(MAX_CONVERSATION_CHARS)
+        conversationTranscript(context)
+            .takeLast(MAX_CONVERSATION_CHARS)
             .ifBlank { "No prior conversation." }
 
     private fun systemState(context: Context): String {
         val battery = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
         val percent = battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+
+        val memory = ActivityManager.MemoryInfo()
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        activityManager.getMemoryInfo(memory)
+
+        val stat = StatFs(context.filesDir.absolutePath)
+        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivity.activeNetwork
+        val capabilities = network?.let { connectivity.getNetworkCapabilities(it) }
+        val networkLabel = when {
+            capabilities == null -> "offline"
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "vpn"
+            else -> "other"
+        }
+
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.getDefault()).format(Date())
-        return "time=" + now + " battery=" + percent + "%"
+        val localModel = localModelFile(context)
+        val plannerMode = when {
+            plannerEndpoint(context).isNotBlank() -> "gpt_oss_endpoint"
+            localModel.isFile -> "local_litert"
+            else -> "deterministic"
+        }
+
+        return buildString {
+            append("time=").append(now)
+            append(" battery=").append(percent).append("%")
+            append(" network=").append(networkLabel)
+            append(" ram_free_mb=").append(memory.availMem / 1_048_576L)
+            append(" ram_total_mb=").append(memory.totalMem / 1_048_576L)
+            append(" storage_free_mb=").append(stat.availableBytes / 1_048_576L)
+            append(" storage_total_mb=").append(stat.totalBytes / 1_048_576L)
+            append(" planner=").append(plannerMode)
+        }
     }
 
     private fun compactUi(raw: String): String {
@@ -237,10 +280,12 @@ object AgentRuntime {
                     line.contains("focused") ||
                     line.contains(" text=") ||
                     line.contains(" desc=")
+
                 if (priority) important.add(line) else context.add(line)
             }
 
         val output = StringBuilder()
+
         fun appendLines(lines: List<String>) {
             for (line in lines) {
                 if (output.length + line.length + 1 > MAX_UI_CHARS) return
@@ -250,6 +295,7 @@ object AgentRuntime {
 
         appendLines(important)
         appendLines(context)
+
         return if (output.isNotEmpty()) output.toString() else raw.take(MAX_UI_CHARS)
     }
 

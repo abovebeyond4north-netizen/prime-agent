@@ -1,12 +1,21 @@
 package net.abovebeyond.codieai
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.StatFs
 import android.provider.Settings
+import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.text.InputType
 import android.view.View
 import android.widget.Button
@@ -16,6 +25,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
+import net.abovebeyond.codieai.service.AssistantOverlayService
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -31,8 +41,13 @@ class MainActivity : Activity() {
     private lateinit var speakRepliesToggle: CheckBox
     private lateinit var autoRunVoiceToggle: CheckBox
 
+    private val handler = Handler(Looper.getMainLooper())
     private var tts: TextToSpeech? = null
     private var ttsReady = false
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var handsFreeEnabled = false
+    private var awaitingAgent = false
+    private var pendingHandsFreePermission = false
     private var lastAssistantReply = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,8 +61,8 @@ class MainActivity : Activity() {
 
         root.addView(title("Codie AI"))
         root.addView(body(
-            "Local-first Android assistant with phone control, spoken replies, chat memory, " +
-                "local LiteRT reasoning, and optional GPT-OSS planning over your private network."
+            "Local-first Android assistant with phone control, spoken replies, persistent chat memory, " +
+                "hands-free conversation, a floating assistant bubble, LiteRT reasoning, and optional GPT-OSS."
         ))
 
         root.addView(label("Conversation"))
@@ -81,18 +96,60 @@ class MainActivity : Activity() {
         root.addView(speakRepliesToggle)
 
         autoRunVoiceToggle = CheckBox(this).apply {
-            text = "Run voice commands immediately"
+            text = "Run one-shot voice commands immediately"
             isChecked = true
         }
         root.addView(autoRunVoiceToggle)
 
+        val handsFreeButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        handsFreeButtons.addView(button("Start hands-free") {
+            startHandsFreeMode()
+        }, weighted())
+        handsFreeButtons.addView(button("Stop hands-free") {
+            stopHandsFreeMode()
+        }, weighted())
+        root.addView(handsFreeButtons)
+
+        root.addView(body(
+            "Hands-free mode listens for one command, runs it, speaks the result, then listens again. " +
+                "It remains active while Codie AI is running and can be stopped at any time."
+        ))
+
+        root.addView(label("Android control permissions"))
         root.addView(button("1. Enable phone control") {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         })
-
         root.addView(button("2. Enable notification context/replies") {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         })
+        root.addView(button("3. Grant microphone + camera") {
+            requestAssistantRuntimePermissions()
+        })
+        root.addView(button("4. Allow modify system settings") {
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + packageName)
+                )
+            )
+        })
+        root.addView(button("5. Allow Do Not Disturb control") {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+        })
+
+        val bubbleButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        bubbleButtons.addView(button("Start AI bubble") {
+            startAssistantBubble()
+        }, weighted())
+        bubbleButtons.addView(button("Stop AI bubble") {
+            stopService(Intent(this, AssistantOverlayService::class.java))
+            appendStatus("Floating assistant stopped.")
+        }, weighted())
+        root.addView(bubbleButtons)
 
         root.addView(label("GPT-OSS / OpenAI-compatible endpoint (optional)"))
         endpointInput = edit(
@@ -132,13 +189,8 @@ class MainActivity : Activity() {
             startActivityForResult(intent, REQUEST_MODEL)
         })
 
-        root.addView(body(
-            "Codie AI prefers a configured GPT-OSS endpoint for stronger reasoning. " +
-                "Otherwise it uses the on-phone model. Basic deterministic controls remain available without either model."
-        ))
-
         root.addView(label("Ask or command"))
-        goalInput = edit("", "Example: Turn on Bluetooth, or tell me the time")
+        goalInput = edit("", "Example: Navigate home, turn on flashlight, or tell me the battery level")
         goalInput.minLines = 3
         root.addView(goalInput)
 
@@ -152,9 +204,12 @@ class MainActivity : Activity() {
             startVoiceInput()
         }, weighted())
         goalButtons.addView(button("Stop") {
+            awaitingAgent = false
             AgentRuntime.cancelCurrentGoal()
+            speechRecognizer?.cancel()
             tts?.stop()
             appendStatus("Cancellation requested.")
+            if (handsFreeEnabled) scheduleHandsFreeListening()
         }, weighted())
         root.addView(goalButtons)
 
@@ -164,14 +219,23 @@ class MainActivity : Activity() {
         root.addView(statusView)
 
         root.addView(body(
-            "Capabilities include UI tapping/typing/scrolling, app launching, settings navigation, " +
-                "web search and URLs, clipboard/share actions, message/email composition, dialer opening, " +
-                "alarms/timers, media controls, volume controls, and explicit notification replies. " +
-                "Phone-only inference keeps planner prompts on the device."
+            "Direct capabilities now include flashlight, screen brightness, Do Not Disturb, maps/navigation, " +
+                "camera launch, calendar event creation, web search/URLs, clipboard/share, SMS/email composition, " +
+                "dialer, alarms/timers, media/volume controls, notification replies, app/settings navigation, " +
+                "and accessibility-driven UI interaction."
         ))
 
         val scroll = ScrollView(this).apply { addView(root) }
         setContentView(scroll)
+        handleLaunchIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent != null) {
+            setIntent(intent)
+            handleLaunchIntent(intent)
+        }
     }
 
     override fun onResume() {
@@ -185,10 +249,34 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        stopHandsFreeMode()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
         tts?.stop()
         tts?.shutdown()
         tts = null
         super.onDestroy()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_RUNTIME_PERMISSIONS) {
+            appendStatus("Runtime permission request completed.")
+        } else if (requestCode == REQUEST_HANDS_FREE_PERMISSION) {
+            val granted = grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            if (granted && pendingHandsFreePermission) {
+                pendingHandsFreePermission = false
+                startHandsFreeMode()
+            } else {
+                pendingHandsFreePermission = false
+                appendStatus("Microphone permission is required for hands-free mode.")
+            }
+        }
     }
 
     @Deprecated("Uses the platform activity result API to avoid an AndroidX dependency.")
@@ -206,6 +294,7 @@ class MainActivity : Activity() {
                     ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     ?.firstOrNull()
                     .orEmpty()
+
                 if (text.isNotBlank()) {
                     goalInput.setText(text)
                     if (autoRunVoiceToggle.isChecked) runGoal()
@@ -227,6 +316,8 @@ class MainActivity : Activity() {
             return
         }
 
+        speechRecognizer?.cancel()
+        awaitingAgent = true
         AgentRuntime.recordUserMessage(this, goal)
         renderConversation()
         appendStatus("You: " + goal)
@@ -242,17 +333,27 @@ class MainActivity : Activity() {
         val finalText = when {
             message.startsWith("Reply: ") -> message.removePrefix("Reply: ").trim()
             message.startsWith("Complete: ") -> message.removePrefix("Complete: ").trim()
-            message.startsWith("Stopped: ") -> "I couldn't complete that. " + message.removePrefix("Stopped: ").trim()
-            message.startsWith("Step failed: ") -> "I hit an error: " + message.removePrefix("Step failed: ").trim()
-            message.startsWith("Planner setup failed: ") -> "The AI planner could not start: " + message.removePrefix("Planner setup failed: ").trim()
+            message.startsWith("Stopped: ") ->
+                "I couldn't complete that. " + message.removePrefix("Stopped: ").trim()
+            message.startsWith("Step failed: ") ->
+                "I hit an error: " + message.removePrefix("Step failed: ").trim()
+            message.startsWith("Planner setup failed: ") ->
+                "The AI planner could not start: " + message.removePrefix("Planner setup failed: ").trim()
+            message == "Goal cancelled." -> "Cancelled."
             else -> ""
         }
 
         if (finalText.isNotBlank()) {
+            awaitingAgent = false
             lastAssistantReply = finalText
             AgentRuntime.recordAssistantMessage(this, finalText)
             renderConversation()
-            if (speakRepliesToggle.isChecked) speak(finalText)
+
+            if (speakRepliesToggle.isChecked && ttsReady) {
+                speak(finalText)
+            } else if (handsFreeEnabled) {
+                scheduleHandsFreeListening()
+            }
         }
     }
 
@@ -265,6 +366,15 @@ class MainActivity : Activity() {
                     languageResult != TextToSpeech.LANG_NOT_SUPPORTED
                 engine.setSpeechRate(1.0f)
                 engine.setPitch(1.0f)
+                engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) = Unit
+                    override fun onError(utteranceId: String?) {
+                        if (handsFreeEnabled && !awaitingAgent) scheduleHandsFreeListening()
+                    }
+                    override fun onDone(utteranceId: String?) {
+                        if (handsFreeEnabled && !awaitingAgent) scheduleHandsFreeListening()
+                    }
+                })
             } else {
                 ttsReady = false
             }
@@ -274,19 +384,180 @@ class MainActivity : Activity() {
     private fun speak(text: String) {
         if (!ttsReady) {
             appendStatus("Text-to-Speech is not ready on this device.")
+            if (handsFreeEnabled && !awaitingAgent) scheduleHandsFreeListening()
             return
         }
+        speechRecognizer?.cancel()
         tts?.speak(text.take(3_000), TextToSpeech.QUEUE_FLUSH, null, "codie-ai-reply")
+    }
+
+    private fun startHandsFreeMode() {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            pendingHandsFreePermission = true
+            requestPermissions(
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_HANDS_FREE_PERMISSION
+            )
+            return
+        }
+
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            appendStatus("Android speech recognition is unavailable on this device.")
+            return
+        }
+
+        handsFreeEnabled = true
+        ensureSpeechRecognizer()
+        appendStatus("Hands-free conversation enabled.")
+        if (!awaitingAgent) startHandsFreeListening()
+    }
+
+    private fun stopHandsFreeMode() {
+        if (handsFreeEnabled) appendStatus("Hands-free conversation disabled.")
+        handsFreeEnabled = false
+        pendingHandsFreePermission = false
+        handler.removeCallbacksAndMessages(null)
+        speechRecognizer?.cancel()
+    }
+
+    private fun ensureSpeechRecognizer() {
+        if (speechRecognizer != null) return
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).also { recognizer ->
+            recognizer.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    appendStatus("Listening...")
+                }
+
+                override fun onBeginningOfSpeech() = Unit
+                override fun onRmsChanged(rmsdB: Float) = Unit
+                override fun onBufferReceived(buffer: ByteArray?) = Unit
+                override fun onEndOfSpeech() = Unit
+
+                override fun onError(error: Int) {
+                    if (!handsFreeEnabled || awaitingAgent) return
+                    if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
+                        appendStatus("Microphone permission is required for hands-free mode.")
+                        handsFreeEnabled = false
+                    } else {
+                        scheduleHandsFreeListening(1_200L)
+                    }
+                }
+
+                override fun onResults(results: Bundle?) {
+                    val spoken = results
+                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                        ?.firstOrNull()
+                        .orEmpty()
+                        .trim()
+
+                    if (spoken.isBlank()) {
+                        if (handsFreeEnabled) scheduleHandsFreeListening()
+                        return
+                    }
+
+                    goalInput.setText(spoken)
+                    appendStatus("Heard: " + spoken)
+                    runGoal()
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) = Unit
+                override fun onEvent(eventType: Int, params: Bundle?) = Unit
+            })
+        }
+    }
+
+    private fun startHandsFreeListening() {
+        if (!handsFreeEnabled || awaitingAgent) return
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) return
+
+        ensureSpeechRecognizer()
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+        }
+
+        runCatching {
+            speechRecognizer?.cancel()
+            speechRecognizer?.startListening(intent)
+        }.onFailure {
+            appendStatus("Hands-free listening failed: " + (it.message ?: it.javaClass.simpleName))
+            scheduleHandsFreeListening(1_500L)
+        }
+    }
+
+    private fun scheduleHandsFreeListening(delay: Long = 650L) {
+        if (!handsFreeEnabled) return
+        handler.postDelayed({
+            if (handsFreeEnabled && !awaitingAgent) startHandsFreeListening()
+        }, delay)
+    }
+
+    private fun startVoiceInput() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Tell Codie AI what to do")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+
+        try {
+            startActivityForResult(intent, REQUEST_VOICE)
+        } catch (error: Throwable) {
+            appendStatus("Voice recognition is unavailable: " + (error.message ?: error.javaClass.simpleName))
+        }
+    }
+
+    private fun requestAssistantRuntimePermissions() {
+        val permissions = mutableListOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA
+        )
+        if (Build.VERSION.SDK_INT >= 33) permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+
+        val missing = permissions.filter {
+            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missing.isEmpty()) {
+            appendStatus("Microphone, camera, and notification permissions are already granted.")
+        } else {
+            requestPermissions(missing.toTypedArray(), REQUEST_RUNTIME_PERMISSIONS)
+        }
+    }
+
+    private fun startAssistantBubble() {
+        if (!Settings.canDrawOverlays(this)) {
+            appendStatus("Allow 'Display over other apps', then tap Start AI bubble again.")
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + packageName)
+                )
+            )
+            return
+        }
+
+        val serviceIntent = Intent(this, AssistantOverlayService::class.java)
+        startForegroundService(serviceIntent)
+        appendStatus("Floating assistant started. Tap the AI bubble for voice input; long-press it to stop.")
+    }
+
+    private fun handleLaunchIntent(launchIntent: Intent?) {
+        if (launchIntent?.getBooleanExtra(EXTRA_START_VOICE, false) == true) {
+            launchIntent.removeExtra(EXTRA_START_VOICE)
+            handler.postDelayed({
+                if (handsFreeEnabled) startHandsFreeListening()
+                else startVoiceInput()
+            }, 350L)
+        }
     }
 
     private fun renderConversation() {
         if (!::chatView.isInitialized) return
         val history = AgentRuntime.conversationTranscript(this)
-        chatView.text = if (history.isBlank()) {
-            "No conversation yet."
-        } else {
-            history
-        }
+        chatView.text = if (history.isBlank()) "No conversation yet." else history
     }
 
     private fun downloadRecommendedModel() {
@@ -315,7 +586,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/0.2 Android")
+                    setRequestProperty("User-Agent", "CodieAI/0.3 Android")
                 }
 
                 val status = connection.responseCode
@@ -378,9 +649,7 @@ class MainActivity : Activity() {
             } catch (error: Throwable) {
                 temporary.delete()
                 runOnUiThread {
-                    appendStatus(
-                        "Model download failed: " + (error.message ?: error.javaClass.simpleName)
-                    )
+                    appendStatus("Model download failed: " + (error.message ?: error.javaClass.simpleName))
                 }
             } finally {
                 connection?.disconnect()
@@ -388,7 +657,7 @@ class MainActivity : Activity() {
         }.start()
     }
 
-    private fun importModel(uri: android.net.Uri) {
+    private fun importModel(uri: Uri) {
         appendStatus("Copying local model into private app storage...")
         Thread {
             val destination = AgentRuntime.localModelFile(this)
@@ -400,6 +669,7 @@ class MainActivity : Activity() {
                         input.copyTo(output, 1024 * 1024)
                     }
                 }
+
                 runOnUiThread {
                     modelStatus.text = localModelDescription()
                     appendStatus("Local model imported successfully.")
@@ -413,25 +683,12 @@ class MainActivity : Activity() {
         }.start()
     }
 
-    private fun startVoiceInput() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Tell Codie AI what to do")
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-        }
-        try {
-            startActivityForResult(intent, REQUEST_VOICE)
-        } catch (error: Throwable) {
-            appendStatus("Voice recognition is unavailable: " + (error.message ?: error.javaClass.simpleName))
-        }
-    }
-
     private fun localModelDescription(): String {
         val file = AgentRuntime.localModelFile(this)
         return if (file.isFile) {
             "Installed: " + file.name + " (" + formatBytes(file.length()) + ")"
         } else {
-            "No local model installed. Basic one-step commands still work without a model."
+            "No local model installed. Basic direct commands still work without a model."
         }
     }
 
@@ -483,8 +740,12 @@ class MainActivity : Activity() {
     }
 
     companion object {
+        const val EXTRA_START_VOICE = "start_voice"
+
         private const val REQUEST_MODEL = 42
         private const val REQUEST_VOICE = 43
+        private const val REQUEST_RUNTIME_PERMISSIONS = 44
+        private const val REQUEST_HANDS_FREE_PERMISSION = 45
         private const val MAX_LOG_CHARS = 20_000
         private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
         private const val RECOMMENDED_MODEL_MIN_FREE_BYTES = 3_200_000_000L
