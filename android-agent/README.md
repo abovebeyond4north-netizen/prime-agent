@@ -2,6 +2,17 @@
 
 ## Bounty bot (0.5.0)
 
+**For existing Codie AI users:** install the separate **Codie Bounty Bot**
+companion APK (`net.abovebeyond.codieai.bountybot`). It opens directly to the
+dashboard and shares the same discovery implementation without the model or
+phone-control dependencies. It can coexist with Codie AI 0.4.0 and does not
+access that app's private data. This build's signing certificate differs from
+the supplied 0.4.0 APK, so the full Codie AI 0.5.0 build cannot update that APK
+in place. Use the companion instead of uninstalling your current app.
+
+Build the companion with `gradle -p android-agent :bounty-bot:assembleDebug`.
+The output is `android-agent/bounty-bot/build/outputs/apk/debug/bounty-bot-debug.apk`.
+
 Open **Bounty bot dashboard** from the home screen, then **Scan now** and
 **Start background discovery**. No token, model download, subscription, or
 accessibility permission is needed for discovery. Network/data charges may

@@ -45,7 +45,7 @@ jobs:
           gradle-version: "8.13"
 
       - name: Build debug APK
-        run: gradle -p android-agent :app:assembleDebug --stacktrace
+        run: gradle -p android-agent :app:assembleDebug :bounty-bot:assembleDebug --stacktrace
 
       - name: Verify bounty triage policy
         run: |
@@ -57,4 +57,10 @@ jobs:
         with:
           name: codie-ai-debug-apk
           path: android-agent/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codie-bounty-bot-apk
+          path: android-agent/bounty-bot/build/outputs/apk/debug/bounty-bot-debug.apk
           if-no-files-found: error
