@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Codie AI</string>
+    <string name="accessibility_service_label">Codie AI phone control</string>
+    <string name="accessibility_service_description">Lets Codie AI inspect visible interface elements and perform user-requested taps, typing, scrolling, navigation, and app launches.</string>
+    <string name="notification_service_label">Codie AI notification access</string>
+</resources>
