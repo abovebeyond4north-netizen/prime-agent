@@ -22,6 +22,32 @@ class RuleBasedPlanner : Planner {
             lower == "scroll down" -> AgentAction(ActionType.SCROLL_FORWARD)
             lower == "scroll up" -> AgentAction(ActionType.SCROLL_BACKWARD)
             lower.startsWith("type ") -> AgentAction(ActionType.SET_TEXT, text = trimmed.substring(5))
+            lower.startsWith("search for ") ->
+                AgentAction(ActionType.WEB_SEARCH, query = trimmed.substring(11).trim())
+            lower.startsWith("web search ") ->
+                AgentAction(ActionType.WEB_SEARCH, query = trimmed.substring(11).trim())
+            lower.startsWith("open http://") || lower.startsWith("open https://") ->
+                AgentAction(ActionType.OPEN_URL, url = trimmed.substring(5).trim())
+            lower.startsWith("copy ") ->
+                AgentAction(ActionType.SET_CLIPBOARD, text = trimmed.substring(5))
+            lower.startsWith("share ") ->
+                AgentAction(ActionType.SHARE_TEXT, text = trimmed.substring(6))
+            lower.startsWith("dial ") ->
+                AgentAction(ActionType.DIAL, number = trimmed.substring(5).trim())
+            lower == "play music" || lower == "pause music" || lower == "play pause" ->
+                AgentAction(ActionType.MEDIA_PLAY_PAUSE)
+            lower == "next track" || lower == "next song" ->
+                AgentAction(ActionType.MEDIA_NEXT)
+            lower == "previous track" || lower == "previous song" ->
+                AgentAction(ActionType.MEDIA_PREVIOUS)
+            lower == "volume up" || lower == "turn volume up" ->
+                AgentAction(ActionType.VOLUME_UP)
+            lower == "volume down" || lower == "turn volume down" ->
+                AgentAction(ActionType.VOLUME_DOWN)
+            lower == "mute" || lower == "mute volume" ->
+                AgentAction(ActionType.VOLUME_MUTE)
+            parseTimerSeconds(lower) > 0 ->
+                AgentAction(ActionType.SET_TIMER, seconds = parseTimerSeconds(lower))
             lower.startsWith("open wifi settings") || lower.startsWith("open wi-fi settings") ->
                 AgentAction(ActionType.OPEN_SETTINGS, setting = "wifi")
             lower.startsWith("open bluetooth settings") ->
@@ -40,12 +66,23 @@ class RuleBasedPlanner : Planner {
                 AgentAction(ActionType.LAUNCH_APP, app = trimmed.substring(5).trim())
             else -> AgentAction(
                 ActionType.FAIL,
-                reason = "No AI planner is configured. Add a local LiteRT model or a GPT-OSS compatible endpoint."
+                reason = "No AI planner is configured for this request. Add a local LiteRT model or a GPT-OSS compatible endpoint."
             )
         }
 
         if (action.type != ActionType.FAIL) executed = true
         return action
+    }
+
+    private fun parseTimerSeconds(lower: String): Int {
+        if (!lower.contains("timer")) return -1
+        val minutes = Regex("""(\d+)\s*(minute|minutes|min)""")
+            .find(lower)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        if (minutes != null) return minutes.coerceAtMost(24 * 60) * 60
+
+        val seconds = Regex("""(\d+)\s*(second|seconds|sec)""")
+            .find(lower)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        return seconds?.coerceAtMost(24 * 60 * 60) ?: -1
     }
 
     private fun findNode(snapshot: String, target: String): Int {

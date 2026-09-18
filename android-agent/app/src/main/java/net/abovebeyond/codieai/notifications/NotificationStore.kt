@@ -3,6 +3,7 @@ package net.abovebeyond.codieai.notifications
 import java.util.concurrent.ConcurrentLinkedDeque
 
 data class NotificationSummary(
+    val key: String,
     val packageName: String,
     val title: String,
     val text: String,
@@ -14,9 +15,17 @@ object NotificationStore {
     private val items = ConcurrentLinkedDeque<NotificationSummary>()
 
     fun add(item: NotificationSummary) {
+        items.removeIf { it.key == item.key }
         items.addFirst(item)
         while (items.size > MAX_ITEMS) items.pollLast()
     }
+
+    fun remove(key: String) {
+        items.removeIf { it.key == key }
+    }
+
+    fun get(index: Int): NotificationSummary? =
+        if (index < 0) null else items.elementAtOrNull(index)
 
     fun render(limit: Int = 12): String {
         val recent = items.take(limit)

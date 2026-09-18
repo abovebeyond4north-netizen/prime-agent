@@ -1,10 +1,14 @@
 package net.abovebeyond.codieai.agent
 
 import android.content.Context
+import android.os.BatteryManager
 import net.abovebeyond.codieai.accessibility.CodieAccessibilityService
 import net.abovebeyond.codieai.notifications.NotificationStore
 import java.io.File
 import java.lang.ref.WeakReference
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
@@ -12,7 +16,10 @@ object AgentRuntime {
     private const val PREFS = "codie_ai"
     private const val KEY_ENDPOINT = "planner_endpoint"
     private const val KEY_MODEL = "planner_model"
-    private const val MAX_UI_CHARS = 5_500
+    private const val KEY_CONVERSATION = "conversation_history"
+    private const val MAX_UI_CHARS = 4_200
+    private const val MAX_CONVERSATION_CHARS = 1_200
+    private const val MAX_STORED_CONVERSATION_CHARS = 8_000
 
     private val executor = Executors.newSingleThreadExecutor()
     private val generation = AtomicLong(0L)
@@ -50,6 +57,26 @@ object AgentRuntime {
     fun localModelFile(context: Context): File =
         File(File(context.filesDir, "models"), "local.litertlm")
 
+    fun recordUserMessage(context: Context, text: String) {
+        appendConversation(context, "You", text)
+    }
+
+    fun recordAssistantMessage(context: Context, text: String) {
+        appendConversation(context, "Codie AI", text)
+    }
+
+    fun conversationTranscript(context: Context): String =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY_CONVERSATION, "")
+            .orEmpty()
+
+    fun clearConversation(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .remove(KEY_CONVERSATION)
+            .apply()
+    }
+
     fun cancelCurrentGoal() {
         generation.incrementAndGet()
     }
@@ -78,7 +105,9 @@ object AgentRuntime {
                 return@execute
             }
 
-            moveAwayFromOwnUiIfNeeded(service, appContext.packageName, status)
+            if (!looksConversational(normalizedGoal)) {
+                moveAwayFromOwnUiIfNeeded(service, appContext.packageName, status)
+            }
 
             var lastResult = "No action has run yet."
             for (step in 1..32) {
@@ -90,12 +119,16 @@ object AgentRuntime {
                 val snapshot = service.captureSnapshot()
                 try {
                     val state = buildString {
-                        append("UI:\n")
+                        append("SYSTEM:\n")
+                        append(systemState(appContext))
+                        append("\nRECENT_CONVERSATION:\n")
+                        append(conversationContext(appContext))
+                        append("\nUI:\n")
                         append(compactUi(snapshot.text))
                         append("\nNOTIFICATIONS:\n")
                         append(NotificationStore.render(limit = 4))
                         append("\nLAST_RESULT:\n")
-                        append(lastResult.take(500))
+                        append(lastResult.take(400))
                     }
 
                     status("Step " + step + ": reasoning over current phone state")
@@ -105,12 +138,16 @@ object AgentRuntime {
                             if (action.reason.isBlank()) "" else " — " + action.reason
                     )
 
+                    if (action.type == ActionType.RESPOND) {
+                        status("Reply: " + action.text.ifBlank { action.reason.ifBlank { "Done." } })
+                        return@execute
+                    }
                     if (action.type == ActionType.DONE) {
-                        status("Complete: " + action.reason.ifBlank { "goal satisfied" })
+                        status("Complete: " + action.reason.ifBlank { "Goal satisfied." })
                         return@execute
                     }
                     if (action.type == ActionType.FAIL) {
-                        status("Stopped: " + action.reason.ifBlank { "planner could not continue" })
+                        status("Stopped: " + action.reason.ifBlank { "Planner could not continue." })
                         return@execute
                     }
 
@@ -134,6 +171,15 @@ object AgentRuntime {
         }
     }
 
+    private fun looksConversational(goal: String): Boolean {
+        val lower = goal.lowercase(Locale.getDefault()).trim()
+        if (lower.endsWith("?")) return true
+        return listOf(
+            "what ", "who ", "why ", "how ", "when ", "where ",
+            "tell me ", "explain ", "describe ", "summarize ", "answer "
+        ).any { lower.startsWith(it) }
+    }
+
     private fun moveAwayFromOwnUiIfNeeded(
         service: CodieAccessibilityService,
         packageName: String,
@@ -143,12 +189,37 @@ object AgentRuntime {
         try {
             if (snapshot.text.contains("pkg=" + packageName)) {
                 status("Leaving Codie AI before acting on the phone.")
-                service.execute(AgentAction(ActionType.HOME, reason = "Avoid controlling Codie AI itself"), snapshot)
+                service.execute(
+                    AgentAction(ActionType.HOME, reason = "Avoid controlling Codie AI itself"),
+                    snapshot
+                )
                 Thread.sleep(650L)
             }
         } finally {
             snapshot.close()
         }
+    }
+
+    private fun appendConversation(context: Context, speaker: String, text: String) {
+        val cleaned = text.replace('\n', ' ').replace('\r', ' ').trim()
+        if (cleaned.isBlank()) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val old = prefs.getString(KEY_CONVERSATION, "").orEmpty()
+        val entry = speaker + ": " + cleaned
+        val combined = (if (old.isBlank()) entry else old + "\n" + entry)
+            .takeLast(MAX_STORED_CONVERSATION_CHARS)
+        prefs.edit().putString(KEY_CONVERSATION, combined).apply()
+    }
+
+    private fun conversationContext(context: Context): String =
+        conversationTranscript(context).takeLast(MAX_CONVERSATION_CHARS)
+            .ifBlank { "No prior conversation." }
+
+    private fun systemState(context: Context): String {
+        val battery = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val percent = battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.getDefault()).format(Date())
+        return "time=" + now + " battery=" + percent + "%"
     }
 
     private fun compactUi(raw: String): String {

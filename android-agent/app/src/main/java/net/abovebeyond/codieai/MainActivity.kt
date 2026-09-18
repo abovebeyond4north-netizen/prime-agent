@@ -6,9 +6,11 @@ import android.os.Bundle
 import android.os.StatFs
 import android.provider.Settings
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.text.InputType
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -17,16 +19,25 @@ import net.abovebeyond.codieai.agent.AgentRuntime
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 class MainActivity : Activity() {
     private lateinit var endpointInput: EditText
     private lateinit var modelInput: EditText
     private lateinit var goalInput: EditText
     private lateinit var modelStatus: TextView
+    private lateinit var chatView: TextView
     private lateinit var statusView: TextView
+    private lateinit var speakRepliesToggle: CheckBox
+    private lateinit var autoRunVoiceToggle: CheckBox
+
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
+    private var lastAssistantReply = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initializeSpeech()
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -35,15 +46,51 @@ class MainActivity : Activity() {
 
         root.addView(title("Codie AI"))
         root.addView(body(
-            "Local-first Android agent. Accessibility performs phone actions; a local LiteRT model " +
-                "or a GPT-OSS-compatible LAN endpoint plans multi-step tasks."
+            "Local-first Android assistant with phone control, spoken replies, chat memory, " +
+                "local LiteRT reasoning, and optional GPT-OSS planning over your private network."
         ))
+
+        root.addView(label("Conversation"))
+        chatView = body("")
+        chatView.setTextIsSelectable(true)
+        root.addView(chatView)
+        renderConversation()
+
+        val conversationButtons = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        conversationButtons.addView(button("Clear chat") {
+            AgentRuntime.clearConversation(this)
+            lastAssistantReply = ""
+            renderConversation()
+            appendStatus("Conversation history cleared.")
+        }, weighted())
+        conversationButtons.addView(button("Repeat reply") {
+            if (lastAssistantReply.isNotBlank()) speak(lastAssistantReply)
+            else appendStatus("There is no assistant reply to repeat yet.")
+        }, weighted())
+        conversationButtons.addView(button("Stop speech") {
+            tts?.stop()
+        }, weighted())
+        root.addView(conversationButtons)
+
+        speakRepliesToggle = CheckBox(this).apply {
+            text = "Speak replies and final results"
+            isChecked = true
+        }
+        root.addView(speakRepliesToggle)
+
+        autoRunVoiceToggle = CheckBox(this).apply {
+            text = "Run voice commands immediately"
+            isChecked = true
+        }
+        root.addView(autoRunVoiceToggle)
 
         root.addView(button("1. Enable phone control") {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         })
 
-        root.addView(button("2. Enable notification context") {
+        root.addView(button("2. Enable notification context/replies") {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         })
 
@@ -86,12 +133,12 @@ class MainActivity : Activity() {
         })
 
         root.addView(body(
-            "Gemma 4 E2B is the recommended phone-only planner for this 8 GB device. " +
-                "If a GPT-OSS endpoint is configured, Codie AI automatically prefers it for stronger reasoning."
+            "Codie AI prefers a configured GPT-OSS endpoint for stronger reasoning. " +
+                "Otherwise it uses the on-phone model. Basic deterministic controls remain available without either model."
         ))
 
-        root.addView(label("Goal"))
-        goalInput = edit("", "Open Settings and turn on Bluetooth")
+        root.addView(label("Ask or command"))
+        goalInput = edit("", "Example: Turn on Bluetooth, or tell me the time")
         goalInput.minLines = 3
         root.addView(goalInput)
 
@@ -99,34 +146,28 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
         }
         goalButtons.addView(button("Run") {
-            AgentRuntime.savePlannerSettings(
-                this,
-                endpointInput.text.toString(),
-                modelInput.text.toString()
-            )
-            val goal = goalInput.text.toString()
-            AgentRuntime.executeGoal(this, goal) { message ->
-                runOnUiThread { appendStatus(message) }
-            }
+            runGoal()
         }, weighted())
         goalButtons.addView(button("Voice") {
             startVoiceInput()
         }, weighted())
         goalButtons.addView(button("Stop") {
             AgentRuntime.cancelCurrentGoal()
+            tts?.stop()
             appendStatus("Cancellation requested.")
         }, weighted())
         root.addView(goalButtons)
 
-        root.addView(label("Agent status"))
+        root.addView(label("Execution log"))
         statusView = body("")
         statusView.setTextIsSelectable(true)
         root.addView(statusView)
 
         root.addView(body(
-            "Privacy note: accessibility snapshots and recent notification summaries stay on the phone " +
-                "when using the local model. If you configure a LAN/HTTPS planner endpoint, those text summaries " +
-                "are sent to that endpoint so the model can decide the next action."
+            "Capabilities include UI tapping/typing/scrolling, app launching, settings navigation, " +
+                "web search and URLs, clipboard/share actions, message/email composition, dialer opening, " +
+                "alarms/timers, media controls, volume controls, and explicit notification replies. " +
+                "Phone-only inference keeps planner prompts on the device."
         ))
 
         val scroll = ScrollView(this).apply { addView(root) }
@@ -141,6 +182,13 @@ class MainActivity : Activity() {
                 else "Accessibility service is not connected."
             )
         }
+    }
+
+    override fun onDestroy() {
+        tts?.stop()
+        tts?.shutdown()
+        tts = null
+        super.onDestroy()
     }
 
     @Deprecated("Uses the platform activity result API to avoid an AndroidX dependency.")
@@ -158,8 +206,86 @@ class MainActivity : Activity() {
                     ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     ?.firstOrNull()
                     .orEmpty()
-                if (text.isNotBlank()) goalInput.setText(text)
+                if (text.isNotBlank()) {
+                    goalInput.setText(text)
+                    if (autoRunVoiceToggle.isChecked) runGoal()
+                }
             }
+        }
+    }
+
+    private fun runGoal() {
+        AgentRuntime.savePlannerSettings(
+            this,
+            endpointInput.text.toString(),
+            modelInput.text.toString()
+        )
+
+        val goal = goalInput.text.toString().trim()
+        if (goal.isBlank()) {
+            appendStatus("Enter or speak a goal first.")
+            return
+        }
+
+        AgentRuntime.recordUserMessage(this, goal)
+        renderConversation()
+        appendStatus("You: " + goal)
+
+        AgentRuntime.executeGoal(this, goal) { message ->
+            runOnUiThread { handleAgentMessage(message) }
+        }
+    }
+
+    private fun handleAgentMessage(message: String) {
+        appendStatus(message)
+
+        val finalText = when {
+            message.startsWith("Reply: ") -> message.removePrefix("Reply: ").trim()
+            message.startsWith("Complete: ") -> message.removePrefix("Complete: ").trim()
+            message.startsWith("Stopped: ") -> "I couldn't complete that. " + message.removePrefix("Stopped: ").trim()
+            message.startsWith("Step failed: ") -> "I hit an error: " + message.removePrefix("Step failed: ").trim()
+            message.startsWith("Planner setup failed: ") -> "The AI planner could not start: " + message.removePrefix("Planner setup failed: ").trim()
+            else -> ""
+        }
+
+        if (finalText.isNotBlank()) {
+            lastAssistantReply = finalText
+            AgentRuntime.recordAssistantMessage(this, finalText)
+            renderConversation()
+            if (speakRepliesToggle.isChecked) speak(finalText)
+        }
+    }
+
+    private fun initializeSpeech() {
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val engine = tts ?: return@TextToSpeech
+                val languageResult = engine.setLanguage(Locale.getDefault())
+                ttsReady = languageResult != TextToSpeech.LANG_MISSING_DATA &&
+                    languageResult != TextToSpeech.LANG_NOT_SUPPORTED
+                engine.setSpeechRate(1.0f)
+                engine.setPitch(1.0f)
+            } else {
+                ttsReady = false
+            }
+        }
+    }
+
+    private fun speak(text: String) {
+        if (!ttsReady) {
+            appendStatus("Text-to-Speech is not ready on this device.")
+            return
+        }
+        tts?.speak(text.take(3_000), TextToSpeech.QUEUE_FLUSH, null, "codie-ai-reply")
+    }
+
+    private fun renderConversation() {
+        if (!::chatView.isInitialized) return
+        val history = AgentRuntime.conversationTranscript(this)
+        chatView.text = if (history.isBlank()) {
+            "No conversation yet."
+        } else {
+            history
         }
     }
 
@@ -189,7 +315,7 @@ class MainActivity : Activity() {
                     connectTimeout = 30_000
                     readTimeout = 120_000
                     instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", "CodieAI/0.1 Android")
+                    setRequestProperty("User-Agent", "CodieAI/0.2 Android")
                 }
 
                 val status = connection.responseCode
@@ -291,6 +417,7 @@ class MainActivity : Activity() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Tell Codie AI what to do")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
         }
         try {
             startActivityForResult(intent, REQUEST_VOICE)
@@ -311,7 +438,8 @@ class MainActivity : Activity() {
     private fun appendStatus(message: String) {
         if (!::statusView.isInitialized) return
         val current = statusView.text.toString()
-        statusView.text = if (current.isBlank()) message else current + "\n" + message
+        val combined = if (current.isBlank()) message else current + "\n" + message
+        statusView.text = combined.takeLast(MAX_LOG_CHARS)
     }
 
     private fun title(text: String): TextView = TextView(this).apply {
@@ -357,6 +485,7 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_MODEL = 42
         private const val REQUEST_VOICE = 43
+        private const val MAX_LOG_CHARS = 20_000
         private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
         private const val RECOMMENDED_MODEL_MIN_FREE_BYTES = 3_200_000_000L
         private const val DOWNLOAD_RESERVE_BYTES = 536_870_912L
