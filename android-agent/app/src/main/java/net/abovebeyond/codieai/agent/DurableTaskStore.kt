@@ -12,7 +12,9 @@ data class DurableTask(
     val lastMessage: String,
     val createdAt: Long,
     val updatedAt: Long,
-    val attempts: Int
+    val attempts: Int,
+    val planId: Int = -1,
+    val nodeId: String = ""
 )
 
 object DurableTaskStore {
@@ -21,7 +23,12 @@ object DurableTaskStore {
     private const val MAX_TASKS = 50
     private val nextId = AtomicInteger((System.currentTimeMillis() % 1_000_000L).toInt())
 
-    fun enqueue(context: Context, goal: String): DurableTask {
+    fun enqueue(
+        context: Context,
+        goal: String,
+        planId: Int = -1,
+        nodeId: String = ""
+    ): DurableTask {
         val cleaned = goal.trim()
         require(cleaned.isNotBlank()) { "Durable goal is blank" }
 
@@ -38,7 +45,9 @@ object DurableTaskStore {
             lastMessage = "Queued.",
             createdAt = now,
             updatedAt = now,
-            attempts = 0
+            attempts = 0,
+            planId = planId,
+            nodeId = nodeId
         )
         current.add(task)
         write(context, current)
@@ -63,7 +72,9 @@ object DurableTaskStore {
                             lastMessage = item.optString("last_message", ""),
                             createdAt = item.optLong("created_at", 0L),
                             updatedAt = item.optLong("updated_at", 0L),
-                            attempts = item.optInt("attempts", 0)
+                            attempts = item.optInt("attempts", 0),
+                            planId = item.optInt("plan_id", -1),
+                            nodeId = item.optString("node_id", "")
                         )
                     )
                 }
@@ -160,7 +171,11 @@ object DurableTaskStore {
                 append("\n#").append(task.id)
                     .append(" [").append(task.state).append("]")
                     .append(" attempts=").append(task.attempts)
-                    .append(": ").append(task.goal.take(200))
+                if (task.planId >= 0) {
+                    append(" plan=#").append(task.planId)
+                    if (task.nodeId.isNotBlank()) append("/").append(task.nodeId)
+                }
+                append(": ").append(task.goal.take(200))
                 if (task.lastMessage.isNotBlank()) {
                     append("\n  last=").append(
                         task.lastMessage.replace('\n', ' ').take(300)
@@ -220,6 +235,8 @@ object DurableTaskStore {
                     .put("created_at", task.createdAt)
                     .put("updated_at", task.updatedAt)
                     .put("attempts", task.attempts)
+                    .put("plan_id", task.planId)
+                    .put("node_id", task.nodeId)
             )
         }
 
