@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/android-agent
+      - feature/autonomous-bounty-bot
     paths:
       - "android-agent/**"
       - ".github/workflows/android-agent.yml"
@@ -44,10 +45,22 @@ jobs:
           gradle-version: "8.13"
 
       - name: Build debug APK
-        run: gradle -p android-agent :app:assembleDebug --stacktrace
+        run: gradle -p android-agent :app:assembleDebug :bounty-bot:assembleDebug --stacktrace
+
+      - name: Verify bounty triage policy
+        run: |
+          mkdir -p /tmp/bounty-tests
+          javac -d /tmp/bounty-tests android-agent/app/src/main/java/net/abovebeyond/codieai/bounty/BountyPolicy.java android-agent/tests/BountyPolicyTest.java
+          java -cp /tmp/bounty-tests BountyPolicyTest
 
       - uses: actions/upload-artifact@v4
         with:
           name: codie-ai-debug-apk
           path: android-agent/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codie-bounty-bot-apk
+          path: android-agent/bounty-bot/build/outputs/apk/debug/bounty-bot-debug.apk
           if-no-files-found: error

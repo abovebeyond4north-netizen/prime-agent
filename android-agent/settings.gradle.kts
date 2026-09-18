@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CodieAI"
 include(":app")
+include(":bounty-bot")

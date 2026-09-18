@@ -1,5 +1,65 @@
 # Codie AI Android Agent
 
+## Bounty bot (0.5.0)
+
+**For existing Codie AI users:** install the separate **Codie Bounty Bot**
+companion APK (`net.abovebeyond.codieai.bountybot`). It opens directly to the
+dashboard and shares the same discovery implementation without the model or
+phone-control dependencies. It can coexist with Codie AI 0.4.0 and does not
+access that app's private data. This build's signing certificate differs from
+the supplied 0.4.0 APK, so the full Codie AI 0.5.0 build cannot update that APK
+in place. Use the companion instead of uninstalling your current app.
+
+Build the companion with `gradle -p android-agent :bounty-bot:assembleDebug`.
+The output is `android-agent/bounty-bot/build/outputs/apk/debug/bounty-bot-debug.apk`.
+
+Open **Bounty bot dashboard** from the home screen, then **Scan now** and
+**Start background discovery**. No token, model download, subscription, or
+accessibility permission is needed for discovery. Network/data charges may
+still apply. Background scans require unmetered internet and a battery that
+Android does not consider low.
+
+The bot queries public GitHub issues using `is:issue is:open label:bounty
+archived:false`, ranks the newest 100 results, deduplicates by validated issue
+URL, caches the results privately, and prepares an issue-specific work brief.
+This is a bounded discovery and preparation bot, not an autonomous coding,
+submission, or payout agent. It does not claim bounties, send messages, execute
+repository code, spend money, or claim that a listed reward has been earned.
+
+Scheduled discovery runs approximately every six hours; Android may defer it
+for battery, connectivity, idle state, or app restrictions. The job persists
+across reboot, but Android force-stop suspends it until the app is reopened.
+Manual scans have a 15-minute cooldown. GitHub rate-limit headers extend that
+cooldown. Failed requests preserve the last successful snapshot and show the
+failure, rather than presenting old data as newly fetched.
+
+Priority is a transparent heuristic: unassigned +20, money mention +20,
+reproduction details +15, tests/acceptance criteria +15, documentation/typo +10,
+Python/Kotlin/TypeScript +10, deposit/upfront-fee wording -40, bounded to 0–100.
+Amounts are literal text matches, not verified rewards or converted currencies.
+Comments, competing claims, funding, eligibility, and platform terms require
+review at the linked source. A bounty label alone does not establish payment.
+The work brief includes these checks and reproducing/testing the eventual fix.
+
+Parsing is linear in the bounded response size; ranking is O(n log n), with
+n <= 100. The response is capped at 4 MiB; cached descriptions at 12,000
+characters per candidate. No GitHub credentials are stored.
+
+Policy verification (JDK 17):
+
+    mkdir -p /tmp/bounty-tests
+    javac -d /tmp/bounty-tests android-agent/app/src/main/java/net/abovebeyond/codieai/bounty/BountyPolicy.java android-agent/tests/BountyPolicyTest.java
+    java -cp /tmp/bounty-tests BountyPolicyTest
+
+The Android APK workflow builds the feature branch and runs these tests.
+Installing an update requires the same signing key as the installed APK.
+Do not uninstall your existing app merely to bypass a signing mismatch: that
+would remove private app data. A device install and background-scheduling test
+are still necessary before treating this as deployed on a particular phone.
+
+References: [GitHub search API](https://docs.github.com/en/rest/search/search#search-issues-and-pull-requests)
+and [Android JobScheduler](https://developer.android.com/reference/android/app/job/JobScheduler).
+
 Codie AI is a local-first Android control client built for the Galaxy S25 FE / Android 16 class of devices.
 
 It separates reasoning from execution:
