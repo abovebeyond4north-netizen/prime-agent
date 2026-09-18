@@ -406,6 +406,16 @@ class MainActivity : Activity() {
             return
         }
 
+        runCatching {
+            startForegroundService(
+                Intent(this, AssistantOverlayService::class.java)
+                    .putExtra(AssistantOverlayService.EXTRA_MICROPHONE_MODE, true)
+            )
+        }.onFailure {
+            appendStatus("Could not start background microphone service: " +
+                (it.message ?: it.javaClass.simpleName))
+        }
+
         handsFreeEnabled = true
         ensureSpeechRecognizer()
         appendStatus("Hands-free conversation enabled.")

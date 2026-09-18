@@ -134,10 +134,11 @@ class CodieAccessibilityService : AccessibilityService() {
     }
 
     private fun setText(snapshot: UiSnapshot, nodeId: Int, text: String): ExecutionResult {
-        val node = if (nodeId >= 0) snapshot.nodes[nodeId]
-        else snapshot.nodes.values.firstOrNull { it.isEditable && it.isFocused }
-            ?: snapshot.nodes.values.firstOrNull { it.isEditable }
-        ?: return ExecutionResult(false, "No editable node is available")
+        val node = (
+            if (nodeId >= 0) snapshot.nodes[nodeId]
+            else snapshot.nodes.values.firstOrNull { it.isEditable && it.isFocused }
+                ?: snapshot.nodes.values.firstOrNull { it.isEditable }
+        ) ?: return ExecutionResult(false, "No editable node is available")
 
         val args = Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)

@@ -6,8 +6,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.view.Gravity
@@ -22,8 +24,6 @@ class AssistantOverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         createChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
-        if (Settings.canDrawOverlays(this)) showBubble()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -31,6 +31,10 @@ class AssistantOverlayService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+
+        val microphoneMode = intent?.getBooleanExtra(EXTRA_MICROPHONE_MODE, false) == true
+        enterForeground(microphoneMode)
+
         if (Settings.canDrawOverlays(this) && bubble == null) showBubble()
         return START_STICKY
     }
@@ -44,6 +48,26 @@ class AssistantOverlayService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun enterForeground(microphoneMode: Boolean) {
+        val notification = buildNotification()
+
+        if (Build.VERSION.SDK_INT >= 34) {
+            var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            if (microphoneMode) {
+                type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            }
+            startForeground(NOTIFICATION_ID, notification, type)
+        } else if (Build.VERSION.SDK_INT >= 30 && microphoneMode) {
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
+    }
 
     private fun showBubble() {
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -93,14 +117,15 @@ class AssistantOverlayService : Service() {
 
     private fun createChannel() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Codie AI assistant",
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
-            description = "Keeps the floating Codie AI assistant available."
-        }
-        manager.createNotificationChannel(channel)
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_ID,
+                "Codie AI assistant",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Keeps Codie AI available for floating and hands-free access."
+            }
+        )
     }
 
     private fun buildNotification(): Notification {
@@ -121,7 +146,7 @@ class AssistantOverlayService : Service() {
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentTitle("Codie AI is ready")
-            .setContentText("Tap the floating AI bubble to speak a command.")
+            .setContentText("Tap the AI bubble for voice input.")
             .setContentIntent(openIntent)
             .setOngoing(true)
             .addAction(
@@ -135,6 +160,8 @@ class AssistantOverlayService : Service() {
     }
 
     companion object {
+        const val EXTRA_MICROPHONE_MODE = "microphone_mode"
+
         private const val CHANNEL_ID = "codie_ai_assistant"
         private const val NOTIFICATION_ID = 2101
         private const val ACTION_STOP = "net.abovebeyond.codieai.STOP_OVERLAY"
