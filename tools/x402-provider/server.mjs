@@ -8,11 +8,8 @@ const DISCOVERY_URL =
   process.env.X402_DISCOVERY_URL ??
   "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources";
 
-for (const name of ["CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"]) {
-  if (!process.env[name]) {
-    throw new Error(name + " must be set. Credentials are read only from the environment.");
-  }
-}
+const cdpCredentialNames = ["CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"];
+const paymentEnabled = cdpCredentialNames.every((name) => Boolean(process.env[name]));
 
 const app = express();
 app.disable("x-powered-by");
@@ -107,20 +104,28 @@ async function marketSnapshot() {
   return rows;
 }
 
-const x402Server = await createX402Server({
-  builderCode: "prime_x402_market",
-  routes: {
-    "GET /v1/x402/opportunities": {
-      price: PRICE,
-      description:
-        "Rank public x402 Bazaar services by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
+if (paymentEnabled) {
+  const x402Server = await createX402Server({
+    builderCode: "prime_x402_market",
+    routes: {
+      "GET /v1/x402/opportunities": {
+        price: PRICE,
+        description:
+          "Rank public x402 Bazaar services by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
+      },
     },
-  },
-});
-app.use(paymentMiddlewareFromHTTPServer(x402Server));
+  });
+  app.use(paymentMiddlewareFromHTTPServer(x402Server));
+}
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, product: "prime-agent-x402-market", paidRoute: "/v1/x402/opportunities" });
+  res.json({
+    ok: true,
+    product: "prime-agent-x402-market",
+    route: "/v1/x402/opportunities",
+    paymentEnabled,
+    mode: paymentEnabled ? "x402-paid" : "public-analysis",
+  });
 });
 
 app.get("/v1/x402/opportunities", async (req, res) => {
@@ -145,5 +150,9 @@ app.get("/v1/x402/opportunities", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log("x402 market provider listening on :" + PORT);
-  console.log("paid endpoint: GET /v1/x402/opportunities (" + PRICE + ")");
+  console.log(
+    paymentEnabled
+      ? "paid endpoint: GET /v1/x402/opportunities (" + PRICE + ")"
+      : "public analysis mode: GET /v1/x402/opportunities (payment credentials not configured)",
+  );
 });
