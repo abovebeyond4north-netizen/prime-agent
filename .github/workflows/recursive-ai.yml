@@ -2,7 +2,7 @@ name: Recursive AI laboratory
 
 on:
   push:
-    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization]
+    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization, recursive-ai-evolution-lab]
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
@@ -26,7 +26,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_evolution tests.test_docker -v
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
@@ -97,6 +97,37 @@ jobs:
           assert scratch['policy_prior_digest'] is None
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
               stream.write('Cross-family transfer smoke result\n\n```json\n' + json.dumps(report['summary'], indent=2) + '\n```\n')
+          PY
+      - name: Evolutionary curriculum integration smoke test
+        working-directory: recursive-ai
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from research.evolution import run_curriculum_evolution
+          report = run_curriculum_evolution(
+              '.lab-state-evolution-smoke',
+              goal='gcd',
+              tier=1,
+              population=2,
+              generations=1,
+              development_replicates=1,
+              holdout_replicates=1,
+              base_seed=911,
+              max_attempts=4,
+              max_seconds=120,
+              max_stagnation=4,
+              max_model_calls=0,
+              max_containers=200,
+          )
+          comparison = report['holdout']['comparison']
+          assert len(report['archive']) == 2, report
+          assert comparison['all_correct'], comparison
+          assert comparison['status'] in ('holdout_improved', 'holdout_non_regression'), comparison
+          assert report['promotion']['automatic'] is False
+          assert report['config']['evolution_protocol_digest']
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
+              stream.write('Evolutionary curriculum smoke result\n\n```json\n' + json.dumps(comparison, indent=2) + '\n```\n')
           PY
       - name: Generate compound tasks, certify, and reuse after restart
         working-directory: recursive-ai

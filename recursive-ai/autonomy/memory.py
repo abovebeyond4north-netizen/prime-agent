@@ -1,8 +1,23 @@
+import ast
 import hashlib
 import json
+from collections import Counter
 from memory.skill_store import MemoryEngine
 
 OPERATORS = ("direct", "repair", "mutation", "crossover")
+
+
+def _structure_profile(source):
+    """Normalized AST-node histogram used only for archive diversity ranking."""
+    counts = Counter(type(node).__name__ for node in ast.walk(ast.parse(source)))
+    total = sum(counts.values()) or 1
+    return {name: count / total for name, count in counts.items()}
+
+
+def _structure_distance(left, right):
+    keys = set(left) | set(right)
+    # L1 distance between normalized histograms is in [0,2].
+    return 0.5 * sum(abs(left.get(key, 0.0) - right.get(key, 0.0)) for key in keys)
 
 
 class ResearchMemory(MemoryEngine):
@@ -11,6 +26,14 @@ class ResearchMemory(MemoryEngine):
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS research_goals(id TEXT PRIMARY KEY, contract TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending', summary TEXT);
             CREATE TABLE IF NOT EXISTS candidate_archive(family TEXT, digest TEXT, source TEXT NOT NULL, quality REAL NOT NULL, report TEXT NOT NULL, parent TEXT, PRIMARY KEY(family,digest));
+            CREATE TABLE IF NOT EXISTS candidate_lineage(
+                family TEXT NOT NULL,
+                child_digest TEXT NOT NULL,
+                parent_digest TEXT NOT NULL,
+                operator TEXT NOT NULL,
+                origin TEXT NOT NULL,
+                PRIMARY KEY(child_digest,parent_digest,operator,origin)
+            );
             CREATE TABLE IF NOT EXISTS operator_evidence(family TEXT, operator TEXT, attempts INTEGER NOT NULL, reward REAL NOT NULL, seconds REAL NOT NULL, PRIMARY KEY(family,operator));
             CREATE TABLE IF NOT EXISTS learning_policies(id INTEGER PRIMARY KEY, digest TEXT NOT NULL, source TEXT NOT NULL, evidence TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS model_reservations(id INTEGER PRIMARY KEY, goal TEXT NOT NULL);
@@ -50,17 +73,102 @@ class ResearchMemory(MemoryEngine):
         }
         return [evidence.get(operator, (0, 0.0, 0.0)) for operator in OPERATORS]
 
-    def archive(self, task, source, report, parent, operator, reward, seconds):
+    def archive(self, task, source, report, parent, operator, reward, seconds,
+                candidate_parents=(), origin="unknown"):
         digest = hashlib.sha256(source.encode()).hexdigest()
         quality = sum(gate["passed"] for gate in report.get("gates", [])) / 10
-        self.db.execute("INSERT INTO candidate_archive VALUES (?,?,?,?,?,?) ON CONFLICT(family,digest) DO UPDATE SET quality=excluded.quality,report=excluded.report", (task.family, digest, source, quality, json.dumps(report), parent))
-        self.db.execute("INSERT INTO operator_evidence VALUES (?,?,1,?,?) ON CONFLICT(family,operator) DO UPDATE SET attempts=attempts+1,reward=reward+excluded.reward,seconds=seconds+excluded.seconds", (task.family, operator, reward, seconds))
+        self.db.execute(
+            "INSERT INTO candidate_archive VALUES (?,?,?,?,?,?) "
+            "ON CONFLICT(family,digest) DO UPDATE SET quality=excluded.quality,report=excluded.report",
+            (task.family, digest, source, quality, json.dumps(report), parent),
+        )
+        self.db.execute(
+            "INSERT INTO operator_evidence VALUES (?,?,1,?,?) "
+            "ON CONFLICT(family,operator) DO UPDATE SET attempts=attempts+1,reward=reward+excluded.reward,seconds=seconds+excluded.seconds",
+            (task.family, operator, reward, seconds),
+        )
+        for parent_digest in dict.fromkeys(candidate_parents or ()):
+            if isinstance(parent_digest, str) and parent_digest and parent_digest != digest:
+                self.db.execute(
+                    "INSERT OR IGNORE INTO candidate_lineage VALUES (?,?,?,?,?)",
+                    (task.family, digest, parent_digest, str(operator), str(origin)),
+                )
         return digest
 
-    def parents(self, family):
-        # Quality plus inverse size retains useful, cheap stepping stones.
-        rows = self.db.execute("SELECT digest,source,quality FROM candidate_archive WHERE family=? ORDER BY quality DESC,length(source),digest LIMIT 8", (family,)).fetchall()
-        return [{"digest": digest, "source": source, "quality": quality} for digest, source, quality in rows]
+    def parents(self, family, limit=8):
+        """Select high-quality parents while retaining structural diversity.
+
+        The archive is bounded to the 64 best stored candidates before diversity
+        scoring, keeping selection deterministic and cheap. Candidate code is
+        parsed but never executed on the host.
+        """
+        if type(limit) is not int or not 1 <= limit <= 16:
+            raise ValueError("parent limit must be in [1,16]")
+        rows = self.db.execute(
+            "SELECT digest,source,quality FROM candidate_archive "
+            "WHERE family=? ORDER BY quality DESC,length(source),digest LIMIT 64",
+            (family,),
+        ).fetchall()
+        if not rows:
+            return []
+
+        pool = []
+        for digest, source, quality in rows:
+            try:
+                profile = _structure_profile(source)
+            except SyntaxError:
+                # Keep malformed attempts in the archive for failure memory, but
+                # never feed unparsable code back into mutation or crossover.
+                continue
+            pool.append({
+                "digest": digest,
+                "source": source,
+                "quality": float(quality),
+                "_profile": profile,
+            })
+
+        selected = [pool.pop(0)]
+        while pool and len(selected) < limit:
+            def score(candidate):
+                novelty = min(
+                    _structure_distance(candidate["_profile"], item["_profile"])
+                    for item in selected
+                )
+                size_score = 1.0 / (1.0 + len(candidate["source"]) / 1000.0)
+                combined = 0.70 * candidate["quality"] + 0.25 * novelty + 0.05 * size_score
+                return (combined, candidate["quality"], -len(candidate["source"]), candidate["digest"])
+
+            choice = max(pool, key=score)
+            pool.remove(choice)
+            selected.append(choice)
+
+        return [
+            {"digest": item["digest"], "source": item["source"], "quality": item["quality"]}
+            for item in selected
+        ]
+
+    def lineage(self, family=None):
+        if family is None:
+            rows = self.db.execute(
+                "SELECT family,child_digest,parent_digest,operator,origin "
+                "FROM candidate_lineage ORDER BY family,child_digest,parent_digest"
+            ).fetchall()
+        else:
+            rows = self.db.execute(
+                "SELECT family,child_digest,parent_digest,operator,origin "
+                "FROM candidate_lineage WHERE family=? ORDER BY child_digest,parent_digest",
+                (family,),
+            ).fetchall()
+        return [
+            {
+                "family": row[0],
+                "child_digest": row[1],
+                "parent_digest": row[2],
+                "operator": row[3],
+                "origin": row[4],
+            }
+            for row in rows
+        ]
 
     def save_policy(self, source, evidence):
         digest = hashlib.sha256(source.encode()).hexdigest()

@@ -40,6 +40,23 @@ Offline synthesis compiles the declarative expression into Python AST and reuses
 
 Task keys contain the complete canonical specification, so checkpoint recovery and regression verification do not depend on an in-memory registry. `research-status` exposes each acquired `compound_<hash>` family name; invoke it with `python3 main.py solve --skill <family> --arguments '[-12,18]'`. Inputs are two integers of at most 512 bits. Grammar, sampling and oracle changes invalidate prior certificates through the evaluator fingerprint.
 
+## Evolutionary curriculum research
+
+The lab now has a non-promoting quality-diversity layer that evolves the ordering policy for already-trusted tasks while keeping evaluators, oracles, sandboxing, verification gates, and promotion logic immutable.
+
+```sh
+python3 main.py evolve-curriculum \
+  --evolution-goal "compound arithmetic" \
+  --tier 2 --task-count 6 \
+  --population 4 --generations 2 \
+  --replicates 2 --holdout-replicates 2 \
+  --base-seed 1000 --max-model-calls 0
+```
+
+Each curriculum genome contains only three bounded numeric weights: retry pressure, family-balancing pressure, and prerequisite-unlock pressure. Development and holdout seeds are disjoint. The finalist is compared with the immutable default profile on fresh holdouts, and the result is recorded as improvement, non-regression, regression, or incomplete. A development winner cannot install itself.
+
+The candidate program archive also records parent lineage and uses a deterministic quality-diversity selector: the strongest candidate is retained first, then additional parents balance gate quality, AST-structural novelty, and source-size efficiency. Candidate code is parsed for structure but still executes only in Docker. See [research/EVOLUTION.md](research/EVOLUTION.md) for the protocol and boundaries.
+
 ## Original single-task run
 
 Requires Linux, Python 3.12+, Git, and a Docker daemon with working cgroup v2 limits and its default seccomp profile. Docker Desktop's Linux VM is also suitable for evaluation, but the controller uses POSIX file locking. Colab without Docker cannot run candidates: there is deliberately no host-execution fallback.

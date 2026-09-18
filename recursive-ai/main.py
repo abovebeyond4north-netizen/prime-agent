@@ -18,6 +18,7 @@ from autonomy.controller import execute_goal, solve, status as research_status
 from autonomy.tasks import goal_contract
 from research.meta_eval import run_meta_evaluation
 from research.transfer_eval import run_transfer_evaluation
+from research.evolution import run_curriculum_evolution
 
 
 def run(root, iterations, provider, image):
@@ -99,7 +100,7 @@ def rollback(root, commit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate"])
+    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum"])
     parser.add_argument("--state", default=str(Path(__file__).parent / ".lab-state"))
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--provider", choices=["demo", "search", "api"], default="demo")
@@ -110,6 +111,7 @@ def main():
     parser.add_argument("--goal", default="algorithms toolkit")
     parser.add_argument("--train-goal", default="sorted search")
     parser.add_argument("--holdout-goal", default="number theory")
+    parser.add_argument("--evolution-goal", default="compound arithmetic")
     parser.add_argument("--tier", type=int, default=2)
     parser.add_argument("--task-seed", type=int, default=0)
     parser.add_argument("--task-count", type=int, default=6)
@@ -122,12 +124,21 @@ def main():
     parser.add_argument("--policy-mode", choices=["learned", "fixed"], default="learned")
     parser.add_argument("--prior-strength", type=float, default=4.0)
     parser.add_argument("--replicates", type=int, default=3)
+    parser.add_argument("--holdout-replicates", type=int, default=2)
+    parser.add_argument("--population", type=int, default=4)
+    parser.add_argument("--generations", type=int, default=2)
     parser.add_argument("--base-seed", type=int, default=0)
     args = parser.parse_args()
     if not 1 <= args.iterations <= 1000:
         parser.error("iterations must be in [1, 1000]")
     if not 1 <= args.replicates <= 50:
         parser.error("replicates must be in [1, 50]")
+    if not 1 <= args.holdout_replicates <= 8:
+        parser.error("holdout-replicates must be in [1, 8]")
+    if not 2 <= args.population <= 12:
+        parser.error("population must be in [2, 12]")
+    if not 1 <= args.generations <= 8:
+        parser.error("generations must be in [1, 8]")
     if not 0 <= args.prior_strength <= 32:
         parser.error("prior-strength must be in [0, 32]")
     provider = "search" if args.provider == "demo" else args.provider
@@ -154,6 +165,27 @@ def main():
             max_attempts=args.max_attempts, max_seconds=args.max_seconds,
             max_stagnation=args.max_stagnation, max_model_calls=args.max_model_calls,
             max_containers=args.max_containers, provider=provider, image=args.image,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
+    elif args.command == "evolve-curriculum":
+        report = run_curriculum_evolution(
+            args.state,
+            goal=args.evolution_goal,
+            tier=args.tier,
+            target=args.target,
+            population=args.population,
+            generations=args.generations,
+            development_replicates=args.replicates,
+            holdout_replicates=args.holdout_replicates,
+            base_seed=args.base_seed,
+            task_count=args.task_count,
+            max_attempts=args.max_attempts,
+            max_seconds=args.max_seconds,
+            max_stagnation=args.max_stagnation,
+            max_model_calls=args.max_model_calls,
+            max_containers=args.max_containers,
+            provider=provider,
+            image=args.image,
         )
         print(json.dumps(report, indent=2, sort_keys=True))
     elif args.command == "autonomous":
