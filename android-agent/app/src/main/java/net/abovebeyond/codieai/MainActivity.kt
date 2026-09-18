@@ -13,6 +13,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import net.abovebeyond.codieai.agent.AgentRuntime
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : Activity() {
     private lateinit var endpointInput: EditText
@@ -69,7 +72,11 @@ class MainActivity : Activity() {
         modelStatus = body(localModelDescription())
         root.addView(modelStatus)
 
-        root.addView(button("Import .litertlm model") {
+        root.addView(button("Download recommended Gemma 4 E2B (~2.6 GB)") {
+            downloadRecommendedModel()
+        })
+
+        root.addView(button("Import another .litertlm model") {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
@@ -78,8 +85,8 @@ class MainActivity : Activity() {
         })
 
         root.addView(body(
-            "For this 8 GB phone, Gemma 3n E2B INT4 is the strongest practical phone-only target. " +
-                "If a GPT-OSS endpoint is configured, Codie AI prefers it because GPT-OSS-20B needs more memory than the phone has."
+            "Gemma 4 E2B is the recommended phone-only planner for this 8 GB device. " +
+                "If a GPT-OSS endpoint is configured, Codie AI automatically prefers it for stronger reasoning."
         ))
 
         root.addView(label("Goal"))
@@ -153,6 +160,86 @@ class MainActivity : Activity() {
                 if (text.isNotBlank()) goalInput.setText(text)
             }
         }
+    }
+
+    private fun downloadRecommendedModel() {
+        appendStatus("Downloading Gemma 4 E2B. Wi-Fi is recommended (~2.6 GB).")
+        Thread {
+            val destination = AgentRuntime.localModelFile(this)
+            val temporary = File(destination.parentFile, destination.name + ".part")
+            var connection: HttpURLConnection? = null
+
+            try {
+                destination.parentFile?.mkdirs()
+                temporary.delete()
+
+                connection = (URL(RECOMMENDED_MODEL_URL).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 30_000
+                    readTimeout = 120_000
+                    instanceFollowRedirects = true
+                    setRequestProperty("User-Agent", "CodieAI/0.1 Android")
+                }
+
+                val status = connection.responseCode
+                require(status in 200..299) { "Model server returned HTTP " + status }
+
+                val expected = connection.contentLengthLong
+                var copied = 0L
+                var lastReportedPercent = -1
+                val buffer = ByteArray(1024 * 1024)
+
+                connection.inputStream.buffered(1024 * 1024).use { input ->
+                    temporary.outputStream().buffered(1024 * 1024).use { output ->
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            output.write(buffer, 0, count)
+                            copied += count
+
+                            if (expected > 0L) {
+                                val percent = ((copied * 100L) / expected).toInt().coerceIn(0, 100)
+                                if (percent >= lastReportedPercent + 5 || percent == 100) {
+                                    lastReportedPercent = percent
+                                    runOnUiThread {
+                                        appendStatus("Local model download: " + percent + "%")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                require(copied >= RECOMMENDED_MODEL_MIN_BYTES) {
+                    "Downloaded file is unexpectedly small: " + formatBytes(copied)
+                }
+                if (expected > 0L) {
+                    require(copied == expected) {
+                        "Incomplete download: " + copied + " of " + expected + " bytes"
+                    }
+                }
+
+                destination.delete()
+                if (!temporary.renameTo(destination)) {
+                    temporary.copyTo(destination, overwrite = true)
+                    temporary.delete()
+                }
+
+                runOnUiThread {
+                    modelStatus.text = localModelDescription()
+                    appendStatus("Gemma 4 E2B installed. Phone-only AI planning is ready.")
+                }
+            } catch (error: Throwable) {
+                temporary.delete()
+                runOnUiThread {
+                    appendStatus(
+                        "Model download failed: " + (error.message ?: error.javaClass.simpleName)
+                    )
+                }
+            } finally {
+                connection?.disconnect()
+            }
+        }.start()
     }
 
     private fun importModel(uri: android.net.Uri) {
@@ -250,5 +337,8 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_MODEL = 42
         private const val REQUEST_VOICE = 43
+        private const val RECOMMENDED_MODEL_MIN_BYTES = 2_000_000_000L
+        private const val RECOMMENDED_MODEL_URL =
+            "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm"
     }
 }
