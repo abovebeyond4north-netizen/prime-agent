@@ -87,7 +87,7 @@ object UiSnapshotter {
 
 private object JSONObjectEscaper {
     fun quote(value: String): String =
-        """ + value
+        "\"" + value
             .replace("\\", "\\\\")
-            .replace(""", "\\"") + """
+            .replace("\"", "\\\"") + "\""
 }
