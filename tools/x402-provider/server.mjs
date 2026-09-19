@@ -309,6 +309,7 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     product: "prime-agent-x402-market",
+    route: "/v1/x402/opportunities",
     routes: ["/v1/x402/opportunities", "/v1/token/verdict"],
     paymentEnabled,
     mode: paymentEnabled ? "x402-paid" : "public-analysis",
