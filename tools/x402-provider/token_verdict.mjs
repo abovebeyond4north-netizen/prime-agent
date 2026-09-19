@@ -213,14 +213,17 @@ function marketSummary(pairs, address, nowMs) {
         created != null && created > 0 ? Math.max(0, (nowMs - created) / 3_600_000) : null;
       const buys24h = Math.max(0, finiteNumber(pair?.txns?.h24?.buys) ?? 0);
       const sells24h = Math.max(0, finiteNumber(pair?.txns?.h24?.sells) ?? 0);
+      const tokenIsBase =
+        String(pair?.baseToken?.address ?? "").toLowerCase() === normalized;
       topPair = {
         dexId: String(pair?.dexId ?? ""),
         pairAddress: String(pair?.pairAddress ?? ""),
         url: typeof pair?.url === "string" ? pair.url : null,
+        tokenSide: tokenIsBase ? "base" : "quote",
         liquidityUsd,
-        priceUsd: finiteNumber(pair?.priceUsd),
-        fdvUsd: finiteNumber(pair?.fdv),
-        marketCapUsd: finiteNumber(pair?.marketCap),
+        priceUsd: tokenIsBase ? finiteNumber(pair?.priceUsd) : null,
+        fdvUsd: tokenIsBase ? finiteNumber(pair?.fdv) : null,
+        marketCapUsd: tokenIsBase ? finiteNumber(pair?.marketCap) : null,
         volume24hUsd: Math.max(0, finiteNumber(pair?.volume?.h24) ?? 0),
         buys24h,
         sells24h,
