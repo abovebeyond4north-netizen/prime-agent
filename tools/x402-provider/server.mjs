@@ -1,15 +1,20 @@
 import express from "express";
-import { createX402Server } from "@coinbase/cdp-sdk/x402";
-import { paymentMiddlewareFromHTTPServer } from "@x402/express";
+import { HTTPFacilitatorClient } from "@x402/core/server";
+import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { paymentMiddleware, x402ResourceServer } from "@x402/express";
+import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
 const PORT = Number(process.env.PORT ?? 8402);
 const PRICE = process.env.X402_PRICE ?? "$0.01";
+const NETWORK = process.env.X402_NETWORK ?? "eip155:8453";
+const FACILITATOR_URL = process.env.X402_FACILITATOR_URL ?? "https://facilitator.acedata.cloud";
+const PAY_TO = (process.env.PAY_TO ?? "").trim();
 const DISCOVERY_URL =
   process.env.X402_DISCOVERY_URL ??
   "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources";
 
-const cdpCredentialNames = ["CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"];
-const paymentEnabled = cdpCredentialNames.every((name) => Boolean(process.env[name]));
+const validPayTo = /^0x[a-fA-F0-9]{40}$/.test(PAY_TO);
+const paymentEnabled = validPayTo;
 
 const app = express();
 app.disable("x-powered-by");
@@ -80,7 +85,7 @@ async function fetchCatalog() {
     url.searchParams.set("limit", "500");
     url.searchParams.set("offset", String(offset));
     const response = await fetch(url, {
-      headers: { "user-agent": "prime-agent-x402-provider/1.0" },
+      headers: { "user-agent": "prime-agent-x402-provider/2.0" },
       signal: AbortSignal.timeout(20_000),
     });
     if (!response.ok) throw new Error("Bazaar request failed: " + response.status);
@@ -105,17 +110,77 @@ async function marketSnapshot() {
 }
 
 if (paymentEnabled) {
-  const x402Server = await createX402Server({
-    builderCode: "prime_x402_market",
-    routes: {
-      "GET /v1/x402/opportunities": {
-        price: PRICE,
-        description:
-          "Rank public x402 Bazaar services by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
+  const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
+  const resourceServer = new x402ResourceServer(facilitatorClient).register(
+    "eip155:*",
+    new ExactEvmScheme(),
+  );
+
+  const discovery = declareDiscoveryExtension({
+    input: { limit: 25, organicOnly: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: {
+          type: "integer",
+          minimum: 1,
+          maximum: 100,
+          description: "Maximum number of ranked opportunities to return.",
+        },
+        organicOnly: {
+          type: "boolean",
+          description: "Exclude resources that do not show repeat independent payer demand.",
+        },
+      },
+    },
+    output: {
+      example: {
+        count: 1,
+        opportunities: [
+          {
+            resource: "https://example.com/api",
+            serviceName: "Example API",
+            priceUsd: 0.01,
+            calls30d: 1000,
+            uniquePayers30d: 25,
+            callsPerPayer: 40,
+            repeatDemand: true,
+            opportunityScore: 123.45,
+          },
+        ],
+      },
+      schema: {
+        type: "object",
+        properties: {
+          generatedAt: { type: "string" },
+          source: { type: "string" },
+          methodology: { type: "string" },
+          count: { type: "integer" },
+          opportunities: { type: "array", items: { type: "object" } },
+        },
       },
     },
   });
-  app.use(paymentMiddlewareFromHTTPServer(x402Server));
+
+  app.use(
+    paymentMiddleware(
+      {
+        "GET /v1/x402/opportunities": {
+          accepts: {
+            scheme: "exact",
+            price: PRICE,
+            network: NETWORK,
+            payTo: PAY_TO,
+          },
+          description:
+            "Rank x402 seller opportunities by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
+          mimeType: "application/json",
+          extensions: { ...discovery },
+        },
+      },
+      resourceServer,
+    ),
+  );
 }
 
 app.get("/health", (_req, res) => {
@@ -125,6 +190,8 @@ app.get("/health", (_req, res) => {
     route: "/v1/x402/opportunities",
     paymentEnabled,
     mode: paymentEnabled ? "x402-paid" : "public-analysis",
+    network: paymentEnabled ? NETWORK : null,
+    facilitator: paymentEnabled ? FACILITATOR_URL : null,
   });
 });
 
@@ -150,9 +217,12 @@ app.get("/v1/x402/opportunities", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log("x402 market provider listening on :" + PORT);
+  if (PAY_TO && !validPayTo) {
+    console.warn("PAY_TO is present but is not a valid 20-byte EVM address; payment gate disabled.");
+  }
   console.log(
     paymentEnabled
-      ? "paid endpoint: GET /v1/x402/opportunities (" + PRICE + ")"
-      : "public analysis mode: GET /v1/x402/opportunities (payment credentials not configured)",
+      ? "x402 paid mode: GET /v1/x402/opportunities (" + PRICE + ", " + NETWORK + ")"
+      : "public analysis mode: GET /v1/x402/opportunities (set PAY_TO to activate payments)",
   );
 });
