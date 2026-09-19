@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check server.mjs"
+    "check": "node --check server.mjs && node --check onchain.mjs && node --check onchain.test.mjs",
+    "test": "node --test onchain.test.mjs"
   },
   "dependencies": {
     "@coinbase/cdp-sdk": "latest",

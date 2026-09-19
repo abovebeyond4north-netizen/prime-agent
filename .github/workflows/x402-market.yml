@@ -45,6 +45,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Syntax check
         run: npm run check
+      - name: Unit tests
+        run: npm test
       - name: Verify x402 exports
         run: |
           node --input-type=module -e '
