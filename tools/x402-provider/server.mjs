@@ -192,6 +192,9 @@ app.get("/health", (_req, res) => {
     mode: paymentEnabled ? "x402-paid" : "public-analysis",
     network: paymentEnabled ? NETWORK : null,
     facilitator: paymentEnabled ? FACILITATOR_URL : null,
+    gitCommit: process.env.RENDER_GIT_COMMIT ?? null,
+    gitBranch: process.env.RENDER_GIT_BRANCH ?? null,
+    serviceUrl: process.env.RENDER_EXTERNAL_URL ?? null,
   });
 });
 
