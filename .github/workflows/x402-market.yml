@@ -48,8 +48,13 @@ jobs:
       - name: Verify x402 exports
         run: |
           node --input-type=module -e '
-            const cdp = await import("@coinbase/cdp-sdk/x402");
-            const x402 = await import("@x402/express");
-            if (typeof cdp.createX402Server !== "function") throw new Error("createX402Server export missing");
-            if (typeof x402.paymentMiddlewareFromHTTPServer !== "function") throw new Error("paymentMiddlewareFromHTTPServer export missing");
+            const core = await import("@x402/core/server");
+            const evm = await import("@x402/evm/exact/server");
+            const express = await import("@x402/express");
+            const bazaar = await import("@x402/extensions/bazaar");
+            if (typeof core.HTTPFacilitatorClient !== "function") throw new Error("HTTPFacilitatorClient export missing");
+            if (typeof evm.ExactEvmScheme !== "function") throw new Error("ExactEvmScheme export missing");
+            if (typeof express.paymentMiddleware !== "function") throw new Error("paymentMiddleware export missing");
+            if (typeof express.x402ResourceServer !== "function") throw new Error("x402ResourceServer export missing");
+            if (typeof bazaar.declareDiscoveryExtension !== "function") throw new Error("declareDiscoveryExtension export missing");
           '

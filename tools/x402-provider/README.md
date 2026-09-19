@@ -1,23 +1,32 @@
 # x402 Market Provider
 
-A first sellable x402 service for Prime Agent: a paid API that ranks public x402 Bazaar resources by repeat demand, recency, safely inferable USDC monetization, and a simple activity-farming penalty.
+A low-marginal-cost x402 seller service for Prime Agent. The API ranks public x402 Bazaar resources by repeat demand, recency, safely inferable USDC monetization, and an activity-farming penalty.
 
-The service uses Coinbase's public Bazaar catalog as its upstream dataset, so there is no paid data dependency in the request path.
+The request path uses Coinbase's public Bazaar catalog as its upstream dataset, so it does not require paid data APIs or LLM inference.
 
-## Credentials
+## Payment model
 
-The service starts in public-analysis mode when payment credentials are absent. To activate paid x402 settlement through Coinbase CDP, supply these environment variables at runtime:
+The server uses the standard x402 resource-server stack:
 
-- `CDP_API_KEY_ID`
-- `CDP_API_KEY_SECRET`
-- `CDP_WALLET_SECRET`
+- `@x402/express`
+- `@x402/core`
+- `@x402/evm`
+- `@x402/extensions`
 
-No private key or credential is stored in this repository. When all three values are present, `createX402Server` activates the x402 payment gate. Without them, the same market-analysis endpoint remains available publicly so hosting, monitoring, and demand validation can run safely.
+A private key is **not** required by the seller process. To activate payment gating, set only a public EVM receiving address:
+
+- `PAY_TO=0x...`
+
+By default the provider targets Base mainnet (`eip155:8453`) through PayAI at `https://facilitator.payai.network`. PayAI's ordinary exact-payment path currently requires no merchant API key and exposes Bazaar discovery. The facilitator is configurable so it can be replaced without changing application code.
+
+If `PAY_TO` is absent or malformed, the service stays online in public-analysis mode instead of failing startup.
 
 Optional runtime settings:
 
-- `PORT` (default `8402`)
+- `PORT` (Render supplies this automatically)
 - `X402_PRICE` (default `$0.01`)
+- `X402_NETWORK` (default `eip155:8453`)
+- `X402_FACILITATOR_URL` (default `https://facilitator.payai.network`)
 - `X402_DISCOVERY_URL` (defaults to Coinbase's public x402 discovery endpoint)
 
 ## Run
@@ -28,20 +37,36 @@ npm install
 npm start
 ```
 
-Free health check:
+Health check:
 
 ```bash
 curl http://localhost:8402/health
 ```
 
-Paid route:
+Market endpoint:
 
 ```text
 GET /v1/x402/opportunities?limit=25&organicOnly=true
 ```
 
-When payment credentials are configured, the official CDP x402 integration returns `402 Payment Required` to unpaid clients and settles a valid x402 payment before the route handler runs. Routes created with `createX402Server` are eligible for CDP Bazaar discovery after real settlement through the CDP facilitator. In public-analysis mode the endpoint is intentionally unmetered.
+When `PAY_TO` is configured, an unpaid request receives HTTP 402 and the client must settle the configured price before the handler executes.
+
+## Discovery
+
+The paid route declares the x402 Bazaar discovery extension with:
+
+- example input
+- input schema
+- output example
+- output schema
+- a machine-readable endpoint description
+
+A facilitator that supports Bazaar indexing can catalog the endpoint after a real settlement carrying the extension. Catalog behavior is facilitator-specific, so successful settlement and successful indexing are monitored separately.
 
 ## Product logic
 
-This first product deliberately avoids LLM inference on the hot path. It turns a public, noisy registry into a compact ranked market signal. That keeps marginal cost low and lets actual paid usage determine whether to expand into deeper enrichment, monitoring, historical trend data, or seller analytics.
+The service deliberately avoids LLM inference on the hot path. It converts a noisy public marketplace into a compact ranked market signal, keeping marginal delivery cost low and allowing actual paid usage to determine whether to expand into historical trend monitoring, seller analytics, enrichment, or adjacent paid APIs.
+
+## Safety and custody
+
+The repository never stores a wallet private key. `PAY_TO` is only the public receiving address. Ownership and withdrawal remain under the wallet holder's control.
