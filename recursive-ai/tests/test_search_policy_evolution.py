@@ -127,6 +127,12 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
         self.assertGreater(profile_distance(population[0].profile, population[1].profile), 0)
 
     def test_successive_halving_saves_trials_and_cross_family_holdout_gates(self):
+        self._run_study("quality_diversity")
+
+    def test_pareto_study_and_paired_evidence(self):
+        self._run_study("pareto")
+
+    def _run_study(self, selection):
         calls = []
 
         def fake_execute(root, **kwargs):
@@ -176,8 +182,11 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
                 max_seconds=30,
                 max_model_calls=0,
                 max_containers=100,
+                parent_selection=selection,
             )
 
+        self.assertEqual(report["config"]["selection"], selection + "_successive_halving")
+        self.assertEqual(report["cross_family_holdout"]["paired_resource_evidence"]["status"], "gain_not_established")
         efficiency = report["sample_efficiency"]
         self.assertEqual(efficiency["naive_full_evaluation_trials"], 8)
         self.assertEqual(efficiency["actual_development_trials"], 6)
