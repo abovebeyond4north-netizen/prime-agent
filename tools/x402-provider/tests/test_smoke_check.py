@@ -37,6 +37,18 @@ class SmokeCheckTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             smoke.validate_health(health, "new")
 
+    def test_health_only_mode_accepts_deployed_main_commit(self):
+        health = {
+            "ok": True,
+            "product": "prime-agent-x402-market",
+            "route": "/v1/x402/opportunities",
+            "paymentEnabled": False,
+            "mode": "public-analysis",
+            "gitCommit": "previous-deployed-main-commit",
+            "gitBranch": "main",
+        }
+        smoke.validate_health(health)
+
     def test_public_market_contract(self):
         health = {"paymentEnabled": False}
         body = b'{"source":"Coinbase public x402 Bazaar discovery catalog","opportunities":[],"count":0}'
