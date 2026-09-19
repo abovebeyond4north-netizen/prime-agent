@@ -26,10 +26,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify production deployment and endpoint
+      - name: Verify pushed deployment and endpoint
+        if: github.event_name == 'push'
         run: >
           python3 tools/x402-provider/smoke_check.py
           --url https://prime-agent-x402-provider.onrender.com
           --expected-commit "$GITHUB_SHA"
           --attempts 20
           --delay-seconds 15
+
+      - name: Verify production endpoint health
+        if: github.event_name != 'push'
+        run: >
+          python3 tools/x402-provider/smoke_check.py
+          --url https://prime-agent-x402-provider.onrender.com
+          --attempts 3
+          --delay-seconds 5
