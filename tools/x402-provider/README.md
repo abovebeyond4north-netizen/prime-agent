@@ -1,8 +1,11 @@
 # x402 Market Provider
 
-A low-marginal-cost x402 seller service for Prime Agent. The API ranks public x402 Bazaar resources by repeat demand, recency, safely inferable USDC monetization, and an activity-farming penalty.
+A low-marginal-cost x402 seller service for Prime Agent. The provider currently exposes two paid API products:
 
-The request path uses Coinbase's public Bazaar catalog as its upstream dataset, so it does not require paid data APIs or LLM inference.
+- **Market opportunities** — ranks public x402 Bazaar resources by repeat demand, recency, safely inferable USDC monetization, and an activity-farming penalty.
+- **Base token verdict** — inspects a Base token with deterministic contract and market-structure signals, without LLM inference.
+
+The market route uses Coinbase's public Bazaar catalog. The token-verdict route uses Base JSON-RPC plus DEX Screener's Base token-pairs endpoint. Both are designed so the paid request path can remain inexpensive enough for micropayment testing.
 
 ## Payment model
 
@@ -17,23 +20,30 @@ A private key is **not** required by the seller process. To activate payment gat
 
 - `PAY_TO=0x...`
 
-By default the provider targets Base mainnet (`eip155:8453`) through PayAI at `https://facilitator.payai.network`. PayAI's ordinary exact-payment path currently requires no merchant API key and exposes Bazaar discovery. The facilitator is configurable so it can be replaced without changing application code.
+By default the provider targets Base mainnet (`eip155:8453`) through PayAI at `https://facilitator.payai.network`. The facilitator is configurable so it can be replaced without changing application code.
 
 If `PAY_TO` is absent or malformed, the service stays online in public-analysis mode instead of failing startup.
 
 Optional runtime settings:
 
 - `PORT` (Render supplies this automatically)
-- `X402_PRICE` (default `$0.01`)
+- `X402_PRICE` (default `$0.01`) for the market-opportunity route
+- `X402_TOKEN_VERDICT_PRICE` (default `$0.01`)
 - `X402_NETWORK` (default `eip155:8453`)
 - `X402_FACILITATOR_URL` (default `https://facilitator.payai.network`)
 - `X402_DISCOVERY_URL` (defaults to Coinbase's public x402 discovery endpoint)
+- `BASE_RPC_URL` (default `https://mainnet.base.org`)
+- `DEXSCREENER_URL` (default `https://api.dexscreener.com`)
+- `TOKEN_VERDICT_TIMEOUT_MS` (default `8000`, bounded to 1–30 seconds)
+- `TOKEN_VERDICT_CACHE_TTL_MS` (default `60000`, bounded to 5 seconds–5 minutes)
+- `TOKEN_VERDICT_CACHE_MAX` (default `1024`, bounded to 32–10,000 entries)
 
 ## Run
 
 ```bash
 cd tools/x402-provider
 npm install
+npm test
 npm start
 ```
 
@@ -49,23 +59,52 @@ Market endpoint:
 GET /v1/x402/opportunities?limit=25&organicOnly=true
 ```
 
-When `PAY_TO` is configured, an unpaid request receives HTTP 402 and the client must settle the configured price before the handler executes.
+Token-verdict endpoint:
+
+```text
+GET /v1/token/verdict?address=0x1111111111111111111111111111111111111111
+```
+
+When `PAY_TO` is configured, an unpaid request receives HTTP 402 and the client must settle the configured route price before the handler executes.
+
+## Token verdict methodology
+
+The first verdict version deliberately uses transparent, deterministic signals rather than an opaque model score. On a cache miss it performs one batched Base RPC request and one DEX Screener token-pairs request.
+
+It checks:
+
+- deployed bytecode
+- standard ERC-20 name, symbol, decimals, and total supply when exposed
+- `owner()` when exposed
+- EIP-1967 implementation-slot proxy detection
+- Base DEX pair presence
+- observed Base DEX liquidity
+- age of the highest-liquidity pair
+- observed liquidity relative to reported FDV
+
+The response includes a `riskSignalScore`, a signal level, and the exact flags that contributed to the score. **A low score means fewer observed warning signals; it does not mean a token is safe.**
+
+The MVP explicitly does **not** claim to detect:
+
+- sell restrictions or honeypot behavior
+- malicious source-code logic
+- holder concentration
+- blacklists or transfer taxes
+- off-chain identity or reputation
+
+Those capabilities should only be added when they can be measured reliably and economically.
+
+DEX Screener enrichment is fail-soft: if market enrichment is unavailable, the endpoint still returns its on-chain analysis and marks market data unavailable rather than falsely treating an outage as “no market.”
 
 ## Discovery
 
-The paid route declares the x402 Bazaar discovery extension with:
+Both paid routes declare the x402 Bazaar discovery extension with example input, input schema, output example, output schema, and machine-readable endpoint descriptions.
 
-- example input
-- input schema
-- output example
-- output schema
-- a machine-readable endpoint description
+A facilitator that supports Bazaar indexing can catalog an endpoint after a real settlement carrying the extension. Catalog behavior is facilitator-specific, so successful settlement and successful indexing are monitored separately.
 
-A facilitator that supports Bazaar indexing can catalog the endpoint after a real settlement carrying the extension. Catalog behavior is facilitator-specific, so successful settlement and successful indexing are monitored separately.
+## Product economics
 
-## Product logic
-
-The service deliberately avoids LLM inference on the hot path. It converts a noisy public marketplace into a compact ranked market signal, keeping marginal delivery cost low and allowing actual paid usage to determine whether to expand into historical trend monitoring, seller analytics, enrichment, or adjacent paid APIs.
+The token-verdict route defaults to **$0.01**. It avoids LLM inference, batches contract reads into one RPC request, and caches complete verdicts for one minute by default. The initial seller experiment should be evaluated on independent paying wallets, repeat-payer retention, cache-hit rate, upstream failure rate, and gross revenue per upstream request—not raw request counts alone.
 
 ## Safety and custody
 

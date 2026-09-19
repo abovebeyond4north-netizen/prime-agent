@@ -4,20 +4,39 @@ import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
+import { inspectBaseToken, isEvmAddress } from "./token_verdict.mjs";
+
 const PORT = Number(process.env.PORT ?? 8402);
 const PRICE = process.env.X402_PRICE ?? "$0.01";
+const TOKEN_VERDICT_PRICE = process.env.X402_TOKEN_VERDICT_PRICE ?? "$0.01";
 const NETWORK = process.env.X402_NETWORK ?? "eip155:8453";
 const FACILITATOR_URL = process.env.X402_FACILITATOR_URL ?? "https://facilitator.payai.network";
 const PAY_TO = (process.env.PAY_TO ?? "").trim();
 const DISCOVERY_URL =
   process.env.X402_DISCOVERY_URL ??
   "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources";
+const BASE_RPC_URL = process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
+const DEXSCREENER_URL = process.env.DEXSCREENER_URL ?? "https://api.dexscreener.com";
+const TOKEN_VERDICT_TIMEOUT_MS = boundedNumber("TOKEN_VERDICT_TIMEOUT_MS", 8_000, 1_000, 30_000);
+const TOKEN_VERDICT_CACHE_TTL_MS = boundedNumber(
+  "TOKEN_VERDICT_CACHE_TTL_MS",
+  60_000,
+  5_000,
+  300_000,
+);
+const TOKEN_VERDICT_CACHE_MAX = boundedNumber("TOKEN_VERDICT_CACHE_MAX", 1_024, 32, 10_000);
 
 const validPayTo = /^0x[a-fA-F0-9]{40}$/.test(PAY_TO);
 const paymentEnabled = validPayTo;
 
 const app = express();
 app.disable("x-powered-by");
+
+function boundedNumber(name, fallback, minimum, maximum) {
+  const parsed = Number(process.env[name] ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(minimum, Math.min(maximum, Math.floor(parsed)));
+}
 
 function parsePriceUsd(resource) {
   const knownUsdc = new Set([
@@ -109,6 +128,53 @@ async function marketSnapshot() {
   return rows;
 }
 
+const tokenVerdictCache = new Map();
+
+function readTokenVerdictCache(key) {
+  const entry = tokenVerdictCache.get(key);
+  if (!entry) return null;
+  const ageMs = Date.now() - entry.at;
+  if (ageMs >= TOKEN_VERDICT_CACHE_TTL_MS) {
+    tokenVerdictCache.delete(key);
+    return null;
+  }
+  tokenVerdictCache.delete(key);
+  tokenVerdictCache.set(key, entry);
+  return { value: entry.value, ageMs };
+}
+
+function writeTokenVerdictCache(key, value) {
+  while (tokenVerdictCache.size >= TOKEN_VERDICT_CACHE_MAX) {
+    const oldest = tokenVerdictCache.keys().next().value;
+    if (oldest == null) break;
+    tokenVerdictCache.delete(oldest);
+  }
+  tokenVerdictCache.set(key, { at: Date.now(), value });
+}
+
+async function tokenVerdict(address) {
+  const key = address.toLowerCase();
+  const cached = readTokenVerdictCache(key);
+  if (cached) {
+    return {
+      ...cached.value,
+      cache: { status: "hit", ageMs: cached.ageMs, ttlMs: TOKEN_VERDICT_CACHE_TTL_MS },
+    };
+  }
+
+  const value = await inspectBaseToken({
+    address: key,
+    rpcUrl: BASE_RPC_URL,
+    dexScreenerUrl: DEXSCREENER_URL,
+    timeoutMs: TOKEN_VERDICT_TIMEOUT_MS,
+  });
+  writeTokenVerdictCache(key, value);
+  return {
+    ...value,
+    cache: { status: "miss", ageMs: 0, ttlMs: TOKEN_VERDICT_CACHE_TTL_MS },
+  };
+}
+
 if (paymentEnabled) {
   const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
   const resourceServer = new x402ResourceServer(facilitatorClient).register(
@@ -116,7 +182,7 @@ if (paymentEnabled) {
     new ExactEvmScheme(),
   );
 
-  const discovery = declareDiscoveryExtension({
+  const marketDiscovery = declareDiscoveryExtension({
     input: { limit: 25, organicOnly: true },
     inputSchema: {
       type: "object",
@@ -162,6 +228,50 @@ if (paymentEnabled) {
     },
   });
 
+  const tokenVerdictDiscovery = declareDiscoveryExtension({
+    input: { address: "0x1111111111111111111111111111111111111111" },
+    inputSchema: {
+      type: "object",
+      required: ["address"],
+      properties: {
+        address: {
+          type: "string",
+          pattern: "^0x[0-9a-fA-F]{40}$",
+          description: "Base mainnet ERC-20 contract address to inspect.",
+        },
+      },
+    },
+    output: {
+      example: {
+        network: "base-mainnet",
+        token: "0x1111111111111111111111111111111111111111",
+        metadata: { symbol: "TOKEN", decimals: 18 },
+        market: { pairCount: 2, totalLiquidityUsd: 250000 },
+        verdict: {
+          riskSignalScore: 0,
+          signalLevel: "limited-observed-signals",
+          flags: [],
+        },
+      },
+      schema: {
+        type: "object",
+        properties: {
+          observedAt: { type: "string" },
+          network: { type: "string" },
+          chainId: { type: "integer" },
+          token: { type: "string" },
+          contract: { type: "object" },
+          metadata: { type: "object" },
+          market: { type: "object" },
+          verdict: { type: "object" },
+          coverage: { type: "object" },
+          sources: { type: "object" },
+          cache: { type: "object" },
+        },
+      },
+    },
+  });
+
   app.use(
     paymentMiddleware(
       {
@@ -175,7 +285,19 @@ if (paymentEnabled) {
           description:
             "Rank x402 seller opportunities by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
           mimeType: "application/json",
-          extensions: { ...discovery },
+          extensions: { ...marketDiscovery },
+        },
+        "GET /v1/token/verdict": {
+          accepts: {
+            scheme: "exact",
+            price: TOKEN_VERDICT_PRICE,
+            network: NETWORK,
+            payTo: PAY_TO,
+          },
+          description:
+            "Inspect a Base token using deterministic contract, liquidity, market-age, ownership, and proxy signals without LLM inference.",
+          mimeType: "application/json",
+          extensions: { ...tokenVerdictDiscovery },
         },
       },
       resourceServer,
@@ -188,6 +310,7 @@ app.get("/health", (_req, res) => {
     ok: true,
     product: "prime-agent-x402-market",
     route: "/v1/x402/opportunities",
+    routes: ["/v1/x402/opportunities", "/v1/token/verdict"],
     paymentEnabled,
     mode: paymentEnabled ? "x402-paid" : "public-analysis",
     network: paymentEnabled ? NETWORK : null,
@@ -218,6 +341,21 @@ app.get("/v1/x402/opportunities", async (req, res) => {
   }
 });
 
+app.get("/v1/token/verdict", async (req, res) => {
+  const address = String(req.query.address ?? "");
+  if (!isEvmAddress(address)) {
+    return res.status(400).json({ error: "invalid_token_address" });
+  }
+
+  try {
+    const result = await tokenVerdict(address);
+    return res.json(result);
+  } catch (error) {
+    console.error(error);
+    return res.status(502).json({ error: "token_verdict_upstream_unavailable" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log("x402 market provider listening on :" + PORT);
   if (PAY_TO && !validPayTo) {
@@ -225,7 +363,13 @@ app.listen(PORT, () => {
   }
   console.log(
     paymentEnabled
-      ? "x402 paid mode: GET /v1/x402/opportunities (" + PRICE + ", " + NETWORK + ")"
-      : "public analysis mode: GET /v1/x402/opportunities (set PAY_TO to activate payments)",
+      ? "x402 paid mode: market " +
+        PRICE +
+        ", token verdict " +
+        TOKEN_VERDICT_PRICE +
+        " (" +
+        NETWORK +
+        ")"
+      : "public analysis mode: market + token verdict routes (set PAY_TO to activate payments)",
   );
 });
