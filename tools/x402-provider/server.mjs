@@ -2,11 +2,24 @@ import express from "express";
 import { createX402Server } from "@coinbase/cdp-sdk/x402";
 import { paymentMiddlewareFromHTTPServer } from "@x402/express";
 
+import { fetchBasePreflight, isEvmAddress } from "./onchain.mjs";
+
 const PORT = Number(process.env.PORT ?? 8402);
 const PRICE = process.env.X402_PRICE ?? "$0.01";
+const PREFLIGHT_PRICE = process.env.X402_PREFLIGHT_PRICE ?? "$0.01";
 const DISCOVERY_URL =
   process.env.X402_DISCOVERY_URL ??
   "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources";
+const BASE_RPC_URL = process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
+const BASE_RPC_TIMEOUT_MS = Math.max(
+  1_000,
+  Math.min(30_000, Number(process.env.BASE_RPC_TIMEOUT_MS ?? 8_000)),
+);
+const PREFLIGHT_CACHE_TTL_MS = Math.max(
+  1_000,
+  Math.min(60_000, Number(process.env.PREFLIGHT_CACHE_TTL_MS ?? 15_000)),
+);
+const PREFLIGHT_CACHE_MAX = 512;
 
 const cdpCredentialNames = ["CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"];
 const paymentEnabled = cdpCredentialNames.every((name) => Boolean(process.env[name]));
@@ -104,6 +117,48 @@ async function marketSnapshot() {
   return rows;
 }
 
+const preflightCache = new Map();
+
+function preflightCacheKey(address, spender) {
+  return address.toLowerCase() + ":" + (spender ? spender.toLowerCase() : "");
+}
+
+function getCachedPreflight(key) {
+  const entry = preflightCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.at >= PREFLIGHT_CACHE_TTL_MS) {
+    preflightCache.delete(key);
+    return null;
+  }
+  preflightCache.delete(key);
+  preflightCache.set(key, entry);
+  return entry.value;
+}
+
+function setCachedPreflight(key, value) {
+  while (preflightCache.size >= PREFLIGHT_CACHE_MAX) {
+    const oldest = preflightCache.keys().next().value;
+    if (oldest === undefined) break;
+    preflightCache.delete(oldest);
+  }
+  preflightCache.set(key, { at: Date.now(), value });
+}
+
+async function onchainPreflight(address, spender) {
+  const key = preflightCacheKey(address, spender);
+  const cached = getCachedPreflight(key);
+  if (cached) return { ...cached, cache: "hit" };
+
+  const value = await fetchBasePreflight({
+    address,
+    spender,
+    rpcUrl: BASE_RPC_URL,
+    timeoutMs: BASE_RPC_TIMEOUT_MS,
+  });
+  setCachedPreflight(key, value);
+  return { ...value, cache: "miss" };
+}
+
 if (paymentEnabled) {
   const x402Server = await createX402Server({
     builderCode: "prime_x402_market",
@@ -112,6 +167,11 @@ if (paymentEnabled) {
         price: PRICE,
         description:
           "Rank public x402 Bazaar services by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
+      },
+      "GET /v1/onchain/preflight": {
+        price: PREFLIGHT_PRICE,
+        description:
+          "Return a low-latency Base wallet preflight with ETH and USDC balances, nonce, contract/proxy detection, and optional USDC allowance.",
       },
     },
   });
@@ -122,7 +182,7 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     product: "prime-agent-x402-market",
-    route: "/v1/x402/opportunities",
+    routes: ["/v1/x402/opportunities", "/v1/onchain/preflight"],
     paymentEnabled,
     mode: paymentEnabled ? "x402-paid" : "public-analysis",
   });
@@ -148,11 +208,34 @@ app.get("/v1/x402/opportunities", async (req, res) => {
   }
 });
 
+app.get("/v1/onchain/preflight", async (req, res) => {
+  const address = String(req.query.address ?? "");
+  const spender = req.query.spender == null ? null : String(req.query.spender);
+  if (!isEvmAddress(address)) {
+    return res.status(400).json({ error: "invalid_address" });
+  }
+  if (spender && !isEvmAddress(spender)) {
+    return res.status(400).json({ error: "invalid_spender" });
+  }
+
+  try {
+    const preflight = await onchainPreflight(address, spender);
+    return res.json(preflight);
+  } catch (error) {
+    console.error(error);
+    return res.status(502).json({ error: "base_rpc_unavailable" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log("x402 market provider listening on :" + PORT);
   console.log(
     paymentEnabled
-      ? "paid endpoint: GET /v1/x402/opportunities (" + PRICE + ")"
-      : "public analysis mode: GET /v1/x402/opportunities (payment credentials not configured)",
+      ? "paid endpoints: /v1/x402/opportunities (" +
+          PRICE +
+          "), /v1/onchain/preflight (" +
+          PREFLIGHT_PRICE +
+          ")"
+      : "public analysis mode: x402 payment credentials not configured",
   );
 });
