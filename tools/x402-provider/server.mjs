@@ -7,7 +7,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 const PORT = Number(process.env.PORT ?? 8402);
 const PRICE = process.env.X402_PRICE ?? "$0.01";
 const NETWORK = process.env.X402_NETWORK ?? "eip155:8453";
-const FACILITATOR_URL = process.env.X402_FACILITATOR_URL ?? "https://facilitator.acedata.cloud";
+const FACILITATOR_URL = process.env.X402_FACILITATOR_URL ?? "https://facilitator.payai.network";
 const PAY_TO = (process.env.PAY_TO ?? "").trim();
 const DISCOVERY_URL =
   process.env.X402_DISCOVERY_URL ??
