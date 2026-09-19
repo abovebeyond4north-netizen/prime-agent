@@ -248,7 +248,7 @@ if (paymentEnabled) {
         metadata: { symbol: "TOKEN", decimals: 18 },
         market: { pairCount: 2, totalLiquidityUsd: 250000 },
         verdict: {
-          riskSignalScore: 10,
+          riskSignalScore: 0,
           signalLevel: "limited-observed-signals",
           flags: [],
         },
