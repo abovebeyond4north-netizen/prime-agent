@@ -2,8 +2,9 @@
 """External production smoke check for the x402 market provider.
 
 Uses only the Python standard library so it can run cheaply in GitHub Actions.
-It verifies deployment/main SHA alignment, the health contract, and either the
-public Bazaar-backed response or the unpaid HTTP 402 challenge in paid mode.
+It verifies the health contract and either the public Bazaar-backed response or
+the unpaid HTTP 402 challenge in paid mode. Push checks can additionally verify
+that production has deployed an expected commit.
 """
 from __future__ import annotations
 
@@ -35,11 +36,12 @@ def decode_json(body: bytes) -> dict[str, Any]:
     return value
 
 
-def validate_health(health: dict[str, Any], expected_commit: str) -> None:
+def validate_health(health: dict[str, Any], expected_commit: str | None = None) -> None:
     assert health.get("ok") is True, health
     assert health.get("product") == "prime-agent-x402-market", health
     assert health.get("route") == "/v1/x402/opportunities", health
-    assert health.get("gitCommit") == expected_commit, health
+    if expected_commit is not None:
+        assert health.get("gitCommit") == expected_commit, health
     assert health.get("gitBranch") == "main", health
     assert health.get("mode") in {"public-analysis", "x402-paid"}, health
     assert bool(health.get("paymentEnabled")) == (health.get("mode") == "x402-paid"), health
@@ -47,7 +49,7 @@ def validate_health(health: dict[str, Any], expected_commit: str) -> None:
 
 def wait_for_health(
     base_url: str,
-    expected_commit: str,
+    expected_commit: str | None = None,
     attempts: int = 20,
     delay_seconds: float = 15.0,
 ) -> dict[str, Any]:
@@ -68,8 +70,9 @@ def wait_for_health(
                 time.sleep(delay_seconds)
 
     detail = f"; last health={last_health}" if last_health is not None else ""
+    target = f"commit {expected_commit}" if expected_commit is not None else "a healthy deployment"
     raise AssertionError(
-        f"Production did not match commit {expected_commit} after {attempts} attempts: {last_error}{detail}"
+        f"Production did not reach {target} after {attempts} attempts: {last_error}{detail}"
     )
 
 
@@ -93,7 +96,7 @@ def validate_market(
     return payload
 
 
-def run(base_url: str, expected_commit: str, attempts: int, delay_seconds: float) -> dict[str, Any]:
+def run(base_url: str, expected_commit: str | None, attempts: int, delay_seconds: float) -> dict[str, Any]:
     health = wait_for_health(base_url, expected_commit, attempts, delay_seconds)
     endpoint = f"{base_url.rstrip('/')}/v1/x402/opportunities?limit=1&organicOnly=true"
     status, headers, body = request(endpoint)
@@ -112,7 +115,7 @@ def run(base_url: str, expected_commit: str, attempts: int, delay_seconds: float
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", required=True)
-    parser.add_argument("--expected-commit", required=True)
+    parser.add_argument("--expected-commit")
     parser.add_argument("--attempts", type=int, default=20)
     parser.add_argument("--delay-seconds", type=float, default=15.0)
     args = parser.parse_args(argv)
