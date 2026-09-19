@@ -22,6 +22,8 @@ import random
 import statistics
 from pathlib import Path
 
+from research.paired_evidence import paired_resource_evidence
+from research.pareto_selection import pareto_order
 from autonomy.controller import execute_goal
 from autonomy.search_profile import (
     DEFAULT_SEARCH_PROFILE,
@@ -39,6 +41,8 @@ def search_policy_protocol_digest():
     root = Path(__file__).resolve().parents[1]
     paths = (
         "research/search_policy_evolution.py",
+        "research/paired_evidence.py",
+        "research/pareto_selection.py",
         "autonomy/controller.py",
         "autonomy/memory.py",
         "autonomy/policy.py",
@@ -560,7 +564,10 @@ def run_search_policy_evolution(
     max_containers=1000,
     provider="search",
     image="recursive-ai-runner:local",
+    parent_selection="quality_diversity",
 ):
+    if parent_selection not in ("quality_diversity", "pareto"):
+        raise ValueError("unknown parent selection mode")
     for name, value, lower, upper in (
         ("population", population, 2, 12),
         ("generations", generations, 1, 6),
@@ -629,7 +636,7 @@ def run_search_policy_evolution(
         "holdout_suite_digest": holdout_suite["suite_digest"],
         "search_policy_protocol_digest": search_policy_protocol_digest(),
         "evolvable_surface": list(SEARCH_PROFILE_KEYS),
-        "selection": "quality_diversity_successive_halving",
+        "selection": parent_selection + "_successive_halving",
         "novelty_floor": NOVELTY_FLOOR,
         "train_families": sorted(train_families),
         "holdout_families": sorted(holdout_families),
@@ -697,7 +704,15 @@ def run_search_policy_evolution(
                 if round_index + 1 < len(generation_seeds)
                 else max(2, min(len(survivors), population // 2))
             )
-            survivors = _rank_quality_diverse(survivors, keep, generation)
+            if parent_selection == "pareto":
+                selected = []
+                for front in pareto_order(survivors, generation):
+                    selected.extend(_rank_quality_diverse(front, keep - len(selected), generation))
+                    if len(selected) >= keep:
+                        break
+                survivors = selected
+            else:
+                survivors = _rank_quality_diverse(survivors, keep, generation)
             race_rounds.append({
                 "round": round_index,
                 "seed": seed,
@@ -790,6 +805,9 @@ def run_search_policy_evolution(
             "finalist": finalist_holdout,
             "baseline": baseline_holdout,
             "comparison": comparison,
+            "paired_resource_evidence": paired_resource_evidence(
+                finalist_holdout["rows"], baseline_holdout["rows"]
+            ),
         },
         "promotion": {
             "automatic": False,
