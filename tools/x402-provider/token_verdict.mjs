@@ -247,7 +247,7 @@ function addFlag(flags, code, severity, detail, points) {
   flags.push({ code, severity, detail, points });
 }
 
-function assessSignals({ hasCode, metadata, owner, implementation, market }) {
+function assessSignals({ hasCode, metadata, owner, implementation, market, marketAvailable }) {
   const flags = [];
 
   if (!hasCode) {
@@ -294,50 +294,52 @@ function assessSignals({ hasCode, metadata, owner, implementation, market }) {
     );
   }
 
-  if (market.pairCount === 0) {
-    addFlag(
-      flags,
-      "no_dex_market_found",
-      "elevated",
-      "DEX Screener returned no Base trading pair for this token.",
-      35,
-    );
-  } else if (market.totalLiquidityUsd < 10_000) {
-    addFlag(
-      flags,
-      "low_observed_liquidity",
-      "elevated",
-      "Observed Base DEX liquidity is below $10,000.",
-      30,
-    );
-  } else if (market.totalLiquidityUsd < 50_000) {
-    addFlag(
-      flags,
-      "thin_observed_liquidity",
-      "caution",
-      "Observed Base DEX liquidity is below $50,000.",
-      15,
-    );
-  }
+  if (marketAvailable) {
+    if (market.pairCount === 0) {
+      addFlag(
+        flags,
+        "no_dex_market_found",
+        "elevated",
+        "DEX Screener returned no Base trading pair for this token.",
+        35,
+      );
+    } else if (market.totalLiquidityUsd < 10_000) {
+      addFlag(
+        flags,
+        "low_observed_liquidity",
+        "elevated",
+        "Observed Base DEX liquidity is below $10,000.",
+        30,
+      );
+    } else if (market.totalLiquidityUsd < 50_000) {
+      addFlag(
+        flags,
+        "thin_observed_liquidity",
+        "caution",
+        "Observed Base DEX liquidity is below $50,000.",
+        15,
+      );
+    }
 
-  if (market.topPair?.pairAgeHours != null && market.topPair.pairAgeHours < 24) {
-    addFlag(
-      flags,
-      "very_new_market",
-      "caution",
-      "The highest-liquidity observed pair is less than 24 hours old.",
-      10,
-    );
-  }
+    if (market.topPair?.pairAgeHours != null && market.topPair.pairAgeHours < 24) {
+      addFlag(
+        flags,
+        "very_new_market",
+        "caution",
+        "The highest-liquidity observed pair is less than 24 hours old.",
+        10,
+      );
+    }
 
-  if (market.liquidityToFdvPct != null && market.liquidityToFdvPct < 1) {
-    addFlag(
-      flags,
-      "low_liquidity_to_fdv",
-      "caution",
-      "Observed liquidity is below 1% of the top pair's reported FDV.",
-      10,
-    );
+    if (market.liquidityToFdvPct != null && market.liquidityToFdvPct < 1) {
+      addFlag(
+        flags,
+        "low_liquidity_to_fdv",
+        "caution",
+        "Observed liquidity is below 1% of the top pair's reported FDV.",
+        10,
+      );
+    }
   }
 
   const score = Math.min(100, flags.reduce((sum, flag) => sum + flag.points, 0));
@@ -415,6 +417,7 @@ export async function inspectBaseToken({
     owner,
     implementation,
     market,
+    marketAvailable: dexScreenerAvailable,
   });
 
   if (!dexScreenerAvailable) {
