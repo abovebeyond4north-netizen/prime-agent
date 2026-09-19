@@ -21,85 +21,15 @@ jobs:
   smoke:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
-    env:
-      BASE_URL: https://prime-agent-x402-provider.onrender.com
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Wait for exact main commit
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 20); do
-            if curl --silent --show-error --fail               --connect-timeout 10 --max-time 60               "$BASE_URL/health" -o /tmp/health.json; then
-              deployed="$(python3 - <<'PY'
-import json
-with open("/tmp/health.json", encoding="utf-8") as fh:
-    data = json.load(fh)
-print(data.get("gitCommit") or "")
-PY
-)"
-              echo "Expected: $GITHUB_SHA"
-              echo "Deployed: $deployed"
-              if [ "$deployed" = "$GITHUB_SHA" ]; then
-                break
-              fi
-            fi
-
-            if [ "$attempt" -eq 20 ]; then
-              echo "Production did not reach the current main commit within the deployment grace period." >&2
-              cat /tmp/health.json 2>/dev/null || true
-              exit 1
-            fi
-            sleep 15
-          done
-
-      - name: Verify health contract
-        run: |
-          python3 - <<'PY'
-import json
-with open("/tmp/health.json", encoding="utf-8") as fh:
-    health = json.load(fh)
-
-assert health.get("ok") is True, health
-assert health.get("product") == "prime-agent-x402-market", health
-assert health.get("route") == "/v1/x402/opportunities", health
-assert health.get("gitCommit"), health
-assert health.get("gitBranch") == "main", health
-assert health.get("mode") in {"public-analysis", "x402-paid"}, health
-print(json.dumps(health, indent=2))
-PY
-
-      - name: Verify market endpoint contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          payment_enabled="$(python3 - <<'PY'
-import json
-with open("/tmp/health.json", encoding="utf-8") as fh:
-    print("true" if json.load(fh).get("paymentEnabled") else "false")
-PY
-)"
-
-          status="$(curl --silent --show-error             --retry 3 --retry-delay 3 --retry-all-errors             --connect-timeout 10 --max-time 60             -D /tmp/market.headers             -o /tmp/market.body             -w '%{http_code}'             "$BASE_URL/v1/x402/opportunities?limit=1&organicOnly=true")"
-
-          echo "paymentEnabled=$payment_enabled status=$status"
-
-          if [ "$payment_enabled" = "true" ]; then
-            test "$status" = "402"
-            grep -qi '^payment-required:' /tmp/market.headers
-          else
-            test "$status" = "200"
-            python3 - <<'PY'
-import json
-with open("/tmp/market.body", encoding="utf-8") as fh:
-    payload = json.load(fh)
-
-assert payload.get("source") == "Coinbase public x402 Bazaar discovery catalog", payload
-assert isinstance(payload.get("opportunities"), list), payload
-assert isinstance(payload.get("count"), int), payload
-print(json.dumps({"count": payload["count"], "source": payload["source"]}, indent=2))
-PY
-          fi
+      - name: Verify production deployment and endpoint
+        run: >
+          python3 tools/x402-provider/smoke_check.py
+          --url https://prime-agent-x402-provider.onrender.com
+          --expected-commit "$GITHUB_SHA"
+          --attempts 20
+          --delay-seconds 15

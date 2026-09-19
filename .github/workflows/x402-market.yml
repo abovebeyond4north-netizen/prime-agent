@@ -7,12 +7,14 @@ on:
       - "tools/x402-provider/**"
       - ".github/workflows/x402-market.yml"
       - ".github/workflows/x402-market-daily.yml"
+      - ".github/workflows/x402-production-smoke.yml"
   pull_request:
     paths:
       - "tools/x402-market/**"
       - "tools/x402-provider/**"
       - ".github/workflows/x402-market.yml"
       - ".github/workflows/x402-market-daily.yml"
+      - ".github/workflows/x402-production-smoke.yml"
 
 permissions:
   contents: read
@@ -43,8 +45,12 @@ jobs:
           node-version: "22"
       - name: Install provider dependencies
         run: npm install --no-audit --no-fund
-      - name: Syntax check
+      - name: JavaScript syntax check
         run: npm run check
+      - name: Smoke checker syntax check
+        run: python3 -m py_compile smoke_check.py
+      - name: Smoke checker unit tests
+        run: python3 -m unittest discover -s tests -v
       - name: Verify x402 exports
         run: |
           node --input-type=module -e '
