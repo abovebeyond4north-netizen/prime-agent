@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check server.mjs && node --check token_verdict.mjs && node --check token_verdict.test.mjs",
-    "test": "node --test token_verdict.test.mjs"
+    "check": "node --check server.mjs && node --check discovery.mjs && node --check token_verdict.mjs && node --check discovery.test.mjs && node --check token_verdict.test.mjs",
+    "test": "node --test discovery.test.mjs token_verdict.test.mjs"
   },
   "dependencies": {
     "@x402/core": "latest",
