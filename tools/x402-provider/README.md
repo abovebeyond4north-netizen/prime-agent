@@ -32,6 +32,7 @@ Optional runtime settings:
 - `X402_NETWORK` (default `eip155:8453`)
 - `X402_FACILITATOR_URL` (default `https://facilitator.payai.network`)
 - `X402_DISCOVERY_URL` (defaults to Coinbase's public x402 discovery endpoint)
+- `X402_PUBLIC_BASE_URL` (defaults to Render's external URL, then the production provider URL; used to publish absolute Bazaar resource URLs)
 - `BASE_RPC_URL` (default `https://mainnet.base.org`)
 - `DEXSCREENER_URL` (default `https://api.dexscreener.com`)
 - `TOKEN_VERDICT_TIMEOUT_MS` (default `8000`, bounded to 1–30 seconds)
@@ -96,11 +97,42 @@ Those capabilities should only be added when they can be measured reliably and e
 
 DEX Screener enrichment is fail-soft: if market enrichment is unavailable, the endpoint still returns its on-chain analysis and marks market data unavailable rather than falsely treating an outage as “no market.”
 
-## Discovery
+## Discovery and acquisition
 
-Both paid routes declare the x402 Bazaar discovery extension with example input, input schema, output example, output schema, and machine-readable endpoint descriptions.
+Both paid routes publish the x402 Bazaar discovery extension with example input, input schema, output example, output schema, and machine-readable endpoint descriptions.
 
-A facilitator that supports Bazaar indexing can catalog an endpoint after a real settlement carrying the extension. Catalog behavior is facilitator-specific, so successful settlement and successful indexing are monitored separately.
+The payment manifest also publishes provider metadata directly on the resource object:
+
+- market API: `Prime Agent Market Intel`
+- token API: `Prime Agent Token Verdict`
+- absolute production resource URLs
+- up to five short search tags per route
+- `application/json` MIME metadata
+
+The token verdict tags are `token-risk`, `erc20`, `base`, `onchain`, and `liquidity`. These are intentionally aligned with agent search intent rather than branding.
+
+At startup, the provider validates both Bazaar declarations with `validateDiscoveryExtension`. Invalid discovery metadata fails startup instead of silently shipping an unindexable paid route. The resource server also registers the Bazaar server extension so the HTTP method is enriched into the discovery declaration.
+
+Production smoke checks decode the real `PAYMENT-REQUIRED` header and assert that the live paid routes expose:
+
+- the expected absolute resource path
+- the expected service name
+- required search tags
+- a Bazaar discovery block
+- HTTP/GET discovery metadata
+- a machine-readable Bazaar schema
+
+A facilitator still controls its own catalog. A correct 402 declaration is necessary but does not itself prove the route has been indexed. Catalog visibility and successful settlement should therefore be monitored separately.
+
+## Revenue telemetry
+
+Every successfully delivered paid handler writes a structured log event:
+
+```json
+{"event":"x402_paid_delivery","route":"/v1/token/verdict","price":"$0.01","network":"eip155:8453","cacheStatus":"hit"}
+```
+
+Because the x402 middleware runs before the handler, this event is emitted only when a paid-mode request reaches the protected resource handler. Render logs can therefore be used to count paid deliveries and compare route usage. Settlement receipts remain the authoritative source for on-chain payment reconciliation.
 
 ## Product economics
 
