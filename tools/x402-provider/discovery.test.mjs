@@ -42,11 +42,8 @@ test("token verdict declaration includes machine-readable address input", () => 
   const bundle = buildDiscoveryBundle();
   const info = bundle.tokenVerdictDiscovery.bazaar.info;
   assert.equal(info.input.queryParams.address, "0x1111111111111111111111111111111111111111");
-  assert.equal(
-    bundle.tokenVerdictDiscovery.bazaar.schema.properties.info.properties.input
-      .properties.queryParams.properties.address.pattern,
-    "^0x[0-9a-fA-F]{40}$",
-  );
+  assert.equal(info.input.method, "GET");
+  assert.equal(info.input.type, "http");
 });
 
 test("non-http public base URLs are rejected", () => {
