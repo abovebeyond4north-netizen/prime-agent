@@ -2,8 +2,11 @@ import express from "express";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
-import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
-
+import {
+  buildDiscoveryBundle,
+  registerBazaarExtension,
+  validateDiscoveryBundle,
+} from "./discovery.mjs";
 import { inspectBaseToken, isEvmAddress } from "./token_verdict.mjs";
 
 const PORT = Number(process.env.PORT ?? 8402);
@@ -25,12 +28,38 @@ const TOKEN_VERDICT_CACHE_TTL_MS = boundedNumber(
   300_000,
 );
 const TOKEN_VERDICT_CACHE_MAX = boundedNumber("TOKEN_VERDICT_CACHE_MAX", 1_024, 32, 10_000);
+const PUBLIC_BASE_URL =
+  process.env.X402_PUBLIC_BASE_URL ??
+  process.env.RENDER_EXTERNAL_URL ??
+  "https://prime-agent-x402-provider.onrender.com";
 
 const validPayTo = /^0x[a-fA-F0-9]{40}$/.test(PAY_TO);
 const paymentEnabled = validPayTo;
 
 const app = express();
 app.disable("x-powered-by");
+
+const discoveryBundle = buildDiscoveryBundle(PUBLIC_BASE_URL);
+const discoveryValidation = validateDiscoveryBundle(discoveryBundle);
+if (!discoveryValidation.valid) {
+  throw new Error(
+    "invalid_bazaar_discovery_metadata: " + discoveryValidation.errors.join("; "),
+  );
+}
+
+function logPaidDelivery(route, price, extra = {}) {
+  if (!paymentEnabled) return;
+  console.log(
+    JSON.stringify({
+      event: "x402_paid_delivery",
+      route,
+      price,
+      network: NETWORK,
+      at: new Date().toISOString(),
+      ...extra,
+    }),
+  );
+}
 
 function boundedNumber(name, fallback, minimum, maximum) {
   const parsed = Number(process.env[name] ?? fallback);
@@ -181,96 +210,7 @@ if (paymentEnabled) {
     "eip155:*",
     new ExactEvmScheme(),
   );
-
-  const marketDiscovery = declareDiscoveryExtension({
-    input: { limit: 25, organicOnly: true },
-    inputSchema: {
-      type: "object",
-      properties: {
-        limit: {
-          type: "integer",
-          minimum: 1,
-          maximum: 100,
-          description: "Maximum number of ranked opportunities to return.",
-        },
-        organicOnly: {
-          type: "boolean",
-          description: "Exclude resources that do not show repeat independent payer demand.",
-        },
-      },
-    },
-    output: {
-      example: {
-        count: 1,
-        opportunities: [
-          {
-            resource: "https://example.com/api",
-            serviceName: "Example API",
-            priceUsd: 0.01,
-            calls30d: 1000,
-            uniquePayers30d: 25,
-            callsPerPayer: 40,
-            repeatDemand: true,
-            opportunityScore: 123.45,
-          },
-        ],
-      },
-      schema: {
-        type: "object",
-        properties: {
-          generatedAt: { type: "string" },
-          source: { type: "string" },
-          methodology: { type: "string" },
-          count: { type: "integer" },
-          opportunities: { type: "array", items: { type: "object" } },
-        },
-      },
-    },
-  });
-
-  const tokenVerdictDiscovery = declareDiscoveryExtension({
-    input: { address: "0x1111111111111111111111111111111111111111" },
-    inputSchema: {
-      type: "object",
-      required: ["address"],
-      properties: {
-        address: {
-          type: "string",
-          pattern: "^0x[0-9a-fA-F]{40}$",
-          description: "Base mainnet ERC-20 contract address to inspect.",
-        },
-      },
-    },
-    output: {
-      example: {
-        network: "base-mainnet",
-        token: "0x1111111111111111111111111111111111111111",
-        metadata: { symbol: "TOKEN", decimals: 18 },
-        market: { pairCount: 2, totalLiquidityUsd: 250000 },
-        verdict: {
-          riskSignalScore: 0,
-          signalLevel: "limited-observed-signals",
-          flags: [],
-        },
-      },
-      schema: {
-        type: "object",
-        properties: {
-          observedAt: { type: "string" },
-          network: { type: "string" },
-          chainId: { type: "integer" },
-          token: { type: "string" },
-          contract: { type: "object" },
-          metadata: { type: "object" },
-          market: { type: "object" },
-          verdict: { type: "object" },
-          coverage: { type: "object" },
-          sources: { type: "object" },
-          cache: { type: "object" },
-        },
-      },
-    },
-  });
+  registerBazaarExtension(resourceServer);
 
   app.use(
     paymentMiddleware(
@@ -282,10 +222,10 @@ if (paymentEnabled) {
             network: NETWORK,
             payTo: PAY_TO,
           },
-          description:
-            "Rank x402 seller opportunities by repeat buyers, call reuse, recency, USDC monetization, and suspicious-activity penalties.",
+          resource: discoveryBundle.marketResource,
+          description: discoveryBundle.marketDescription,
           mimeType: "application/json",
-          extensions: { ...marketDiscovery },
+          extensions: { ...discoveryBundle.marketDiscovery },
         },
         "GET /v1/token/verdict": {
           accepts: {
@@ -294,10 +234,10 @@ if (paymentEnabled) {
             network: NETWORK,
             payTo: PAY_TO,
           },
-          description:
-            "Inspect a Base token using deterministic contract, liquidity, market-age, ownership, and proxy signals without LLM inference.",
+          resource: discoveryBundle.tokenVerdictResource,
+          description: discoveryBundle.tokenDescription,
           mimeType: "application/json",
-          extensions: { ...tokenVerdictDiscovery },
+          extensions: { ...discoveryBundle.tokenVerdictDiscovery },
         },
       },
       resourceServer,
@@ -318,6 +258,21 @@ app.get("/health", (_req, res) => {
     gitCommit: process.env.RENDER_GIT_COMMIT ?? null,
     gitBranch: process.env.RENDER_GIT_BRANCH ?? null,
     serviceUrl: process.env.RENDER_EXTERNAL_URL ?? null,
+    discovery: {
+      publicBaseUrl: discoveryBundle.baseUrl,
+      services: [
+        {
+          name: discoveryBundle.marketResource.serviceName,
+          url: discoveryBundle.marketResource.url,
+          tags: discoveryBundle.marketResource.tags,
+        },
+        {
+          name: discoveryBundle.tokenVerdictResource.serviceName,
+          url: discoveryBundle.tokenVerdictResource.url,
+          tags: discoveryBundle.tokenVerdictResource.tags,
+        },
+      ],
+    },
   });
 });
 
@@ -335,6 +290,9 @@ app.get("/v1/x402/opportunities", async (req, res) => {
       count: selected.length,
       opportunities: selected,
     });
+    logPaidDelivery("/v1/x402/opportunities", PRICE, {
+      resultCount: selected.length,
+    });
   } catch (error) {
     console.error(error);
     res.status(502).json({ error: "market_data_unavailable" });
@@ -349,6 +307,10 @@ app.get("/v1/token/verdict", async (req, res) => {
 
   try {
     const result = await tokenVerdict(address);
+    logPaidDelivery("/v1/token/verdict", TOKEN_VERDICT_PRICE, {
+      token: address.toLowerCase(),
+      cacheStatus: result.cache?.status ?? null,
+    });
     return res.json(result);
   } catch (error) {
     console.error(error);
