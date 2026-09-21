@@ -60,6 +60,7 @@ jobs:
             const evm = await import("@x402/evm/exact/server");
             const express = await import("@x402/express");
             const bazaar = await import("@x402/extensions/bazaar");
+            const cdp = await import("@coinbase/cdp-sdk/x402");
             if (typeof core.HTTPFacilitatorClient !== "function") throw new Error("HTTPFacilitatorClient export missing");
             if (typeof evm.ExactEvmScheme !== "function") throw new Error("ExactEvmScheme export missing");
             if (typeof express.paymentMiddleware !== "function") throw new Error("paymentMiddleware export missing");
@@ -67,4 +68,5 @@ jobs:
             if (typeof bazaar.declareDiscoveryExtension !== "function") throw new Error("declareDiscoveryExtension export missing");
             if (typeof bazaar.validateDiscoveryExtension !== "function") throw new Error("validateDiscoveryExtension export missing");
             if (typeof bazaar.bazaarResourceServerExtension !== "object") throw new Error("bazaarResourceServerExtension export missing");
+            if (typeof cdp.createCdpFacilitatorClient !== "function") throw new Error("createCdpFacilitatorClient export missing");
           '
