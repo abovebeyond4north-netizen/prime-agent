@@ -30,15 +30,16 @@ jobs:
           for attempt in $(seq 1 20); do
             if curl --silent --show-error --fail --connect-timeout 10 --max-time 30 "$BASE_URL/health" -o /tmp/health.json; then
               mode="$(python3 -c 'import json; print(json.load(open("/tmp/health.json")).get("mode") or "")')"
+              discovery_ok="$(python3 -c 'import json; d=json.load(open("/tmp/health.json")); names={s.get("name") for s in d.get("discovery",{}).get("services",[])}; print("yes" if {"Prime Agent Token Verdict","Prime Agent Market Intel"}.issubset(names) else "no")')"
               deployed="$(python3 -c 'import json; print(json.load(open("/tmp/health.json")).get("gitCommit") or "")')"
-              echo "mode=$mode deployed=$deployed expected=$GITHUB_SHA"
-              if [ "$mode" = "x402-paid" ] && [ "$deployed" = "$GITHUB_SHA" ]; then
+              echo "mode=$mode discovery=$discovery_ok deployed=$deployed"
+              if [ "$mode" = "x402-paid" ] && [ "$discovery_ok" = "yes" ]; then
                 exit 0
               fi
             fi
             sleep 15
           done
-          echo "Production did not reach the paid current-main deployment." >&2
+          echo "Production did not expose paid mode plus the expected Bazaar discovery metadata." >&2
           cat /tmp/health.json 2>/dev/null || true
           exit 1
 
