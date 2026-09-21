@@ -4,14 +4,15 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check server.mjs && node --check discovery.mjs && node --check token_verdict.mjs && node --check discovery.test.mjs && node --check token_verdict.test.mjs",
-    "test": "node --test discovery.test.mjs token_verdict.test.mjs"
+    "check": "node --check server.mjs && node --check facilitator.mjs && node --check discovery.mjs && node --check token_verdict.mjs && node --check facilitator.test.mjs && node --check discovery.test.mjs && node --check token_verdict.test.mjs",
+    "test": "node --test facilitator.test.mjs discovery.test.mjs token_verdict.test.mjs"
   },
   "dependencies": {
     "@x402/core": "latest",
     "@x402/evm": "latest",
     "@x402/express": "latest",
     "@x402/extensions": "latest",
-    "express": "latest"
+    "express": "latest",
+    "@coinbase/cdp-sdk": "latest"
   }
 }
