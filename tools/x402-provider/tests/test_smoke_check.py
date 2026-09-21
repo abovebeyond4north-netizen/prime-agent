@@ -1,4 +1,6 @@
+import base64
 import importlib.util
+import json
 import pathlib
 import sys
 import unittest
@@ -9,6 +11,31 @@ smoke = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 sys.modules[spec.name] = smoke
 spec.loader.exec_module(smoke)
+
+def encoded_requirement(path, service_name, tags):
+    payload = {
+        "resource": {
+            "url": f"https://prime-agent-x402-provider.onrender.com{path}",
+            "description": "test",
+            "mimeType": "application/json",
+            "serviceName": service_name,
+            "tags": tags,
+        },
+        "extensions": {
+            "bazaar": {
+                "info": {
+                    "input": {
+                        "type": "http",
+                        "method": "GET",
+                        "queryParams": {},
+                    }
+                },
+                "schema": {"type": "object"},
+            }
+        },
+    }
+    raw = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
 class SmokeCheckTests(unittest.TestCase):
@@ -57,9 +84,42 @@ class SmokeCheckTests(unittest.TestCase):
 
     def test_paid_market_contract(self):
         health = {"paymentEnabled": True}
-        self.assertIsNone(
-            smoke.validate_market(health, 402, {"PAYMENT-REQUIRED": "encoded"}, b"")
+        header = encoded_requirement(
+            "/v1/x402/opportunities",
+            "Prime Agent Market Intel",
+            ["x402", "seller-market", "agents", "demand", "base"],
         )
+        self.assertIsNone(
+            smoke.validate_market(health, 402, {"PAYMENT-REQUIRED": header}, b"")
+        )
+
+    def test_token_verdict_discovery_contract(self):
+        header = encoded_requirement(
+            "/v1/token/verdict",
+            "Prime Agent Token Verdict",
+            ["token-risk", "erc20", "base", "onchain", "liquidity"],
+        )
+        requirement = smoke.validate_discoverable_402(
+            {"PAYMENT-REQUIRED": header},
+            "/v1/token/verdict",
+            "Prime Agent Token Verdict",
+            {"token-risk", "erc20", "base"},
+        )
+        self.assertEqual(requirement["resource"]["serviceName"], "Prime Agent Token Verdict")
+
+    def test_discovery_contract_rejects_wrong_service_name(self):
+        header = encoded_requirement(
+            "/v1/token/verdict",
+            "Wrong Service",
+            ["token-risk", "erc20", "base"],
+        )
+        with self.assertRaises(AssertionError):
+            smoke.validate_discoverable_402(
+                {"PAYMENT-REQUIRED": header},
+                "/v1/token/verdict",
+                "Prime Agent Token Verdict",
+                {"token-risk", "erc20", "base"},
+            )
 
     def test_paid_market_requires_payment_header(self):
         health = {"paymentEnabled": True}
