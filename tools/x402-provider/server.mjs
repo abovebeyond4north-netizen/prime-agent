@@ -222,9 +222,17 @@ if (paymentEnabled) {
             network: NETWORK,
             payTo: PAY_TO,
           },
-          resource: discoveryBundle.marketResource,
-          description: discoveryBundle.marketDescription,
+          resource: discoveryBundle.marketResource.url,
+          description:
+            discoveryBundle.marketResource.serviceName +
+            " — " +
+            discoveryBundle.marketDescription +
+            " Tags: " +
+            discoveryBundle.marketResource.tags.join(", ") +
+            ".",
           mimeType: "application/json",
+          serviceName: discoveryBundle.marketResource.serviceName,
+          tags: discoveryBundle.marketResource.tags,
           extensions: { ...discoveryBundle.marketDiscovery },
         },
         "GET /v1/token/verdict": {
@@ -234,9 +242,17 @@ if (paymentEnabled) {
             network: NETWORK,
             payTo: PAY_TO,
           },
-          resource: discoveryBundle.tokenVerdictResource,
-          description: discoveryBundle.tokenDescription,
+          resource: discoveryBundle.tokenVerdictResource.url,
+          description:
+            discoveryBundle.tokenVerdictResource.serviceName +
+            " — " +
+            discoveryBundle.tokenDescription +
+            " Tags: " +
+            discoveryBundle.tokenVerdictResource.tags.join(", ") +
+            ".",
           mimeType: "application/json",
+          serviceName: discoveryBundle.tokenVerdictResource.serviceName,
+          tags: discoveryBundle.tokenVerdictResource.tags,
           extensions: { ...discoveryBundle.tokenVerdictDiscovery },
         },
       },
