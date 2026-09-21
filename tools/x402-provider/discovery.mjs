@@ -70,6 +70,8 @@ export function buildDiscoveryBundle(publicBaseUrl = DEFAULT_PUBLIC_BASE_URL) {
     },
   });
 
+  marketDiscovery.bazaar.info.input.method = "GET";
+
   const tokenVerdictDiscovery = declareDiscoveryExtension({
     input: { address: "0x1111111111111111111111111111111111111111" },
     inputSchema: {
@@ -113,6 +115,8 @@ export function buildDiscoveryBundle(publicBaseUrl = DEFAULT_PUBLIC_BASE_URL) {
       },
     },
   });
+
+  tokenVerdictDiscovery.bazaar.info.input.method = "GET";
 
   const marketResource = {
     url: baseUrl + "/v1/x402/opportunities",
