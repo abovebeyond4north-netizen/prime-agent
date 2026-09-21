@@ -1,0 +1,38 @@
+name: x402 Coinbase Bazaar preflight
+
+on:
+  pull_request:
+    paths:
+      - "tools/x402-provider/**"
+      - ".github/workflows/x402-coinbase-preflight.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/x402-provider/**"
+      - ".github/workflows/x402-coinbase-preflight.yml"
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: x402-coinbase-preflight
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate live resources with Coinbase CDP
+        run: >-
+          python3 tools/x402-provider/coinbase_validate.py
+          https://prime-agent-x402-provider.onrender.com/v1/token/verdict
+          https://prime-agent-x402-provider.onrender.com/v1/x402/opportunities
+          --timeout 30
