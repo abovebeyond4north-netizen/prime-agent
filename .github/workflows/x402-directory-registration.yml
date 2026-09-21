@@ -28,19 +28,9 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in $(seq 1 20); do
-            if curl --silent --show-error --fail               --connect-timeout 10 --max-time 30               "$BASE_URL/health" -o /tmp/health.json; then
-              mode="$(python3 - <<'PY'
-import json
-with open("/tmp/health.json", encoding="utf-8") as fh:
-    print(json.load(fh).get("mode") or "")
-PY
-)"
-              deployed="$(python3 - <<'PY'
-import json
-with open("/tmp/health.json", encoding="utf-8") as fh:
-    print(json.load(fh).get("gitCommit") or "")
-PY
-)"
+            if curl --silent --show-error --fail --connect-timeout 10 --max-time 30 "$BASE_URL/health" -o /tmp/health.json; then
+              mode="$(python3 -c 'import json; print(json.load(open("/tmp/health.json")).get("mode") or "")')"
+              deployed="$(python3 -c 'import json; print(json.load(open("/tmp/health.json")).get("gitCommit") or "")')"
               echo "mode=$mode deployed=$deployed expected=$GITHUB_SHA"
               if [ "$mode" = "x402-paid" ] && [ "$deployed" = "$GITHUB_SHA" ]; then
                 exit 0
@@ -56,14 +46,10 @@ PY
         shell: bash
         run: |
           set -euo pipefail
-          for resource in             "$BASE_URL/v1/token/verdict"             "$BASE_URL/v1/x402/opportunities"
-          do
+          for resource in "$BASE_URL/v1/token/verdict" "$BASE_URL/v1/x402/opportunities"; do
             echo "Self-testing $resource"
-            curl --silent --show-error --fail-with-body               --connect-timeout 10 --max-time 45               -X POST https://market402.com/selftest               -H 'content-type: application/json'               --data "$(python3 - "$resource" <<'PY'
-import json, sys
-print(json.dumps({"url": sys.argv[1]}))
-PY
-)"
+            payload="$(python3 -c 'import json,sys; print(json.dumps({"url": sys.argv[1]}))' "$resource")"
+            curl --silent --show-error --fail-with-body --connect-timeout 10 --max-time 45               -X POST https://market402.com/selftest               -H 'content-type: application/json'               --data "$payload"
             echo
           done
 
@@ -73,7 +59,7 @@ PY
           set -euo pipefail
 
           existing=""
-          if curl --silent --show-error --fail             --connect-timeout 10 --max-time 30             "$OPERATOR_JSON" -o /tmp/operator.json; then
+          if curl --silent --show-error --fail --connect-timeout 10 --max-time 30 "$OPERATOR_JSON" -o /tmp/operator.json; then
             existing="$(cat /tmp/operator.json)"
           fi
 
@@ -84,14 +70,10 @@ PY
               return 0
             fi
 
-            payload="$(python3 - "$resource" <<'PY'
-import json, sys
-print(json.dumps({"resource": sys.argv[1], "declared_price_usd": 0.01}))
-PY
-)"
+            payload="$(python3 -c 'import json,sys; print(json.dumps({"resource": sys.argv[1], "declared_price_usd": 0.01}))' "$resource")"
             body_file="$(mktemp)"
             status="$(
-              curl --silent --show-error                 --connect-timeout 10 --max-time 45                 -o "$body_file" -w '%{http_code}'                 -X POST https://market402.com/submit                 -H 'content-type: application/json'                 --data "$payload"
+              curl --silent --show-error --connect-timeout 10 --max-time 45                 -o "$body_file" -w '%{http_code}'                 -X POST https://market402.com/submit                 -H 'content-type: application/json'                 --data "$payload"
             )"
             cat "$body_file"
             echo
