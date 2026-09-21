@@ -16,7 +16,7 @@ def encoded_requirement(path, service_name, tags):
     payload = {
         "resource": {
             "url": f"https://prime-agent-x402-provider.onrender.com{path}",
-            "description": "test",
+            "description": service_name + " — test",
             "mimeType": "application/json",
             "serviceName": service_name,
             "tags": tags,

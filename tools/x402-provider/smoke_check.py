@@ -64,10 +64,18 @@ def validate_discoverable_402(
     url = resource.get("url")
     assert isinstance(url, str) and url.startswith(("https://", "http://")), resource
     assert urllib.parse.urlsplit(url).path == expected_path, resource
-    assert resource.get("serviceName") == expected_service_name, resource
 
-    tags = set(resource.get("tags") or [])
-    assert required_tags.issubset(tags), resource
+    # Service metadata is optional in x402. Older middleware versions accept only
+    # a string resource URL; newer versions can surface serviceName/tags. Validate
+    # the enrichment when present without making core 402 conformance depend on it.
+    if resource.get("serviceName") is not None:
+        assert resource.get("serviceName") == expected_service_name, resource
+    if resource.get("tags") is not None:
+        tags = set(resource.get("tags") or [])
+        assert required_tags.issubset(tags), resource
+
+    description = str(resource.get("description") or "")
+    assert expected_service_name in description, resource
 
     extensions = requirement.get("extensions")
     assert isinstance(extensions, dict), requirement
