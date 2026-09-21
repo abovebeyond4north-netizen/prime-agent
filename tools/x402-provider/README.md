@@ -20,7 +20,19 @@ A private key is **not** required by the seller process. To activate payment gat
 
 - `PAY_TO=0x...`
 
-By default the provider targets Base mainnet (`eip155:8453`) through PayAI at `https://facilitator.payai.network`. The facilitator is configurable so it can be replaced without changing application code.
+By default the provider targets Base mainnet (`eip155:8453`) through PayAI at `https://facilitator.payai.network`.
+
+The provider also supports an explicit Coinbase CDP facilitator mode. This is intentionally opt-in so adding CDP credentials can never silently change the settlement provider:
+
+```text
+X402_FACILITATOR_MODE=cdp
+CDP_API_KEY_ID=...
+CDP_API_KEY_SECRET=...
+```
+
+With an existing `PAY_TO` address, CDP facilitator mode needs only the API key ID and API key secret; it does **not** need a wallet secret or the receiver's private key. Keep those credentials in the deployment platform's secret environment settings, never in the repository or logs.
+
+If `X402_FACILITATOR_MODE` is omitted, the provider remains on PayAI. If `cdp` is selected without both required API-key values, startup fails closed instead of falling back to a different facilitator.
 
 If `PAY_TO` is absent or malformed, the service stays online in public-analysis mode instead of failing startup.
 
@@ -30,7 +42,9 @@ Optional runtime settings:
 - `X402_PRICE` (default `$0.01`) for the market-opportunity route
 - `X402_TOKEN_VERDICT_PRICE` (default `$0.01`)
 - `X402_NETWORK` (default `eip155:8453`)
-- `X402_FACILITATOR_URL` (default `https://facilitator.payai.network`)
+- `X402_FACILITATOR_MODE` (`payai` by default; set `cdp` only after CDP credentials are configured)
+- `X402_FACILITATOR_URL` (PayAI-mode override; default `https://facilitator.payai.network`)
+- `CDP_API_KEY_ID` + `CDP_API_KEY_SECRET` (required only in explicit `cdp` mode)
 - `X402_DISCOVERY_URL` (defaults to Coinbase's public x402 discovery endpoint)
 - `X402_PUBLIC_BASE_URL` (defaults to Render's external URL, then the production provider URL; used to publish absolute Bazaar resource URLs)
 - `BASE_RPC_URL` (default `https://mainnet.base.org`)
@@ -133,6 +147,12 @@ Every successfully delivered paid handler writes a structured log event:
 ```
 
 Because the x402 middleware runs before the handler, this event is emitted only when a paid-mode request reaches the protected resource handler. Render logs can therefore be used to count paid deliveries and compare route usage. Settlement receipts remain the authoritative source for on-chain payment reconciliation.
+
+## Coinbase Bazaar readiness
+
+The repository includes a zero-cost Coinbase preflight that checks both live resources against CDP's validator. A passing preflight proves Coinbase can parse the x402 v2 challenge and Bazaar extension; it does not itself index the endpoint.
+
+Coinbase cataloging is a facilitator-side outcome. To make a resource eligible for Coinbase's Bazaar indexing path, a real payment must ultimately be processed through the CDP facilitator with the Bazaar extension echoed by the paying client. Switching `X402_FACILITATOR_MODE` to `cdp` prepares the resource server for that path once authenticated CDP API credentials are configured.
 
 ## Product economics
 

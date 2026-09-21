@@ -1,4 +1,5 @@
 import express from "express";
+import { createCdpFacilitatorClient } from "@coinbase/cdp-sdk/x402";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
@@ -7,13 +8,18 @@ import {
   registerBazaarExtension,
   validateDiscoveryBundle,
 } from "./discovery.mjs";
+import {
+  buildFacilitatorClient,
+  resolveFacilitatorConfig,
+} from "./facilitator.mjs";
 import { inspectBaseToken, isEvmAddress } from "./token_verdict.mjs";
 
 const PORT = Number(process.env.PORT ?? 8402);
 const PRICE = process.env.X402_PRICE ?? "$0.01";
 const TOKEN_VERDICT_PRICE = process.env.X402_TOKEN_VERDICT_PRICE ?? "$0.01";
 const NETWORK = process.env.X402_NETWORK ?? "eip155:8453";
-const FACILITATOR_URL = process.env.X402_FACILITATOR_URL ?? "https://facilitator.payai.network";
+const FACILITATOR_CONFIG = resolveFacilitatorConfig();
+const FACILITATOR_URL = FACILITATOR_CONFIG.url;
 const PAY_TO = (process.env.PAY_TO ?? "").trim();
 const DISCOVERY_URL =
   process.env.X402_DISCOVERY_URL ??
@@ -205,7 +211,11 @@ async function tokenVerdict(address) {
 }
 
 if (paymentEnabled) {
-  const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
+  const facilitatorClient = buildFacilitatorClient({
+    config: FACILITATOR_CONFIG,
+    createPayAiClient: (url) => new HTTPFacilitatorClient({ url }),
+    createCdpClient: () => createCdpFacilitatorClient(),
+  });
   const resourceServer = new x402ResourceServer(facilitatorClient).register(
     "eip155:*",
     new ExactEvmScheme(),
@@ -271,6 +281,7 @@ app.get("/health", (_req, res) => {
     mode: paymentEnabled ? "x402-paid" : "public-analysis",
     network: paymentEnabled ? NETWORK : null,
     facilitator: paymentEnabled ? FACILITATOR_URL : null,
+    facilitatorMode: paymentEnabled ? FACILITATOR_CONFIG.mode : null,
     gitCommit: process.env.RENDER_GIT_COMMIT ?? null,
     gitBranch: process.env.RENDER_GIT_BRANCH ?? null,
     serviceUrl: process.env.RENDER_EXTERNAL_URL ?? null,
@@ -341,7 +352,7 @@ app.listen(PORT, () => {
   }
   console.log(
     paymentEnabled
-      ? "x402 paid mode: market " +
+      ? "x402 paid mode [" + FACILITATOR_CONFIG.mode + "]: market " +
         PRICE +
         ", token verdict " +
         TOKEN_VERDICT_PRICE +
