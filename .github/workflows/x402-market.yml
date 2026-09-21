@@ -49,9 +49,9 @@ jobs:
         run: npm run check
       - name: JavaScript unit tests
         run: npm test
-      - name: Smoke checker syntax check
-        run: python3 -m py_compile smoke_check.py
-      - name: Smoke checker unit tests
+      - name: Python helper syntax check
+        run: python3 -m py_compile smoke_check.py coinbase_validate.py
+      - name: Python helper unit tests
         run: python3 -m unittest discover -s tests -v
       - name: Verify x402 exports
         run: |
