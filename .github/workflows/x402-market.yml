@@ -65,4 +65,6 @@ jobs:
             if (typeof express.paymentMiddleware !== "function") throw new Error("paymentMiddleware export missing");
             if (typeof express.x402ResourceServer !== "function") throw new Error("x402ResourceServer export missing");
             if (typeof bazaar.declareDiscoveryExtension !== "function") throw new Error("declareDiscoveryExtension export missing");
+            if (typeof bazaar.validateDiscoveryExtension !== "function") throw new Error("validateDiscoveryExtension export missing");
+            if (typeof bazaar.bazaarResourceServerExtension !== "object") throw new Error("bazaarResourceServerExtension export missing");
           '
