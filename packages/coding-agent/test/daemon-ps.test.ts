@@ -24,6 +24,11 @@ describe("worker socket classification", () => {
 		expect(isWorkerSocketPath(join(defaultDaemonSocketDir(), "daemon.sock"))).toBe(false);
 		expect(isWorkerSocketPath("/tmp/worker-abc.sock")).toBe(false);
 	});
+
+	it("recognizes Windows worker named pipes on every platform", () => {
+		expect(isWorkerSocketPath("\\\\.\\pipe\\prime-agent-worker-98ed5cb228d2-5b1d3aeb91ee")).toBe(true);
+		expect(isWorkerSocketPath("\\\\.\\pipe\\prime-agent-daemon")).toBe(false);
+	});
 });
 
 describe("parseSsListeners", () => {
