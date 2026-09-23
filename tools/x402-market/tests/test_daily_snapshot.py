@@ -4,6 +4,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 MODULE_DIR = pathlib.Path(__file__).parents[1]
 sys.path.insert(0, str(MODULE_DIR))
@@ -57,6 +58,36 @@ class DailySnapshotTests(unittest.TestCase):
                 self.assertEqual(json.loads(lines[0])["resource_count"], 3)
             finally:
                 daily.DATA_DIR, daily.LATEST, daily.HISTORY = old
+
+    def test_fetch_provider_health_records_deployment_metadata(self):
+        response = mock.MagicMock()
+        response.status = 200
+        response.read.return_value = json.dumps(
+            {
+                "ok": True,
+                "mode": "x402-paid",
+                "paymentEnabled": True,
+                "gitCommit": "abc123",
+                "gitBranch": "main",
+            }
+        ).encode("utf-8")
+        response.__enter__.return_value = response
+        with mock.patch.object(daily.urllib.request, "urlopen", return_value=response):
+            health = daily.fetch_provider_health("https://example.com/health", timeout=1)
+        self.assertEqual(health["status"], "healthy")
+        self.assertEqual(health["http_status"], 200)
+        self.assertEqual(health["mode"], "x402-paid")
+        self.assertTrue(health["payment_enabled"])
+        self.assertEqual(health["git_commit"], "abc123")
+        self.assertGreaterEqual(health["latency_ms"], 0)
+
+    def test_fetch_provider_health_degrades_to_unreachable_without_raising(self):
+        error = daily.urllib.error.URLError("temporary DNS failure")
+        with mock.patch.object(daily.urllib.request, "urlopen", side_effect=error):
+            health = daily.fetch_provider_health("https://example.com/health", timeout=1)
+        self.assertEqual(health["status"], "unreachable")
+        self.assertIsNone(health["http_status"])
+        self.assertIn("temporary DNS failure", health["error"])
 
 
 if __name__ == "__main__":
