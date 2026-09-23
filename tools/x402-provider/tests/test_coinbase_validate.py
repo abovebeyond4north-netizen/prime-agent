@@ -2,6 +2,7 @@ import importlib.util
 import pathlib
 import sys
 import unittest
+from unittest import mock
 
 MODULE_PATH = pathlib.Path(__file__).parents[1] / "coinbase_validate.py"
 spec = importlib.util.spec_from_file_location("coinbase_validate", MODULE_PATH)
@@ -97,6 +98,41 @@ class CoinbaseValidateTests(unittest.TestCase):
             ],
         })
         self.assertFalse(coinbase.is_transient_reachability_failure(summary))
+
+    def test_retries_transient_coinbase_transport_error(self):
+        accepted = {
+            "valid": True,
+            "simulation": {"outcome": "accepted"},
+            "checks": [
+                {"check": "endpoint_reachable", "severity": "required", "passed": True}
+            ],
+        }
+        with mock.patch.object(
+            coinbase,
+            "post_validate",
+            side_effect=[
+                coinbase.TransientCoinbaseError("temporary outage"),
+                accepted,
+            ],
+        ) as post:
+            result = coinbase.validate_resource(
+                "https://example.com/resource", retries=1, retry_delay=0
+            )
+        self.assertTrue(result["summary"]["accepted"])
+        self.assertEqual(result["attempts"], 2)
+        self.assertEqual(post.call_count, 2)
+
+    def test_does_not_retry_permanent_coinbase_error(self):
+        with mock.patch.object(
+            coinbase,
+            "post_validate",
+            side_effect=coinbase.CoinbaseValidateError("HTTP 400"),
+        ) as post:
+            with self.assertRaises(coinbase.CoinbaseValidateError):
+                coinbase.validate_resource(
+                    "https://example.com/resource", retries=2, retry_delay=0
+                )
+        self.assertEqual(post.call_count, 1)
 
 
 if __name__ == "__main__":

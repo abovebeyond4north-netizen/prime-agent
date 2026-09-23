@@ -15,6 +15,14 @@ DEFAULT_VALIDATE_URL = "https://api.cdp.coinbase.com/platform/v2/x402/validate"
 TRANSIENT_REACHABILITY_CHECK = "endpoint_reachable"
 
 
+class CoinbaseValidateError(RuntimeError):
+    """Permanent Coinbase validation request failure."""
+
+
+class TransientCoinbaseError(CoinbaseValidateError):
+    """Retryable Coinbase validation transport/service failure."""
+
+
 def post_validate(
     resource: str,
     *,
@@ -39,9 +47,13 @@ def post_validate(
     except urllib.error.HTTPError as exc:
         body = exc.read()
         detail = body.decode("utf-8", errors="replace")
-        raise RuntimeError(f"Coinbase validate HTTP {exc.code}: {detail}") from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError(f"Coinbase validate unavailable: {exc.reason}") from exc
+        error = f"Coinbase validate HTTP {exc.code}: {detail}"
+        if exc.code == 429 or 500 <= exc.code <= 599:
+            raise TransientCoinbaseError(error) from exc
+        raise CoinbaseValidateError(error) from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        reason = getattr(exc, "reason", exc)
+        raise TransientCoinbaseError(f"Coinbase validate unavailable: {reason}") from exc
 
     try:
         result = json.loads(body.decode("utf-8"))
@@ -135,7 +147,14 @@ def validate_resource(
     resource: str, *, retries: int = 0, retry_delay: float = 1.0, **kwargs: Any
 ) -> dict[str, Any]:
     for attempt in range(retries + 1):
-        raw = post_validate(resource, **kwargs)
+        try:
+            raw = post_validate(resource, **kwargs)
+        except TransientCoinbaseError:
+            if attempt >= retries:
+                raise
+            if retry_delay > 0:
+                time.sleep(retry_delay * (2**attempt))
+            continue
         summary = assess(raw)
         if summary["accepted"] or not is_transient_reachability_failure(summary):
             return {"resource": resource, "summary": summary, "raw": raw, "attempts": attempt + 1}
