@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +16,30 @@ DATA_DIR = ROOT / "data"
 LATEST = DATA_DIR / "latest.json"
 HISTORY = DATA_DIR / "history.jsonl"
 MAX_DAYS = 365
+
+
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Replace a text file atomically and avoid leaving partial snapshots."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+            temp_path = Path(handle.name)
+        os.replace(temp_path, path)
+        temp_path = None
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
 
 
 def build_snapshot() -> dict:
@@ -33,7 +59,7 @@ def build_snapshot() -> dict:
 
 def persist(snapshot: dict) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    LATEST.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+    _atomic_write_text(LATEST, json.dumps(snapshot, indent=2) + "\n")
 
     previous: list[dict] = []
     if HISTORY.exists():
@@ -49,7 +75,7 @@ def persist(snapshot: dict) -> None:
     by_date = {str(item.get("date")): item for item in previous if item.get("date")}
     by_date[str(snapshot["date"])] = snapshot
     ordered = sorted(by_date.values(), key=lambda item: str(item["date"]))[-MAX_DAYS:]
-    HISTORY.write_text("".join(json.dumps(item, separators=(",", ":")) + "\n" for item in ordered), encoding="utf-8")
+    _atomic_write_text(HISTORY, "".join(json.dumps(item, separators=(",", ":")) + "\n" for item in ordered))
 
 
 def main() -> int:
