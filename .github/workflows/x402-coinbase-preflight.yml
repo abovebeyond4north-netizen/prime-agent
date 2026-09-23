@@ -36,3 +36,5 @@ jobs:
           https://prime-agent-x402-provider.onrender.com/v1/token/verdict
           https://prime-agent-x402-provider.onrender.com/v1/x402/opportunities
           --timeout 30
+          --retries 2
+          --retry-delay 2
