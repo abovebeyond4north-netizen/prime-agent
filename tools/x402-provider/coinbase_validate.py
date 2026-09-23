@@ -6,11 +6,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 import urllib.error
 import urllib.request
 from typing import Any
 
 DEFAULT_VALIDATE_URL = "https://api.cdp.coinbase.com/platform/v2/x402/validate"
+TRANSIENT_REACHABILITY_CHECK = "endpoint_reachable"
 
 
 def post_validate(
@@ -107,10 +109,39 @@ def assess(result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def validate_resource(resource: str, **kwargs: Any) -> dict[str, Any]:
-    raw = post_validate(resource, **kwargs)
-    summary = assess(raw)
-    return {"resource": resource, "summary": summary, "raw": raw}
+def is_transient_reachability_failure(summary: dict[str, Any]) -> bool:
+    """Return true only when endpoint reachability caused the required failures."""
+    failures = summary.get("requiredFailures")
+    if not isinstance(failures, list) or not failures:
+        return False
+    saw_reachability = False
+    for failure in failures:
+        if not isinstance(failure, dict):
+            return False
+        check = failure.get("check")
+        detail = str(failure.get("detail") or "").lower()
+        if check == TRANSIENT_REACHABILITY_CHECK:
+            saw_reachability = True
+            continue
+        if detail.startswith("skipped: endpoint not reachable") or detail.startswith(
+            "skipped: preflight checks failed"
+        ):
+            continue
+        return False
+    return saw_reachability
+
+
+def validate_resource(
+    resource: str, *, retries: int = 0, retry_delay: float = 1.0, **kwargs: Any
+) -> dict[str, Any]:
+    for attempt in range(retries + 1):
+        raw = post_validate(resource, **kwargs)
+        summary = assess(raw)
+        if summary["accepted"] or not is_transient_reachability_failure(summary):
+            return {"resource": resource, "summary": summary, "raw": raw, "attempts": attempt + 1}
+        if attempt < retries and retry_delay > 0:
+            time.sleep(retry_delay * (2**attempt))
+    return {"resource": resource, "summary": summary, "raw": raw, "attempts": retries + 1}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -119,7 +150,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--method", default="GET")
     parser.add_argument("--validate-url", default=DEFAULT_VALIDATE_URL)
     parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument("--retries", type=int, default=0)
+    parser.add_argument("--retry-delay", type=float, default=1.0)
     args = parser.parse_args(argv)
+    if args.retries < 0:
+        parser.error("--retries must be non-negative")
+    if args.retry_delay < 0:
+        parser.error("--retry-delay must be non-negative")
 
     results = []
     ok = True
@@ -130,6 +167,8 @@ def main(argv: list[str] | None = None) -> int:
                 method=args.method,
                 validate_url=args.validate_url,
                 timeout=args.timeout,
+                retries=args.retries,
+                retry_delay=args.retry_delay,
             )
         except Exception as exc:
             result = {
