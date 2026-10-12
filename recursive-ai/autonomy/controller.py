@@ -102,6 +102,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
             return previous_summary
     initial = coverage(contract, active)
     stagnant = 0
+    no_gain_evidence = []
     session_attempts = 0
     stop_reason = "attempt_budget"
     audit = None
@@ -205,6 +206,18 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                    "search_profile_digest": search_digest,
                    "model_usage": search.model.last_usage,
                    "error_type": error, "failed_gate": failed_gate, "promoted": passed}
+        if gain > 0:
+            no_gain_evidence.clear()
+        else:
+            no_gain_evidence.append({
+                "attempt": attempt,
+                "task": task.key,
+                "passed": passed,
+                "failed_gate": failed_gate,
+                "error_type": error,
+                "coverage": after,
+            })
+            no_gain_evidence = no_gain_evidence[-max_stagnation:]
         memory.db.execute("BEGIN IMMEDIATE")
         try:
             if passed:
@@ -252,6 +265,12 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                    "SELECT count(*) FROM candidate_lineage"
                ).fetchone()[0],
                "policy_revisions": memory.db.execute("SELECT count(*) FROM learning_policies").fetchone()[0]}
+    summary["stagnation_evidence"] = {
+        "enforced_by_harness": True,
+        "limit": max_stagnation,
+        "consecutive_no_gain": stagnant,
+        "observations": no_gain_evidence,
+    }
     memory.finish(contract["id"], summary)
     print(json.dumps({"summary": summary}, sort_keys=True), flush=True)
     return summary

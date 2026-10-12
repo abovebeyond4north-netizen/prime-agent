@@ -1,6 +1,7 @@
 import hashlib
 import json
 import math
+from core.policy_floor import assert_profile_paths
 from autonomy.tasks import SUITE_VERSION, Task, task_from_key, suite_digest
 
 
@@ -20,6 +21,7 @@ def normalize_curriculum_profile(profile=None):
     """
     if profile is None:
         return dict(DEFAULT_CURRICULUM_PROFILE)
+    assert_profile_paths("curriculum", profile)
     if not isinstance(profile, dict) or set(profile) != set(CURRICULUM_PROFILE_KEYS):
         raise ValueError("curriculum profile has wrong shape")
     normalized = {}

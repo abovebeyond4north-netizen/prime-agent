@@ -14,7 +14,7 @@ from sandbox.runner import SandboxRunner
 from synthesizer.generator import BINARY, LINEAR, select_strategy
 from synthesizer.mutator import mutate_ast
 from synthesizer.recombinator import recombine_ast
-from main import rollback, run
+from main import rehearse_rollback, rollback, run
 
 
 class FakeRunner:
@@ -146,6 +146,42 @@ class LabTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 rollback(directory, "f" * 40)
             memory.db.close()
+
+    def test_rollback_rehearsal_restores_original_and_records_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            memory = MemoryEngine(directory)
+            vcs = VersionController(directory)
+            first = vcs.snapshot({"binary_search": {"source": LINEAR}})
+            memory.activate(first)
+            second = vcs.snapshot({"binary_search": {"source": BINARY}}, first)
+            memory.activate(second)
+            memory.record(BINARY, True, "direct", 1, {"test": True})
+            memory.db.close()
+
+            evidence = rehearse_rollback(directory, first)
+
+            memory = MemoryEngine(directory)
+            self.assertEqual(memory.current(), second)
+            self.assertEqual(vcs.read(first)["binary_search"]["source"], LINEAR)
+            self.assertEqual(vcs.read(second)["binary_search"]["source"], BINARY)
+            self.assertEqual(evidence["target"], first)
+            self.assertEqual(evidence["restored"], second)
+            event = json.loads(memory.db.execute(
+                "SELECT payload FROM events ORDER BY id DESC LIMIT 1"
+            ).fetchone()[0])
+            self.assertTrue(event["rollback_rehearsal"])
+            self.assertEqual(len(memory.evidence()), 1)
+            memory.db.close()
+
+    def test_rollback_rehearsal_rejects_unpromoted_checkpoint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            memory = MemoryEngine(directory)
+            vcs = VersionController(directory)
+            active = vcs.snapshot({"binary_search": {"source": BINARY}})
+            memory.activate(active)
+            memory.db.close()
+            with self.assertRaisesRegex(ValueError, "not promoted"):
+                rehearse_rollback(directory, "f" * 40)
 
     def test_failed_isolation_records_event_without_activation(self):
         with tempfile.TemporaryDirectory() as directory, patch("sandbox.runner.shutil.which", return_value=None):

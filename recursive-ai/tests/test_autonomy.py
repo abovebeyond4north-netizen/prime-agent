@@ -13,6 +13,7 @@ from autonomy.search import SKETCHES, SearchEngine, normalized_digest
 from autonomy.tasks import FAMILIES, SUITE_VERSION, Task, goal_contract, suite_digest
 from autonomy.verifier import TaskVerifier
 from core.ast_validator import parse, validate
+from core.policy_floor import apply_configuration_patch
 
 
 class ContractRunner:
@@ -41,6 +42,34 @@ def certification(task):
 
 
 class AutonomyTests(unittest.TestCase):
+    def test_policy_floor_blocks_protected_configuration_writes(self):
+        protected = {
+            "sandbox.image": "candidate-controlled:latest",
+            "evaluator.holdout_seed": 0,
+            "promotion.required_gates": 0,
+            "rollback.enabled": False,
+            "policy_floor.enforced": False,
+        }
+        for path, value in protected.items():
+            with self.subTest(path=path), self.assertRaisesRegex(PermissionError, "protected"):
+                apply_configuration_patch({}, {path: value})
+
+    def test_policy_floor_ablation_and_legitimate_update(self):
+        attack = {"sandbox.image": "candidate-controlled:latest"}
+        # Prompt-only mode is deliberately unsafe and exists solely as an ablation arm.
+        self.assertEqual(
+            apply_configuration_patch({}, attack, enforce=False)["sandbox.image"],
+            "candidate-controlled:latest",
+        )
+        updated = apply_configuration_patch(
+            {"search.ucb_exploration": 2.0}, {"search.ucb_exploration": 1.5}
+        )
+        self.assertEqual(updated["search.ucb_exploration"], 1.5)
+
+    def test_profile_normalizers_use_policy_floor(self):
+        with self.assertRaisesRegex(PermissionError, "protected"):
+            execute_goal("unused", search_profile={"sandbox.image": "escape"})
+
     def test_fixed_denominator_and_goal_validation(self):
         contract = goal_contract("count_occurrences", 2)
         self.assertEqual(len(contract["tasks"]), 6)
@@ -166,11 +195,31 @@ class AutonomyTests(unittest.TestCase):
 
     def test_stagnation_stops_without_inventing_progress(self):
         failed = {"passed": False, "gates": [{"number": 4, "name": "public", "passed": False}]}
-        with tempfile.TemporaryDirectory() as root, patch("autonomy.controller.SandboxRunner", ContractRunner), patch.object(TaskVerifier, "verify", return_value=failed), contextlib.redirect_stdout(io.StringIO()):
-            result = execute_goal(root, max_stagnation=2)
+        results = []
+        with patch("autonomy.controller.SandboxRunner", ContractRunner), patch.object(
+            TaskVerifier, "verify", return_value=failed
+        ), contextlib.redirect_stdout(io.StringIO()):
+            for attempt_budget in (5, 10):
+                with tempfile.TemporaryDirectory() as root:
+                    results.append(execute_goal(
+                        root, max_attempts=attempt_budget, max_stagnation=2
+                    ))
+        for result in results:
             self.assertEqual(result["status"], "stagnation")
             self.assertEqual(result["session_attempts"], 2)
             self.assertEqual(result["coverage"], 0)
+            evidence = result["stagnation_evidence"]
+            self.assertTrue(evidence["enforced_by_harness"])
+            self.assertEqual(evidence["limit"], 2)
+            self.assertEqual(evidence["consecutive_no_gain"], 2)
+            self.assertEqual(len(evidence["observations"]), 2)
+            self.assertTrue(all(
+                item["failed_gate"] == "public"
+                for item in evidence["observations"]
+            ))
+        self.assertEqual(
+            results[0]["session_attempts"], results[1]["session_attempts"]
+        )
 
     def test_missing_docker_fails_closed(self):
         with tempfile.TemporaryDirectory() as root, patch("sandbox.runner.shutil.which", return_value=None), contextlib.redirect_stdout(io.StringIO()):

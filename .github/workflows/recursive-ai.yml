@@ -6,6 +6,11 @@ on:
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
+  pull_request:
+    branches: [recursive-ai-lab]
+    paths:
+      - "recursive-ai/**"
+      - ".github/workflows/recursive-ai.yml"
   workflow_dispatch:
 
 permissions:
@@ -26,7 +31,12 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_evolution tests.test_search_policy_evolution tests.test_paired_evidence tests.test_pareto_selection tests.test_docker -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_evolution tests.test_search_policy_evolution tests.test_selection_comparison tests.test_paired_evidence tests.test_pareto_selection tests.test_docker tests.test_changing_policy -v
+      - name: Reproduce changing-policy reference experiment
+        working-directory: recursive-ai
+        run: |
+          python3 -m research.changing_policy --output /tmp/changing-policy-results.json
+          diff research/changing_policy_results.json /tmp/changing-policy-results.json
       - name: Run search and verify promotion
         working-directory: recursive-ai
         run: |
