@@ -7,6 +7,7 @@ verification gates, sandbox configuration, or promotion logic.
 import hashlib
 import json
 import math
+from core.policy_floor import assert_profile_paths
 
 SEARCH_PROFILE_KEYS = (
     "ucb_exploration",
@@ -28,6 +29,7 @@ DEFAULT_SEARCH_PROFILE = {
 def normalize_search_profile(profile=None):
     if profile is None:
         return dict(DEFAULT_SEARCH_PROFILE)
+    assert_profile_paths("search", profile)
     if not isinstance(profile, dict) or set(profile) != set(SEARCH_PROFILE_KEYS):
         raise ValueError("search profile has wrong shape")
 

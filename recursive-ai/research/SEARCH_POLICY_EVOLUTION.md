@@ -134,6 +134,39 @@ python3 main.py evolve-search-policy \
   --max-model-calls 0
 ```
 
+## Matched selector comparison
+
+The separate `compare-search-selection` command freezes a protocol before launching
+the two studies. It runs quality-diversity and Pareto parent selection on the same
+development and independent cross-family holdout seeds, with identical trial limits
+and the same default-policy baseline. Both arms must spend the same number of
+development trials. A mismatch in task identity or deterministic baseline outcomes
+fails the comparison. It reports exact paired directional resource evidence, with
+correctness and audit failures blocking a supported gain. The command never promotes
+a policy; each arm's full study report is kept under the comparison state directory.
+
+On a Docker host, first build the runner, then run a prespecified comparison:
+
+```sh
+cd recursive-ai
+docker build -t recursive-ai-runner:local sandbox/
+python3 main.py compare-search-selection \
+  --state .lab-state-selector-comparison-2000 \
+  --train-goal "compound arithmetic" --holdout-goal "sorted search" \
+  --tier 1 --task-count 4 --population 4 --generations 2 \
+  --replicates 2 --holdout-replicates 6 --base-seed 2000 \
+  --max-attempts 32 --max-seconds 420 --max-model-calls 0
+```
+
+The report is at `.lab-state-selector-comparison-2000/selection-comparison/comparison.json`.
+Record the git commit and Docker image digest alongside it. Six holdout pairs provide
+limited directional power; correlated generated tasks, repeated seed schedules, or
+adaptive reuse of the same holdout do not supply independent confirmation. Follow an
+exploratory result with a fresh, preregistered seed schedule. Historical discovery
+trees and replay/online agreement have not yet been validated here, so replay-gated
+evolution is excluded from this comparison. Canary-based evaluator-hack detection is
+also pending; no report should be treated as an automatic promotion certificate.
+
 ## Immutable boundary
 
 The search genome cannot alter:

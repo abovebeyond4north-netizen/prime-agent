@@ -20,6 +20,7 @@ from research.meta_eval import run_meta_evaluation
 from research.transfer_eval import run_transfer_evaluation
 from research.evolution import run_curriculum_evolution
 from research.search_policy_evolution import run_search_policy_evolution
+from research.selection_comparison import compare_parent_selection
 
 
 def run(root, iterations, provider, image):
@@ -99,9 +100,55 @@ def rollback(root, commit):
         memory.db.close()
 
 
+def rehearse_rollback(root, commit):
+    """Prove rollback and forward restoration without changing final active state."""
+    root = Path(root).resolve()
+    with (root / "controller.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        memory = MemoryEngine(root)
+        vcs = VersionController(root)
+        original = memory.current()
+        if original is None:
+            memory.db.close()
+            raise ValueError("no active checkpoint to restore after rehearsal")
+        if not memory.db.execute("SELECT 1 FROM checkpoints WHERE sha=?", (commit,)).fetchone():
+            memory.db.close()
+            raise ValueError("checkpoint was not promoted by this laboratory")
+        original_manifest = vcs.read(original)
+        target_manifest = vcs.read(commit)
+        memory.db.execute("BEGIN IMMEDIATE")
+        try:
+            memory.activate(commit)
+            if memory.current() != commit or vcs.read(commit) != target_manifest:
+                raise RuntimeError("rollback target verification failed")
+            memory.activate(original)
+            if memory.current() != original or vcs.read(original) != original_manifest:
+                raise RuntimeError("forward restoration verification failed")
+            evidence = {
+                "rollback_rehearsal": True,
+                "from": original,
+                "target": commit,
+                "restored": original,
+                "target_manifest_sha256": hashlib.sha256(
+                    json.dumps(target_manifest, sort_keys=True).encode()
+                ).hexdigest(),
+                "original_manifest_sha256": hashlib.sha256(
+                    json.dumps(original_manifest, sort_keys=True).encode()
+                ).hexdigest(),
+            }
+            memory.event(evidence)
+            memory.db.execute("COMMIT")
+        except Exception:
+            memory.db.execute("ROLLBACK")
+            raise
+        finally:
+            memory.db.close()
+        return evidence
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["run", "status", "rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum", "evolve-search-policy"])
+    parser.add_argument("command", choices=["run", "status", "rollback", "rehearse-rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum", "evolve-search-policy", "compare-search-selection"])
     parser.add_argument("--state", default=str(Path(__file__).parent / ".lab-state"))
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--provider", choices=["demo", "search", "api"], default="demo")
@@ -143,7 +190,13 @@ def main():
     if not 0 <= args.prior_strength <= 32:
         parser.error("prior-strength must be in [0, 32]")
     provider = "search" if args.provider == "demo" else args.provider
-    if args.command == "solve":
+    if args.command in ("rollback", "rehearse-rollback") and not args.checkpoint:
+        parser.error("--checkpoint is required")
+    if args.command == "rollback":
+        rollback(args.state, args.checkpoint)
+    elif args.command == "rehearse-rollback":
+        print(json.dumps(rehearse_rollback(args.state, args.checkpoint), indent=2, sort_keys=True))
+    elif args.command == "solve":
         print(json.dumps(solve(args.state, args.skill, json.loads(args.arguments), args.image), indent=2))
     elif args.command == "plan":
         print(json.dumps(goal_contract(args.goal, args.tier, args.target, args.task_seed, args.task_count), indent=2))
@@ -211,6 +264,18 @@ def main():
             image=args.image,
         )
         print(json.dumps(report, indent=2, sort_keys=True))
+    elif args.command == "compare-search-selection":
+        report = compare_parent_selection(
+            args.state, train_goal=args.train_goal, holdout_goal=args.holdout_goal,
+            tier=args.tier, target=args.target, population=args.population,
+            generations=args.generations, development_replicates=args.replicates,
+            holdout_replicates=args.holdout_replicates, base_seed=args.base_seed,
+            task_count=args.task_count, max_attempts=args.max_attempts,
+            max_seconds=args.max_seconds, max_stagnation=args.max_stagnation,
+            max_model_calls=args.max_model_calls, max_containers=args.max_containers,
+            provider=provider, image=args.image,
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
     elif args.command == "autonomous":
         summary = execute_goal(
             args.state, description=args.goal, tier=args.tier, target=args.target,
@@ -223,10 +288,6 @@ def main():
             raise SystemExit(2)
     elif args.command == "run":
         run(args.state, args.iterations, "demo" if args.provider == "search" else args.provider, args.image)
-    elif args.command == "rollback":
-        if not args.checkpoint:
-            parser.error("rollback requires --checkpoint")
-        rollback(args.state, args.checkpoint)
     else:
         memory = MemoryEngine(args.state)
         print(json.dumps({"checkpoint": memory.current(), "strategies": memory.history(), "evidence": memory.evidence()}, indent=2))

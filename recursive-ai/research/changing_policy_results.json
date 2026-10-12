@@ -1,0 +1,592 @@
+{
+  "automatic_promotion": false,
+  "limitations": [
+    "Handwritten finite hypothesis class; not autonomous algorithm discovery.",
+    "Equal observations, not equal compute; updates and resets are reported.",
+    "Same-process synthetic evaluator; no external or real-world validation.",
+    "Published schedules are reusable regression cases, not future sealed holdouts."
+  ],
+  "protocol": "changing-threshold-v1",
+  "reference_acceptance": true,
+  "seeds": [
+    104729,
+    130363,
+    155921
+  ],
+  "source_sha256": "1a0e1ad7b968f77a2116928eb558b82c297575e4e6377a27fbe169e6cf6b3a2d",
+  "trials": [
+    {
+      "rows": [
+        {
+          "correct": 11,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 17
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 17
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 10,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 5,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 23
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              14
+            ],
+            "resets": 1,
+            "updates": 34
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 11,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 2
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 40
+          },
+          "total": 16,
+          "window": 2
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              3
+            ],
+            "resets": 2,
+            "updates": 51
+          },
+          "total": 16,
+          "window": 2
+        }
+      ],
+      "seed": 104729
+    },
+    {
+      "rows": [
+        {
+          "correct": 11,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 17
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 17
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 12,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 7,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 25
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              12
+            ],
+            "resets": 1,
+            "updates": 34
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 11,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 2
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              3
+            ],
+            "resets": 0,
+            "updates": 42
+          },
+          "total": 16,
+          "window": 2
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              3
+            ],
+            "resets": 2,
+            "updates": 51
+          },
+          "total": 16,
+          "window": 2
+        }
+      ],
+      "seed": 130363
+    },
+    {
+      "rows": [
+        {
+          "correct": 13,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              5
+            ],
+            "resets": 0,
+            "updates": 17
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              5
+            ],
+            "resets": 0,
+            "updates": 17
+          },
+          "total": 16,
+          "window": 0
+        },
+        {
+          "correct": 10,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 7,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              5
+            ],
+            "resets": 0,
+            "updates": 25
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              14
+            ],
+            "resets": 1,
+            "updates": 34
+          },
+          "total": 16,
+          "window": 1
+        },
+        {
+          "correct": 13,
+          "explicit_correct": 16,
+          "mode": "fixed",
+          "serving_observations": 17,
+          "state": {
+            "mode": "fixed",
+            "possible": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "resets": 0,
+            "updates": 0
+          },
+          "total": 16,
+          "window": 2
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "frozen",
+          "serving_observations": 17,
+          "state": {
+            "mode": "frozen",
+            "possible": [
+              5
+            ],
+            "resets": 0,
+            "updates": 42
+          },
+          "total": 16,
+          "window": 2
+        },
+        {
+          "correct": 16,
+          "explicit_correct": 16,
+          "mode": "revising",
+          "serving_observations": 17,
+          "state": {
+            "mode": "revising",
+            "possible": [
+              5
+            ],
+            "resets": 2,
+            "updates": 51
+          },
+          "total": 16,
+          "window": 2
+        }
+      ],
+      "seed": 155921
+    }
+  ]
+}
