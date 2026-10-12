@@ -1,4 +1,5 @@
 """Ten gates generalized to trusted task contracts with deterministic work limits."""
+import hashlib
 import json
 import math
 import statistics
@@ -9,8 +10,30 @@ from autonomy.tasks import SUITE_VERSION, Task, task_from_key, suite_digest
 
 
 class TaskVerifier:
-    def __init__(self, runner):
+    def __init__(self, runner, reuse_regression_checks=False):
+        if type(reuse_regression_checks) is not bool:
+            raise ValueError('reuse_regression_checks must be boolean')
         self.runner = runner
+        self.reuse_regression_checks = reuse_regression_checks
+        self._regression_successes = {}
+        self.regression_cache_hits = 0
+        self.regression_executions = 0
+
+    def check_regression(self, source, task, cases):
+        # Session-local only: protected cases and candidate checks never use this cache.
+        key = hashlib.sha256(json.dumps(
+            [source, task.key, cases, task.expected(cases), suite_digest(),
+             getattr(self.runner, 'image', None)], sort_keys=True
+        ).encode()).hexdigest() if self.reuse_regression_checks else None
+        if self.reuse_regression_checks and key in self._regression_successes:
+            self.regression_cache_hits += 1
+            return
+        self.regression_executions += 1
+        self.check(source, task, cases)
+        if self.reuse_regression_checks:
+            if len(self._regression_successes) >= 64:
+                self._regression_successes.pop(next(iter(self._regression_successes)))
+            self._regression_successes[key] = True
 
     def check(self, source, task, cases):
         result = self.runner.execute(source, cases, entrypoint=task.family)
@@ -23,6 +46,7 @@ class TaskVerifier:
         gates = []
         measurement = {}
         tested = 0
+        initial_cache_hits = self.regression_cache_hits
         for number, name in enumerate(GATES, 1):
             try:
                 if number == 1:
@@ -45,7 +69,7 @@ class TaskVerifier:
                             old_task = Task("binary_search")
                         else:
                             continue
-                        self.check(skill["source"], old_task, old_task.public() + old_task.properties())
+                        self.check_regression(skill["source"], old_task, old_task.public() + old_task.properties())
                 elif number == 6:
                     cases = task.samples(128)
                     self.check(source, task, cases)
@@ -71,6 +95,8 @@ class TaskVerifier:
                     if len(set(values)) != 1:
                         raise ValueError("nondeterministic output")
                 gates.append({"number": number, "name": name, "passed": True})
+                if number == 5:
+                    gates[-1]['reused_regression_checks'] = self.regression_cache_hits - initial_cache_hits
             except Exception as error:
                 gates.append({"number": number, "name": name, "passed": False, "error_type": type(error).__name__})
                 return {"passed": False, "task": task.key, "suite_version": SUITE_VERSION, "suite_digest": suite_digest(), "gates": gates}

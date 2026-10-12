@@ -1,0 +1,94 @@
+name: Recursive AI regression reuse comparison
+on:
+  push:
+    branches: [recursive-ai/selector-replications]
+    paths: [".github/workflows/recursive-ai-regression-reuse.yml", "recursive-ai/autonomy/verifier.py", "recursive-ai/tests/test_regression_reuse.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        goal: [algorithms toolkit, compound arithmetic]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check cache boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_regression_reuse -v
+      - name: Run matched continuous learning and invalidation canaries
+        working-directory: recursive-ai
+        env:
+          STUDY_GOAL: ${{ matrix.goal }}
+        run: |
+          python3 - <<'PY'
+          import contextlib
+          import json
+          import os
+          from pathlib import Path
+          from autonomy.controller import execute_goal
+          from autonomy.search import SKETCHES
+          from autonomy.tasks import Task, goal_contract
+          from autonomy.verifier import TaskVerifier
+          from sandbox.runner import SandboxRunner
+          root = Path('regression-reuse-evidence')
+          root.mkdir()
+          rows = {}
+          goal = os.environ['STUDY_GOAL']
+          for mode, enabled in [('control', False), ('reuse', True)]:
+              with (root / (mode + '.jsonl')).open('w') as trace, contextlib.redirect_stdout(trace):
+                  rows[mode] = execute_goal(root / mode, description=goal, tier=2,
+                                           task_seed=7301, task_count=3, max_attempts=32,
+                                           max_seconds=600, max_containers=800, max_model_calls=0,
+                                           reuse_regression_checks=enabled)
+              assert rows[mode]['status'] == 'goal_reached' and rows[mode]['audit']['passed']
+          assert rows['control']['certified_tasks'] == rows['reuse']['certified_tasks']
+          assert rows['control']['total_attempts'] == rows['reuse']['total_attempts']
+          savings = rows['control']['container_runs'] - rows['reuse']['container_runs']
+          assert savings == rows['reuse']['regression_cache_hits'] > 0
+          runner = SandboxRunner()
+          verifier = TaskVerifier(runner, True)
+          task = Task('gcd')
+          source = SKETCHES['gcd']
+          cases = task.public() + task.properties()
+          runner.boot()
+          verifier.check_regression(source, task, cases)
+          verifier.check_regression(source, task, cases)
+          changed = 'def gcd(a, b):\n    return 0\n'
+          failures = 0
+          for _ in range(2):
+              try:
+                  verifier.check_regression(changed, task, cases)
+              except ValueError:
+                  failures += 1
+          audit = verifier.audit({task.key: {'source': changed}}, goal_contract('gcd', tier=1))
+          assert failures == 2 and not audit['passed']
+          assert verifier.regression_cache_hits == 1 and verifier.regression_executions == 3
+          result = {'code_commit': os.environ['GITHUB_SHA'], 'goal': goal, 'rows': rows,
+                    'container_savings': savings,
+                    'fraction_saved': savings / rows['control']['container_runs'],
+                    'canaries': {'changed_source_rechecked_and_rejected_twice': failures == 2,
+                                 'audit_bypasses_cache': not audit['passed'],
+                                 'containers': runner.container_runs},
+                    'limitations': ['Same operator and runner image; finite developer-controlled task families.',
+                                    'One run per arm per suite; no statistical or external generalization claim.',
+                                    'Only unchanged public/property regressions reused within one session.',
+                                    'Candidate checks, protected samples, performance trials and final audits remain fresh.',
+                                    'Default control unchanged; cache is discarded on restart.']}
+          (root / 'result.json').write_text(json.dumps(result, indent=2))
+          print('REGRESSION_REUSE_RESULT ' + json.dumps(result, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: regression-reuse-${{ matrix.goal }}
+          path: recursive-ai/regression-reuse-evidence/**
+          if-no-files-found: error
+          retention-days: 30

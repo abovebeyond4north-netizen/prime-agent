@@ -27,7 +27,10 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                  max_model_calls=12, max_containers=2000,
                  provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6,
                  policy_mode="learned", policy_prior=None, prior_strength=4.0,
-                 curriculum_profile=None, search_profile=None, repair_public_failures=False):
+                 curriculum_profile=None, search_profile=None, repair_public_failures=False,
+                 reuse_regression_checks=False):
+    if type(reuse_regression_checks) is not bool:
+        raise ValueError('reuse_regression_checks must be boolean')
     if type(repair_public_failures) is not bool:
         raise ValueError('repair_public_failures must be boolean')
     for name, value, ceiling in (("attempts", max_attempts, 1000), ("stagnation", max_stagnation, 1000),
@@ -66,7 +69,8 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                             max_stagnation, max_model_calls, max_containers, provider, image,
                             policy_mode, policy_prior, prior_strength, prior_digest,
                             curriculum_profile, curriculum_digest, search_profile,
-                            search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures)
+                            search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures,
+                            reuse_regression_checks)
         finally:
             memory.db.close()
 
@@ -74,14 +78,15 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
 def _session(memory, root, contract, start, max_attempts, max_seconds,
              max_stagnation, max_model_calls, max_containers, provider, image, policy_mode,
              policy_prior, prior_strength, prior_digest, curriculum_profile, curriculum_digest,
-             search_profile, search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures):
+             search_profile, search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures,
+             reuse_regression_checks):
     memory.register(contract)
     vcs = VersionController(root)
     runner = SandboxRunner(image)
     runner.deadline = start + max_seconds
     runner.stop_file = root / "STOP"
     runner.max_container_runs = max_containers
-    verifier = TaskVerifier(runner)
+    verifier = TaskVerifier(runner, reuse_regression_checks=reuse_regression_checks)
     search = SearchEngine(provider, max_model_calls=max_model_calls)
     parent = memory.current()
     active = vcs.read(parent) if parent else {}
@@ -91,6 +96,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         if (previous_summary["status"] in ("goal_reached", "audit_failed")
                 and previous_summary["checkpoint"] == parent
                 and previous_summary.get("repair_public_failures", False) == repair_public_failures
+                and previous_summary.get("reuse_regression_checks", False) == reuse_regression_checks
                 and previous_summary.get("policy_mode", "learned") == policy_mode
                 and previous_summary.get("policy_prior_digest") == prior_digest
                 and previous_summary.get("prior_strength", 4.0) == prior_strength
@@ -259,6 +265,9 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                "target": contract["target"], "certified_tasks": sorted(set(contract["weights"]) & set(certified(active))),
                "session_attempts": session_attempts,
                "repair_public_failures": repair_public_failures,
+               "reuse_regression_checks": reuse_regression_checks,
+               "regression_cache_hits": verifier.regression_cache_hits,
+               "regression_executions": verifier.regression_executions,
                "focused_public_repair_attempts": focused_attempts,
                "total_attempts": memory.db.execute("SELECT attempts FROM research_goals WHERE id=?", (contract["id"],)).fetchone()[0],
                "wall_seconds": time.monotonic() - start, "container_runs": runner.container_runs,
