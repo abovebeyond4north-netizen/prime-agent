@@ -27,7 +27,9 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                  max_model_calls=12, max_containers=2000,
                  provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6,
                  policy_mode="learned", policy_prior=None, prior_strength=4.0,
-                 curriculum_profile=None, search_profile=None):
+                 curriculum_profile=None, search_profile=None, repair_public_failures=False):
+    if type(repair_public_failures) is not bool:
+        raise ValueError('repair_public_failures must be boolean')
     for name, value, ceiling in (("attempts", max_attempts, 1000), ("stagnation", max_stagnation, 1000),
                                   ("model calls", max_model_calls, 1000), ("containers", max_containers, 10000)):
         if type(value) is not int or not (0 if name == "model calls" else 1) <= value <= ceiling:
@@ -64,7 +66,7 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                             max_stagnation, max_model_calls, max_containers, provider, image,
                             policy_mode, policy_prior, prior_strength, prior_digest,
                             curriculum_profile, curriculum_digest, search_profile,
-                            search_digest, parent_quality, parent_novelty, parent_size)
+                            search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures)
         finally:
             memory.db.close()
 
@@ -72,7 +74,7 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
 def _session(memory, root, contract, start, max_attempts, max_seconds,
              max_stagnation, max_model_calls, max_containers, provider, image, policy_mode,
              policy_prior, prior_strength, prior_digest, curriculum_profile, curriculum_digest,
-             search_profile, search_digest, parent_quality, parent_novelty, parent_size):
+             search_profile, search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures):
     memory.register(contract)
     vcs = VersionController(root)
     runner = SandboxRunner(image)
@@ -88,6 +90,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         previous_summary = json.loads(previous_summary)
         if (previous_summary["status"] in ("goal_reached", "audit_failed")
                 and previous_summary["checkpoint"] == parent
+                and previous_summary.get("repair_public_failures", False) == repair_public_failures
                 and previous_summary.get("policy_mode", "learned") == policy_mode
                 and previous_summary.get("policy_prior_digest") == prior_digest
                 and previous_summary.get("prior_strength", 4.0) == prior_strength
@@ -104,6 +107,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
     stagnant = 0
     no_gain_evidence = []
     session_attempts = 0
+    focused_attempts = 0
     stop_reason = "attempt_budget"
     audit = None
     memory.event({"goal_started": contract["id"], "contract": contract, "initial_coverage": initial,
@@ -136,13 +140,15 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         if stagnant >= max_stagnation:
             stop_reason = "stagnation"
             break
+        priorities = memory.public_repair_tasks(contract["id"]) if repair_public_failures else set()
         task = next_task(
-            contract, active, memory.attempts(contract["id"]), curriculum_profile
+            contract, active, memory.attempts(contract["id"]), curriculum_profile, priorities
         )
         if task is None:
             stop_reason = "no_verifiable_task"
             break
         attempt = memory.reserve_attempt(contract["id"], task.key, max_attempts)
+        focused_attempts += int(task.key in priorities)
         task_attempt = memory.attempts(contract["id"])[task.key]
         session_attempts += 1
         candidate_start = time.monotonic()
@@ -197,7 +203,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         else:
             used_parent_digests = []
         episode = {"goal_id": contract["id"], "attempt": attempt, "task": task.descriptor(),
-                   "operator": operator, "origin": origin, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+                   "operator": operator, "origin": origin, "focused_public_repair": task.key in priorities, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
                    "parent": used_parent_digests[0] if used_parent_digests else None,
                    "candidate_parents": used_parent_digests, "report": report,
                    "delta": gain, "coverage": after, "seconds": elapsed,
@@ -252,6 +258,8 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                "initial_coverage": initial, "coverage": coverage(contract, active),
                "target": contract["target"], "certified_tasks": sorted(set(contract["weights"]) & set(certified(active))),
                "session_attempts": session_attempts,
+               "repair_public_failures": repair_public_failures,
+               "focused_public_repair_attempts": focused_attempts,
                "total_attempts": memory.db.execute("SELECT attempts FROM research_goals WHERE id=?", (contract["id"],)).fetchone()[0],
                "wall_seconds": time.monotonic() - start, "container_runs": runner.container_runs,
                "model_calls": memory.db.execute("SELECT count(*) FROM model_reservations WHERE goal=?", (contract["id"],)).fetchone()[0],

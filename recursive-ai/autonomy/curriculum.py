@@ -57,8 +57,9 @@ def coverage(contract, active):
     return min(1.0, math.fsum(weight for key, weight in contract["weights"].items() if key in verified))
 
 
-def next_task(contract, active, attempts, profile=None):
+def next_task(contract, active, attempts, profile=None, priority_keys=()):
     verified = certified(active)
+    priorities = set(priority_keys)
     profile = normalize_curriculum_profile(profile)
     eligible = []
     remaining = []
@@ -99,6 +100,6 @@ def next_task(contract, active, attempts, profile=None):
         # Tier remains the first immutable ordering key so evolution cannot skip
         # prerequisite difficulty progression. The default profile exactly
         # reproduces the previous (tier, attempts, key) ordering.
-        return (task.tier, adaptive_score, retries, task.key)
+        return (task.tier, task.key not in priorities, adaptive_score, retries, task.key)
 
     return min(eligible, key=rank)
