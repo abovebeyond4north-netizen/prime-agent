@@ -169,6 +169,8 @@ def main():
     parser.add_argument("--max-stagnation", type=int, default=16)
     parser.add_argument("--max-model-calls", type=int, default=12)
     parser.add_argument("--max-containers", type=int, default=2000)
+    parser.add_argument("--repair-public-failures", action="store_true",
+                        help="prioritize unresolved public-test failures in autonomous curriculum")
     parser.add_argument("--policy-mode", choices=["learned", "fixed"], default="learned")
     parser.add_argument("--prior-strength", type=float, default=4.0)
     parser.add_argument("--replicates", type=int, default=3)
@@ -177,6 +179,8 @@ def main():
     parser.add_argument("--generations", type=int, default=2)
     parser.add_argument("--base-seed", type=int, default=0)
     args = parser.parse_args()
+    if args.repair_public_failures and args.command != "autonomous":
+        parser.error("--repair-public-failures requires autonomous")
     if not 1 <= args.iterations <= 1000:
         parser.error("iterations must be in [1, 1000]")
     if not 1 <= args.replicates <= 50:
@@ -283,6 +287,7 @@ def main():
             max_stagnation=args.max_stagnation, max_model_calls=args.max_model_calls,
             max_containers=args.max_containers, provider=provider, image=args.image,
             task_seed=args.task_seed, task_count=args.task_count, policy_mode=args.policy_mode,
+            repair_public_failures=args.repair_public_failures,
         )
         if summary["status"] != "goal_reached":
             raise SystemExit(2)

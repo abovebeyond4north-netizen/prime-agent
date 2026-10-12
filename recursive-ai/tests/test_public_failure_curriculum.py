@@ -2,6 +2,7 @@ import contextlib
 import io
 import tempfile
 import unittest
+import main as cli
 from unittest.mock import patch
 
 from autonomy.controller import execute_goal
@@ -51,3 +52,17 @@ class PublicFailureCurriculumTests(unittest.TestCase):
     def test_invalid_mode_fails_before_creating_state(self):
         with self.assertRaises(ValueError):
             execute_goal('unused', repair_public_failures='yes')
+
+    def test_cli_passes_explicit_mode_and_keeps_control_default(self):
+        for flags, expected in [([], False), (['--repair-public-failures'], True)]:
+            with patch('sys.argv', ['main.py', 'autonomous', *flags]), patch.object(
+                cli, 'execute_goal', return_value={'status': 'goal_reached'}
+            ) as execute:
+                cli.main()
+                self.assertEqual(execute.call_args.kwargs['repair_public_failures'], expected)
+
+    def test_cli_rejects_mode_for_other_commands(self):
+        with patch('sys.argv', ['main.py', 'plan', '--repair-public-failures']), contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as error:
+                cli.main()
+            self.assertEqual(error.exception.code, 2)
