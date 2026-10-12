@@ -2,7 +2,7 @@ name: Recursive AI laboratory
 
 on:
   push:
-    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization, recursive-ai-evolution-lab, recursive-ai-search-policy-evolution, recursive-ai/paired-research-evidence]
+    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization, recursive-ai-evolution-lab, recursive-ai-search-policy-evolution, recursive-ai/paired-research-evidence, recursive-ai/acceptance-comparison]
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
