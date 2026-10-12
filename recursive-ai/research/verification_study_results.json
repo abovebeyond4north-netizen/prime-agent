@@ -1,0 +1,902 @@
+{
+  "code_commit": "199517e157686c672d6ede857a0fd114906de61c",
+  "study_run": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/38307323691",
+  "regression_run": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/38307330027",
+  "verifier_ablation": {
+    "accepted": true,
+    "automatic_promotion": false,
+    "checks": {
+      "ablation_exposes_semantic_faults": true,
+      "correct_reference_passes_both": true,
+      "intact_rejects_all_designated_faults": true,
+      "work_budget_still_rejects_linear_program": true
+    },
+    "limitations": [
+      "Developer-designed faults and audit, not independent third-party evaluation.",
+      "Audit inputs are deterministic regression cases, not secret future holdouts.",
+      "Oracle ablation removes output comparisons across all gates together.",
+      "Containment is held intact; this does not measure sandbox escape resistance."
+    ],
+    "protocol": "oracle-ablation-v1",
+    "python": "3.12.3",
+    "rows": [
+      {
+        "designated_fault": false,
+        "intact": {
+          "container_runs": 12,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "name": "holdout",
+              "number": 6,
+              "passed": true
+            },
+            {
+              "name": "generalization",
+              "number": 7,
+              "passed": true
+            },
+            {
+              "name": "performance",
+              "number": 8,
+              "passed": true
+            },
+            {
+              "name": "differential",
+              "number": 9,
+              "passed": true
+            },
+            {
+              "name": "determinism",
+              "number": 10,
+              "passed": true
+            }
+          ],
+          "measurements": {
+            "cpu_seconds": 0,
+            "max_steps": 60,
+            "peak_bytes": 3800
+          },
+          "objective": 0.9917632,
+          "passed": true,
+          "random_cases": 1128,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 4.569981926000004
+        },
+        "name": "correct",
+        "oracle_ablated": {
+          "container_runs": 12,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "name": "holdout",
+              "number": 6,
+              "passed": true
+            },
+            {
+              "name": "generalization",
+              "number": 7,
+              "passed": true
+            },
+            {
+              "name": "performance",
+              "number": 8,
+              "passed": true
+            },
+            {
+              "name": "differential",
+              "number": 9,
+              "passed": true
+            },
+            {
+              "name": "determinism",
+              "number": 10,
+              "passed": true
+            }
+          ],
+          "measurements": {
+            "cpu_seconds": 0,
+            "max_steps": 60,
+            "peak_bytes": 3800
+          },
+          "objective": 0.9917632,
+          "passed": true,
+          "random_cases": 1128,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 4.962262633000002
+        },
+        "separate_audit": {
+          "cases": 64,
+          "container_runs": 2,
+          "outputs_correct": true
+        },
+        "source": "def lower_bound(values, target):\n    low = 0\n    high = len(values)\n    while low < high:\n        mid = (low + high) // 2\n        if values[mid] < target:\n            low = mid + 1\n        else:\n            high = mid\n    return low\n",
+        "source_sha256": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+      },
+      {
+        "designated_fault": true,
+        "intact": {
+          "container_runs": 2,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "error_type": "ValueError",
+              "name": "public",
+              "number": 4,
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 0.7484389339999993
+        },
+        "name": "constant_output",
+        "oracle_ablated": {
+          "container_runs": 12,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "name": "holdout",
+              "number": 6,
+              "passed": true
+            },
+            {
+              "name": "generalization",
+              "number": 7,
+              "passed": true
+            },
+            {
+              "name": "performance",
+              "number": 8,
+              "passed": true
+            },
+            {
+              "name": "differential",
+              "number": 9,
+              "passed": true
+            },
+            {
+              "name": "determinism",
+              "number": 10,
+              "passed": true
+            }
+          ],
+          "measurements": {
+            "cpu_seconds": 0,
+            "max_steps": 1,
+            "peak_bytes": 3434
+          },
+          "objective": 0.995950566,
+          "passed": true,
+          "random_cases": 1128,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 5.951686082000002
+        },
+        "separate_audit": {
+          "cases": 64,
+          "container_runs": 2,
+          "outputs_correct": false
+        },
+        "source": "def lower_bound(values, target):\n    return 0\n",
+        "source_sha256": "090b6f9d3daa65b7febdd5d95f2b79d87e3798d70a723a8f71fab2d051fb045e"
+      },
+      {
+        "designated_fault": true,
+        "intact": {
+          "container_runs": 4,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "error_type": "ValueError",
+              "name": "holdout",
+              "number": 6,
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 1.3367698610000005
+        },
+        "name": "long_input_corruption",
+        "oracle_ablated": {
+          "container_runs": 12,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "name": "holdout",
+              "number": 6,
+              "passed": true
+            },
+            {
+              "name": "generalization",
+              "number": 7,
+              "passed": true
+            },
+            {
+              "name": "performance",
+              "number": 8,
+              "passed": true
+            },
+            {
+              "name": "differential",
+              "number": 9,
+              "passed": true
+            },
+            {
+              "name": "determinism",
+              "number": 10,
+              "passed": true
+            }
+          ],
+          "measurements": {
+            "cpu_seconds": 0,
+            "max_steps": 2,
+            "peak_bytes": 3638
+          },
+          "objective": 0.991722362,
+          "passed": true,
+          "random_cases": 1128,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 4.350840044000002
+        },
+        "separate_audit": {
+          "cases": 64,
+          "container_runs": 2,
+          "outputs_correct": false
+        },
+        "source": "def lower_bound(values, target):\n    if len(values) > 8:\n        return 0\n    low = 0\n    high = len(values)\n    while low < high:\n        mid = (low + high) // 2\n        if values[mid] < target:\n            low = mid + 1\n        else:\n            high = mid\n    return low\n",
+        "source_sha256": "3ba5efc09d7e3baaffa7354da1e5d526b7d9b5492460890faa7b3375a967e5f2"
+      },
+      {
+        "designated_fault": true,
+        "intact": {
+          "container_runs": 8,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "name": "holdout",
+              "number": 6,
+              "passed": true
+            },
+            {
+              "name": "generalization",
+              "number": 7,
+              "passed": true
+            },
+            {
+              "error_type": "ValueError",
+              "name": "performance",
+              "number": 8,
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 2.9825282229999956
+        },
+        "name": "linear_work",
+        "oracle_ablated": {
+          "container_runs": 8,
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "name": "regression",
+              "number": 5,
+              "passed": true
+            },
+            {
+              "name": "holdout",
+              "number": 6,
+              "passed": true
+            },
+            {
+              "name": "generalization",
+              "number": 7,
+              "passed": true
+            },
+            {
+              "error_type": "ValueError",
+              "name": "performance",
+              "number": 8,
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "suite_digest": "f2aefaf54c67adb2b91e8fe705cdd72b9b21ddbb71434d074b0de362ede2e817",
+          "suite_version": "autonomy-1",
+          "task": "lower_bound:tier1",
+          "wall_seconds": 4.003839536000001
+        },
+        "separate_audit": {
+          "cases": 64,
+          "container_runs": 2,
+          "outputs_correct": true
+        },
+        "source": "def lower_bound(values, target):\n    for index in range(len(values)):\n        if values[index] >= target:\n            return index\n    return len(values)\n",
+        "source_sha256": "13bb6d0405bc6ab71240cc7ee06f92adf16d523442378359a5bac53cd80ee8ee"
+      }
+    ]
+  },
+  "varied_holdout_replications": [
+    {
+      "arm_study_ids": {
+        "pareto": "75a6de69e6daf3687199",
+        "quality_diversity": "bcdf08f8d6e02c2c7982"
+      },
+      "development_trials_per_arm": 8,
+      "elapsed_seconds": 481.28523068899995,
+      "evaluation_integrity_canaries": {
+        "all_passed": true,
+        "checks": {
+          "correctness_before_resources": true,
+          "equal_development_trials": true,
+          "matched_protocol": true,
+          "matched_unique_holdouts": true,
+          "shared_baseline_consistency": true,
+          "split_isolation": true
+        },
+        "purpose": "Detect protocol drift, leakage, replay, baseline tampering, and proxy-only resource gains."
+      },
+      "holdout_comparison_pareto_minus_quality_diversity": {
+        "all_correct": true,
+        "alpha": 0.05,
+        "assumptions": [
+          "independent prespecified holdout pairs; exchangeable signs under the null",
+          "one frozen finalist selected without inspecting these holdouts",
+          "Holm correction covers three resource metrics within this study only",
+          "sign tests concern win probability, not effect size or universal generalization",
+          "wall time is excluded because machine load is a confounder",
+          "identical or correlated task instances across seeds are not independent evidence"
+        ],
+        "automatic_promotion": false,
+        "coverage_non_regression_every_pair": true,
+        "metrics": {
+          "attempts": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "container_runs": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "model_calls": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          }
+        },
+        "pairs": 2,
+        "resource_non_regression_every_pair": true,
+        "status": "gain_not_established"
+      },
+      "holdout_families": [
+        "compound_08e399585ea333c8",
+        "compound_776bbcb9780235b1",
+        "compound_a5515b4591ad14a9",
+        "gcd"
+      ],
+      "holdout_pairs": 2,
+      "limitations": [
+        "A single seed schedule is an exploratory comparison, not a replicated search study.",
+        "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+        "Replay-based screening is not implemented in this comparison."
+      ],
+      "promotion": {
+        "automatic": false,
+        "eligible": false
+      },
+      "protocol": "matched-parent-selection-v1",
+      "protocol_digest": "989e599261860d2e8f7c5704bd04de201528b3cc449599a52fa17111a86d484f",
+      "provenance": {
+        "acceptance": "All integrity canaries and audited correctness required; no automatic promotion.",
+        "commit": "199517e157686c672d6ede857a0fd114906de61c",
+        "docker_image_id": "sha256:464b7036d37bb1cf6dc5d2396cdfe70a9db2bc0613e78b557ec05d8a80a6a6e9",
+        "limitations": [
+          "Same operator and runner image across replications.",
+          "Seeded compound expressions vary tasks; one grammar is not an external task distribution.",
+          "Wall time can influence development selection; report machine confounding."
+        ],
+        "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "seed": 310003
+      },
+      "resource_totals_by_arm": {
+        "pareto": {
+          "development": {
+            "attempts": 48,
+            "container_runs": 544,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 20,
+            "container_runs": 260,
+            "model_calls": 0
+          }
+        },
+        "quality_diversity": {
+          "development": {
+            "attempts": 48,
+            "container_runs": 544,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 20,
+            "container_runs": 260,
+            "model_calls": 0
+          }
+        }
+      }
+    },
+    {
+      "arm_study_ids": {
+        "pareto": "5e44318d210b822d4e1d",
+        "quality_diversity": "81f1a9ad1c37a100d88c"
+      },
+      "development_trials_per_arm": 8,
+      "elapsed_seconds": 482.073462779,
+      "evaluation_integrity_canaries": {
+        "all_passed": true,
+        "checks": {
+          "correctness_before_resources": true,
+          "equal_development_trials": true,
+          "matched_protocol": true,
+          "matched_unique_holdouts": true,
+          "shared_baseline_consistency": true,
+          "split_isolation": true
+        },
+        "purpose": "Detect protocol drift, leakage, replay, baseline tampering, and proxy-only resource gains."
+      },
+      "holdout_comparison_pareto_minus_quality_diversity": {
+        "all_correct": true,
+        "alpha": 0.05,
+        "assumptions": [
+          "independent prespecified holdout pairs; exchangeable signs under the null",
+          "one frozen finalist selected without inspecting these holdouts",
+          "Holm correction covers three resource metrics within this study only",
+          "sign tests concern win probability, not effect size or universal generalization",
+          "wall time is excluded because machine load is a confounder",
+          "identical or correlated task instances across seeds are not independent evidence"
+        ],
+        "automatic_promotion": false,
+        "coverage_non_regression_every_pair": true,
+        "metrics": {
+          "attempts": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "container_runs": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "model_calls": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          }
+        },
+        "pairs": 2,
+        "resource_non_regression_every_pair": true,
+        "status": "gain_not_established"
+      },
+      "holdout_families": [
+        "compound_38e7d10c46d838dc",
+        "compound_b5168303e33ce901",
+        "compound_f661135d578af3c8",
+        "gcd"
+      ],
+      "holdout_pairs": 2,
+      "limitations": [
+        "A single seed schedule is an exploratory comparison, not a replicated search study.",
+        "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+        "Replay-based screening is not implemented in this comparison."
+      ],
+      "promotion": {
+        "automatic": false,
+        "eligible": false
+      },
+      "protocol": "matched-parent-selection-v1",
+      "protocol_digest": "e27f1527150c7a0affd61c3fa9579ed8a0bc0229f2cd23427d1df23d729b223b",
+      "provenance": {
+        "acceptance": "All integrity canaries and audited correctness required; no automatic promotion.",
+        "commit": "199517e157686c672d6ede857a0fd114906de61c",
+        "docker_image_id": "sha256:9efea679f09cd63ae14a7cd35524693c48e6b46b42e18886b6eff259a9ef0c32",
+        "limitations": [
+          "Same operator and runner image across replications.",
+          "Seeded compound expressions vary tasks; one grammar is not an external task distribution.",
+          "Wall time can influence development selection; report machine confounding."
+        ],
+        "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "seed": 510007
+      },
+      "resource_totals_by_arm": {
+        "pareto": {
+          "development": {
+            "attempts": 48,
+            "container_runs": 544,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 20,
+            "container_runs": 260,
+            "model_calls": 0
+          }
+        },
+        "quality_diversity": {
+          "development": {
+            "attempts": 48,
+            "container_runs": 544,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 20,
+            "container_runs": 260,
+            "model_calls": 0
+          }
+        }
+      }
+    },
+    {
+      "arm_study_ids": {
+        "pareto": "25d86e7de270c2dc9675",
+        "quality_diversity": "07d45403157e19e16fa7"
+      },
+      "development_trials_per_arm": 8,
+      "elapsed_seconds": 655.859041899,
+      "evaluation_integrity_canaries": {
+        "all_passed": true,
+        "checks": {
+          "correctness_before_resources": true,
+          "equal_development_trials": true,
+          "matched_protocol": true,
+          "matched_unique_holdouts": true,
+          "shared_baseline_consistency": true,
+          "split_isolation": true
+        },
+        "purpose": "Detect protocol drift, leakage, replay, baseline tampering, and proxy-only resource gains."
+      },
+      "holdout_comparison_pareto_minus_quality_diversity": {
+        "all_correct": true,
+        "alpha": 0.05,
+        "assumptions": [
+          "independent prespecified holdout pairs; exchangeable signs under the null",
+          "one frozen finalist selected without inspecting these holdouts",
+          "Holm correction covers three resource metrics within this study only",
+          "sign tests concern win probability, not effect size or universal generalization",
+          "wall time is excluded because machine load is a confounder",
+          "identical or correlated task instances across seeds are not independent evidence"
+        ],
+        "automatic_promotion": false,
+        "coverage_non_regression_every_pair": true,
+        "metrics": {
+          "attempts": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "container_runs": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "model_calls": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          }
+        },
+        "pairs": 2,
+        "resource_non_regression_every_pair": true,
+        "status": "gain_not_established"
+      },
+      "holdout_families": [
+        "compound_2b1329ee478404a6",
+        "compound_72650f7623740d61",
+        "compound_e360fb345c2c0ba0",
+        "gcd"
+      ],
+      "holdout_pairs": 2,
+      "limitations": [
+        "A single seed schedule is an exploratory comparison, not a replicated search study.",
+        "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+        "Replay-based screening is not implemented in this comparison."
+      ],
+      "promotion": {
+        "automatic": false,
+        "eligible": false
+      },
+      "protocol": "matched-parent-selection-v1",
+      "protocol_digest": "cf3c26155b662b6e40ab199f772d9fa1d1b63d78d1f7e3470887498d68029762",
+      "provenance": {
+        "acceptance": "All integrity canaries and audited correctness required; no automatic promotion.",
+        "commit": "199517e157686c672d6ede857a0fd114906de61c",
+        "docker_image_id": "sha256:ce9dfb05e7b01353e36b0c66ef1d00636dcc2eeee50973390753af68ae56cf12",
+        "limitations": [
+          "Same operator and runner image across replications.",
+          "Seeded compound expressions vary tasks; one grammar is not an external task distribution.",
+          "Wall time can influence development selection; report machine confounding."
+        ],
+        "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "seed": 710009
+      },
+      "resource_totals_by_arm": {
+        "pareto": {
+          "development": {
+            "attempts": 48,
+            "container_runs": 544,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 20,
+            "container_runs": 260,
+            "model_calls": 0
+          }
+        },
+        "quality_diversity": {
+          "development": {
+            "attempts": 48,
+            "container_runs": 544,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 20,
+            "container_runs": 260,
+            "model_calls": 0
+          }
+        }
+      }
+    }
+  ],
+  "conclusion": "All designated faults rejected by intact verifier; oracle ablation accepts two semantically faulty programs. No selector resource gain established in three varied-holdout schedules.",
+  "automatic_promotion": false
+}
