@@ -2,7 +2,7 @@ name: Recursive AI feedback boundary study
 on:
   push:
     branches: [recursive-ai/selector-replications]
-    paths: [".github/workflows/recursive-ai-feedback-boundary.yml"]
+    paths: [".github/workflows/recursive-ai-feedback-boundary.yml", "recursive-ai/autonomy/memory.py", "recursive-ai/tests/test_public_failure_curriculum.py"]
 permissions:
   contents: read
 jobs:

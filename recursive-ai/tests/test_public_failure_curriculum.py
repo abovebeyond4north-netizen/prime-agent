@@ -9,6 +9,7 @@ from autonomy.controller import execute_goal
 from autonomy.curriculum import next_task
 from autonomy.memory import ResearchMemory
 from autonomy.tasks import Task, goal_contract
+from autonomy.verifier import TaskVerifier
 from tests.test_autonomy import ContractRunner, certification
 
 
@@ -66,3 +67,29 @@ class PublicFailureCurriculumTests(unittest.TestCase):
             with self.assertRaises(SystemExit) as error:
                 cli.main()
             self.assertEqual(error.exception.code, 2)
+
+    def test_repeated_public_failure_yields_priority(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = ResearchMemory(root)
+            for attempt in (1, 2):
+                memory.event({'goal_id': 'g', 'attempt': attempt,
+                              'task': {'key': 'fibonacci:tier1'}, 'failed_gate': 'public'})
+            self.assertEqual(memory.public_repair_tasks('g'), set())
+            self.assertEqual(next_task(goal_contract(tier=1), {},
+                                      {'fibonacci:tier1': 2},
+                                      priority_keys=memory.public_repair_tasks('g')).key,
+                             'gcd:tier1')
+            memory.db.close()
+
+    def test_unrepairable_task_does_not_starve_other_skills(self):
+        original = TaskVerifier.verify
+        def reject_fibonacci(verifier, source, task, active):
+            if task.family == 'fibonacci':
+                return {'passed': False, 'gates': [{'number': 4, 'name': 'public', 'passed': False}]}
+            return original(verifier, source, task, active)
+        with tempfile.TemporaryDirectory() as root, patch('autonomy.controller.SandboxRunner', ContractRunner), patch.object(TaskVerifier, 'verify', reject_fibonacci), contextlib.redirect_stdout(io.StringIO()):
+            result = execute_goal(root, tier=1, max_attempts=6, max_model_calls=0,
+                                  repair_public_failures=True)
+            self.assertGreater(result['coverage'], 0)
+            self.assertNotIn('fibonacci:tier1', result['certified_tasks'])
+            self.assertEqual(result['focused_public_repair_attempts'], 1)

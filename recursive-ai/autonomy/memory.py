@@ -61,16 +61,19 @@ class ResearchMemory(MemoryEngine):
         return dict(self.db.execute("SELECT task,attempts FROM task_attempts WHERE goal=?", (goal_id,)))
 
     def public_repair_tasks(self, goal_id):
-        """Latest candidate outcome per task, limited to public-test failures."""
+        """Offer one priority retry for a public failure, then yield on repeat failure."""
         latest = {}
         for (raw,) in self.db.execute('SELECT payload FROM events ORDER BY id DESC LIMIT 256'):
             event = json.loads(raw)
             if event.get('goal_id') != goal_id or 'attempt' not in event:
                 continue
             key = event.get('task', {}).get('key')
-            if key and key not in latest:
-                latest[key] = event.get('failed_gate') == 'public'
-        return {key for key, failed in latest.items() if failed}
+            if key:
+                history = latest.setdefault(key, [])
+                if len(history) < 2:
+                    history.append(event.get('failed_gate'))
+        return {key for key, history in latest.items()
+                if history[0] == 'public' and (len(history) == 1 or history[1] != 'public')}
 
     def operators(self, family):
         evidence = {op: (n, reward, seconds) for op, n, reward, seconds in self.db.execute("SELECT operator,attempts,reward,seconds FROM operator_evidence WHERE family=?", (family,))}
