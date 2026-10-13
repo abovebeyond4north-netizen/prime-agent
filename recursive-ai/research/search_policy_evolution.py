@@ -565,6 +565,7 @@ def run_search_policy_evolution(
     provider="search",
     image="recursive-ai-runner:local",
     parent_selection="quality_diversity",
+    _shared_holdout_baseline=None,
 ):
     if parent_selection not in ("quality_diversity", "pareto"):
         raise ValueError("unknown parent selection mode")
@@ -769,7 +770,58 @@ def run_search_policy_evolution(
         return {"rows": rows, "summary": summarize_trials(rows)}
 
     finalist_holdout = evaluate_holdout(finalist, "cross-family-holdout-finalist")
-    baseline_holdout = evaluate_holdout(baseline, "cross-family-holdout-baseline")
+    baseline_execution = {
+        "reused": False, "reused_trials": 0, "independent_rechecks": 0,
+        "estimated_container_runs_avoided": 0,
+    }
+    if _shared_holdout_baseline is None:
+        baseline_holdout = evaluate_holdout(baseline, "cross-family-holdout-baseline")
+    else:
+        # Only a matching frozen baseline from the other comparison arm may be reused.
+        # Re-run the first identity in a fresh state directory to detect evaluator
+        # drift rather than allowing cached evidence to bypass independent checks.
+        if not isinstance(_shared_holdout_baseline, dict):
+            raise ValueError("shared_baseline_consistency: malformed cached baseline")
+        rows = _shared_holdout_baseline.get("rows")
+        if not isinstance(rows, list) or len(rows) != len(holdout_seeds):
+            raise ValueError("shared_baseline_consistency: incomplete cached baseline")
+        expected_digest = baseline.profile_digest
+        if any(
+            not isinstance(row, dict)
+            or row.get("seed") != seed
+            or row.get("goal") != holdout_goal
+            or row.get("search_profile_digest") != expected_digest
+            for seed, row in zip(holdout_seeds, rows)
+        ):
+            raise ValueError("shared_baseline_consistency: baseline identity changed")
+        if _shared_holdout_baseline.get("summary") != summarize_trials(rows):
+            raise ValueError("shared_baseline_consistency: cached summary changed")
+        independently_rechecked = _evaluate_once(
+            study_root, baseline, holdout_seeds[0],
+            "cross-family-holdout-baseline-independent-recheck",
+            holdout_goal, tier, target, task_count, max_attempts, max_seconds,
+            max_stagnation, max_model_calls, max_containers, provider, image,
+        )
+        evidence_fields = (
+            "seed", "goal", "status", "goal_reached", "audit_passed",
+            "coverage", "attempts", "container_runs", "model_calls",
+            "search_profile_digest",
+        )
+        if any(
+            independently_rechecked.get(key) != rows[0].get(key)
+            for key in evidence_fields
+        ):
+            raise ValueError("shared_baseline_consistency: independent recheck disagrees")
+        # Deep-copy reference evidence: candidate runs cannot mutate reference rows.
+        baseline_holdout = json.loads(json.dumps(_shared_holdout_baseline))
+        baseline_execution = {
+            "reused": True,
+            "reused_trials": len(rows) - 1,
+            "independent_rechecks": 1,
+            "estimated_container_runs_avoided": sum(
+                row["container_runs"] for row in rows[1:]
+            ),
+        }
     comparison = _holdout_comparison(
         finalist_holdout["summary"], baseline_holdout["summary"]
     )
@@ -801,6 +853,7 @@ def run_search_policy_evolution(
                 if naive_development_trials else 0.0
             ),
         },
+        "baseline_execution": baseline_execution,
         "cross_family_holdout": {
             "finalist": finalist_holdout,
             "baseline": baseline_holdout,
