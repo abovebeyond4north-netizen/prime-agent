@@ -46,6 +46,10 @@ def evaluation_integrity_canaries(reference, candidate):
         ),
         "matched_unique_holdouts": False,
         "shared_baseline_consistency": measurements(baseline_a) == measurements(baseline_b),
+        "independent_baseline_recheck": (
+            not candidate.get("baseline_execution", {}).get("reused", False)
+            or candidate["baseline_execution"].get("independent_rechecks") == 1
+        ),
         "correctness_before_resources": all(
             row["goal_reached"] and row["audit_passed"]
             for row in finalist_a + finalist_b
@@ -87,13 +91,16 @@ def compare_parent_selection(root, **options):
         temporary = protocol_path.with_suffix(".json.tmp")
         temporary.write_text(json.dumps(protocol, indent=2, sort_keys=True) + "\n")
         temporary.replace(protocol_path)
-    arms = {
-        mode: run_search_policy_evolution(
-            study_root / mode, parent_selection=mode, **options
-        )
-        for mode in ("quality_diversity", "pareto")
-    }
-    reference, candidate = (arms["quality_diversity"], arms["pareto"])
+    reference = run_search_policy_evolution(
+        study_root / "quality_diversity", parent_selection="quality_diversity",
+        **options
+    )
+    candidate = run_search_policy_evolution(
+        study_root / "pareto", parent_selection="pareto",
+        _shared_holdout_baseline=reference["cross_family_holdout"]["baseline"],
+        **options
+    )
+    arms = {"quality_diversity": reference, "pareto": candidate}
     left, right = reference["config"], candidate["config"]
     canaries = evaluation_integrity_canaries(reference, candidate)
     if not canaries["all_passed"]:
@@ -144,7 +151,15 @@ def compare_parent_selection(root, **options):
         "arm_study_ids": {mode: value["study_id"] for mode, value in arms.items()},
         "protocol_digest": hashlib.sha256(json.dumps(protocol, sort_keys=True).encode()).hexdigest(),
         "development_trials_per_arm": candidate["sample_efficiency"]["actual_development_trials"],
+        # Logical per-arm totals retain the shared baseline for comparable
+        # experimental accounting; actual execution skips its repeated trials.
         "resource_totals_by_arm": {mode: resources(value) for mode, value in arms.items()},
+        "execution_efficiency": {
+            "baseline_evaluations_avoided": candidate["baseline_execution"]["reused_trials"],
+            "independent_baseline_rechecks": candidate["baseline_execution"]["independent_rechecks"],
+            "estimated_container_runs_avoided": candidate["baseline_execution"]["estimated_container_runs_avoided"],
+            "logical_accounting_includes_reused_baseline": True,
+        },
         "holdout_pairs": len(identities),
         "holdout_families": left["holdout_families"],
         "holdout_comparison_pareto_minus_quality_diversity": evidence,
@@ -153,6 +168,7 @@ def compare_parent_selection(root, **options):
         "limitations": [
             "A single seed schedule is an exploratory comparison, not a replicated search study.",
             "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+            "The common reference baseline is reused across arms after one independently rechecked holdout; other reused rows are not reexecuted in the candidate arm.",
             "Replay-based screening is not implemented in this comparison.",
         ],
     }
