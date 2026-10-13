@@ -2,7 +2,7 @@ name: Recursive AI new inverse capability transfer
 on:
   push:
     branches: [recursive-ai/selector-replications]
-    paths: [".github/workflows/recursive-ai-inverse-transfer.yml", "recursive-ai/autonomy/search.py", "recursive-ai/tests/test_inverse_transfer.py", "recursive-ai/research/inverse_induction.py", "recursive-ai/tests/test_inverse_induction.py"]
+    paths: [".github/workflows/recursive-ai-inverse-transfer.yml", "recursive-ai/autonomy/search.py", "recursive-ai/tests/test_inverse_transfer.py", "recursive-ai/research/inverse_induction.py", "recursive-ai/tests/test_inverse_induction.py", "recursive-ai/research/grammar_expansion.py", "recursive-ai/tests/test_grammar_expansion.py"]
 permissions:
   contents: read
 jobs:
@@ -22,7 +22,7 @@ jobs:
         run: docker build -t recursive-ai-runner:local sandbox/
       - name: Check transfer contracts
         working-directory: recursive-ai
-        run: python3 -m unittest tests.test_inverse_transfer tests.test_inverse_induction -v
+        run: python3 -m unittest tests.test_inverse_transfer tests.test_inverse_induction tests.test_grammar_expansion -v
       - name: Compare transfer with ablation and shifted evaluation after restart
         working-directory: recursive-ai
         env:
@@ -127,10 +127,13 @@ jobs:
                                     'Three fresh CI executions and shifted seeds share one operator and environment class.',
                                     'Task-family expansion and transfer demonstrated; no general intelligence or open-world claim.']}
           (root / 'result.json').write_text(json.dumps(result, indent=2))
-          print('INVERSE_TRANSFER_RESULT ' + json.dumps(result, sort_keys=True))
+          print('INVERSE_TRANSFER_RESULT ' + json.dumps(result, sort_keys=True), flush=True)
           subprocess.check_call([sys.executable, '-m', 'research.inverse_induction',
                                  '--parent-source', str(root / 'parent.py'), '--seed', str(seed),
                                  '--output', str(root / 'induction.json')])
+          subprocess.check_call([sys.executable, '-m', 'research.grammar_expansion',
+                                 '--parent-source', str(root / 'parent.py'), '--seed', str(seed),
+                                 '--output', str(root / 'expansion.json')])
           PY
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()

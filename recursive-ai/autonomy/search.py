@@ -60,8 +60,7 @@ def normalized_digest(source):
     return hashlib.sha256(ast.dump(ast.parse(source), include_attributes=False).encode()).hexdigest()
 
 
-def infer_inverse_rule(examples):
-    """Infer one normalized quadratic predicate from public labels only."""
+def _validate_inverse_examples(examples):
     if not isinstance(examples, (list, tuple)) or not 1 <= len(examples) <= 64:
         raise ValueError('expected 1..64 public examples')
     for row in examples:
@@ -69,24 +68,48 @@ def infer_inverse_rule(examples):
                 or any(type(value) is not int for value in row)
                 or not 0 <= row[1] <= row[0] or row[0].bit_length() > 256):
             raise ValueError('invalid public inverse example')
+
+
+def _fit_inverse_rules(examples, degree):
     fits = []
     for p in range(1, 5):
         for q in range(5):
             for d in range(1, 5):
                 if math.gcd(math.gcd(p, q), d) != 1 or p + q < d:
                     continue
-                if all(p * k * k + q * k <= d * n < p * (k + 1) * (k + 1) + q * (k + 1)
+                if all(p * k**degree + q * k <= d * n < p * (k + 1)**degree + q * (k + 1)
                        for n, k in examples):
                     fits.append((p, q, d))
+    return fits
+
+
+def infer_inverse_rule(examples):
+    """Infer one normalized quadratic predicate from public labels only."""
+    _validate_inverse_examples(examples)
+    fits = _fit_inverse_rules(examples, 2)
     return fits[0] if len(fits) == 1 else None
 
 
-def adapt_inverse_scaffold(entrypoint, active, rule):
+def expand_inverse_grammar(examples):
+    """Compose another multiplication feature only after the current grammar has no fit."""
+    _validate_inverse_examples(examples)
+    stages = []
+    for degree in range(2, 5):
+        fits = _fit_inverse_rules(examples, degree)
+        stages.append({'degree': degree, 'raw_hypotheses': 80, 'compatible_rules': len(fits)})
+        if fits:
+            return {'rule': fits[0] if len(fits) == 1 else None, 'degree': degree,
+                    'status': 'unique' if len(fits) == 1 else 'ambiguous', 'stages': stages}
+    return {'rule': None, 'degree': None, 'status': 'expansion_budget_exhausted', 'stages': stages}
+
+
+def adapt_inverse_scaffold(entrypoint, active, rule, degree=2):
     if rule is None:
         return None
     if (not isinstance(entrypoint, str) or not entrypoint.isidentifier() or entrypoint.startswith('_')
             or not isinstance(rule, tuple) or len(rule) != 3
-            or any(type(value) is not int for value in rule)):
+            or any(type(value) is not int for value in rule)
+            or type(degree) is not int or not 2 <= degree <= 4):
         raise ValueError('invalid inverse scaffold parameters')
     p, q, d = rule
     if not (1 <= p <= 4 and 0 <= q <= 4 and 1 <= d <= 4 and p + q >= d
@@ -106,7 +129,8 @@ def adapt_inverse_scaffold(entrypoint, active, rule):
             function.name = entrypoint
             function.args.args = [ast.arg(arg='n')]
             function.body[1].value = ast.parse('n + 1', mode='eval').body
-            predicate = f'{p} * mid * mid + {q} * mid <= {d} * n'
+            feature = ' * '.join(['mid'] * degree)
+            predicate = f'{p} * {feature} + {q} * mid <= {d} * n'
             function.body[2].body[1].test = ast.parse(predicate, mode='eval').body
             function.body[-1].value = ast.parse('low - 1', mode='eval').body
             return ast.unparse(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[]))) + '\n'
@@ -117,8 +141,8 @@ def inverse_transfer(task, active):
     if task.family not in INVERSE_FAMILIES:
         return None
     cases = task.public()
-    rule = infer_inverse_rule([(case[0], value) for case, value in zip(cases, task.expected(cases))])
-    return adapt_inverse_scaffold(task.family, active, rule)
+    expansion = expand_inverse_grammar([(case[0], value) for case, value in zip(cases, task.expected(cases))])
+    return adapt_inverse_scaffold(task.family, active, expansion['rule'], expansion['degree'])
 
 
 def transfer(task, active):
