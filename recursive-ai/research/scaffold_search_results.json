@@ -1,0 +1,2097 @@
+{
+  "protocol": "public-execution-scaffold-configuration-search-v1",
+  "code_commit": "6b12b81d23feb45470bcb86a8eaefca7f3b74b13",
+  "workflow_run": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/38329695496",
+  "reports": [
+    {
+      "automatic_promotion": false,
+      "discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      },
+      "donor_program_supplied": false,
+      "fresh_process_replay_passed": true,
+      "limitations": [
+        "Sixteen procedure configurations and loop grammar are developer-defined.",
+        "Learns boundary, branch, comparison and result choices, not arbitrary control flow.",
+        "Research-only model; no production promotion or external evaluator.",
+        "One operator and environment class, finite public/shifted distributions."
+      ],
+      "replay_containers": 2,
+      "rows": [
+        {
+          "expansion": {
+            "degree": 3,
+            "rule": [
+              1,
+              0,
+              1
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 3,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            0,
+            1
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_1_0_1"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0024206380000000027,
+                "max_steps": 1028,
+                "peak_bytes": 4152
+              },
+              "objective": 0.9885047841999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_1_0_1"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_3_1_0_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 0 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "a5a323167ee227abb29acb70890863d8fe83bc2bd25c8ec180b989520131a64a"
+        },
+        {
+          "expansion": {
+            "degree": 3,
+            "rule": [
+              2,
+              1,
+              1
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 3,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            2,
+            1,
+            1
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_2_1_1"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.003274364000000002,
+                "max_steps": 1028,
+                "peak_bytes": 4212
+              },
+              "objective": 0.9884193515999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_2_1_1"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_3_2_1_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid * mid + 1 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "78872796e5ce1ed1d66fb318132932f2d01580030eaf41aa3a13e4162b228f52"
+        },
+        {
+          "expansion": {
+            "degree": 4,
+            "rule": [
+              1,
+              1,
+              2
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            4,
+            1,
+            1,
+            2
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_4_1_1_2"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0028183680000000155,
+                "max_steps": 1028,
+                "peak_bytes": 4278
+              },
+              "objective": 0.9874588851999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_4_1_1_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_4_1_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "9c9c2a2bfcb4b77751eb073458f0630db405a7a1d1f9f6f6a086c77dc28201b2"
+        }
+      ],
+      "screening_containers": 17,
+      "seed": 490033,
+      "training_containers": 12,
+      "training_report": {
+        "gates": [
+          {
+            "name": "syntax",
+            "number": 1,
+            "passed": true
+          },
+          {
+            "name": "ast_safety",
+            "number": 2,
+            "passed": true
+          },
+          {
+            "name": "isolation_boot",
+            "number": 3,
+            "passed": true
+          },
+          {
+            "name": "public",
+            "number": 4,
+            "passed": true
+          },
+          {
+            "name": "regression",
+            "number": 5,
+            "passed": true,
+            "reused_regression_checks": 0
+          },
+          {
+            "name": "holdout",
+            "number": 6,
+            "passed": true
+          },
+          {
+            "name": "generalization",
+            "number": 7,
+            "passed": true
+          },
+          {
+            "name": "performance",
+            "number": 8,
+            "passed": true
+          },
+          {
+            "name": "differential",
+            "number": 9,
+            "passed": true
+          },
+          {
+            "name": "determinism",
+            "number": 10,
+            "passed": true
+          }
+        ],
+        "measurements": {
+          "cpu_seconds": 0.002659613000000005,
+          "max_steps": 1028,
+          "peak_bytes": 4094
+        },
+        "objective": 0.9894989447,
+        "passed": true,
+        "random_cases": 1128,
+        "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+        "suite_version": "autonomy-1",
+        "task": "integer_sqrt:tier1"
+      }
+    },
+    {
+      "automatic_promotion": false,
+      "discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      },
+      "donor_program_supplied": false,
+      "fresh_process_replay_passed": true,
+      "limitations": [
+        "Sixteen procedure configurations and loop grammar are developer-defined.",
+        "Learns boundary, branch, comparison and result choices, not arbitrary control flow.",
+        "Research-only model; no production promotion or external evaluator.",
+        "One operator and environment class, finite public/shifted distributions."
+      ],
+      "replay_containers": 2,
+      "rows": [
+        {
+          "expansion": {
+            "degree": 3,
+            "rule": [
+              1,
+              0,
+              1
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 3,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            0,
+            1
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_1_0_1"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0037311839999999985,
+                "max_steps": 1028,
+                "peak_bytes": 4152
+              },
+              "objective": 0.9883737295999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_1_0_1"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_3_1_0_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 0 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "a5a323167ee227abb29acb70890863d8fe83bc2bd25c8ec180b989520131a64a"
+        },
+        {
+          "expansion": {
+            "degree": 3,
+            "rule": [
+              2,
+              1,
+              1
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 3,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            2,
+            1,
+            1
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_2_1_1"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0039908000000000166,
+                "max_steps": 1028,
+                "peak_bytes": 4212
+              },
+              "objective": 0.9883477079999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_2_1_1"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_3_2_1_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid * mid + 1 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "78872796e5ce1ed1d66fb318132932f2d01580030eaf41aa3a13e4162b228f52"
+        },
+        {
+          "expansion": {
+            "degree": 4,
+            "rule": [
+              1,
+              1,
+              2
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            4,
+            1,
+            1,
+            2
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_4_1_1_2"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.004514245,
+                "max_steps": 1028,
+                "peak_bytes": 4278
+              },
+              "objective": 0.9872892974999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_4_1_1_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_4_1_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "9c9c2a2bfcb4b77751eb073458f0630db405a7a1d1f9f6f6a086c77dc28201b2"
+        }
+      ],
+      "screening_containers": 17,
+      "seed": 590041,
+      "training_containers": 12,
+      "training_report": {
+        "gates": [
+          {
+            "name": "syntax",
+            "number": 1,
+            "passed": true
+          },
+          {
+            "name": "ast_safety",
+            "number": 2,
+            "passed": true
+          },
+          {
+            "name": "isolation_boot",
+            "number": 3,
+            "passed": true
+          },
+          {
+            "name": "public",
+            "number": 4,
+            "passed": true
+          },
+          {
+            "name": "regression",
+            "number": 5,
+            "passed": true,
+            "reused_regression_checks": 0
+          },
+          {
+            "name": "holdout",
+            "number": 6,
+            "passed": true
+          },
+          {
+            "name": "generalization",
+            "number": 7,
+            "passed": true
+          },
+          {
+            "name": "performance",
+            "number": 8,
+            "passed": true
+          },
+          {
+            "name": "differential",
+            "number": 9,
+            "passed": true
+          },
+          {
+            "name": "determinism",
+            "number": 10,
+            "passed": true
+          }
+        ],
+        "measurements": {
+          "cpu_seconds": 0.0037889029999999824,
+          "max_steps": 1028,
+          "peak_bytes": 4094
+        },
+        "objective": 0.9893860157,
+        "passed": true,
+        "random_cases": 1128,
+        "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+        "suite_version": "autonomy-1",
+        "task": "integer_sqrt:tier1"
+      }
+    },
+    {
+      "automatic_promotion": false,
+      "discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      },
+      "donor_program_supplied": false,
+      "fresh_process_replay_passed": true,
+      "limitations": [
+        "Sixteen procedure configurations and loop grammar are developer-defined.",
+        "Learns boundary, branch, comparison and result choices, not arbitrary control flow.",
+        "Research-only model; no production promotion or external evaluator.",
+        "One operator and environment class, finite public/shifted distributions."
+      ],
+      "replay_containers": 2,
+      "rows": [
+        {
+          "expansion": {
+            "degree": 3,
+            "rule": [
+              1,
+              0,
+              1
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 3,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            0,
+            1
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_1_0_1"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0027019669999999996,
+                "max_steps": 1028,
+                "peak_bytes": 4152
+              },
+              "objective": 0.9884766513,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_1_0_1"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_3_1_0_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 0 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "a5a323167ee227abb29acb70890863d8fe83bc2bd25c8ec180b989520131a64a"
+        },
+        {
+          "expansion": {
+            "degree": 3,
+            "rule": [
+              2,
+              1,
+              1
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 3,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            2,
+            1,
+            1
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_2_1_1"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0019943430000000095,
+                "max_steps": 1028,
+                "peak_bytes": 4212
+              },
+              "objective": 0.9885473536999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_3_2_1_1"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_3_2_1_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid * mid + 1 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "78872796e5ce1ed1d66fb318132932f2d01580030eaf41aa3a13e4162b228f52"
+        },
+        {
+          "expansion": {
+            "degree": 4,
+            "rule": [
+              1,
+              1,
+              2
+            ],
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 1,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            4,
+            1,
+            1,
+            2
+          ],
+          "reports": {
+            "frozen_control": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_4_1_1_2"
+            },
+            "learned": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0029954809999999943,
+                "max_steps": 1028,
+                "peak_bytes": 4278
+              },
+              "objective": 0.9874411739,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:expanded_inverse_4_1_1_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def expanded_inverse_4_1_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "9c9c2a2bfcb4b77751eb073458f0630db405a7a1d1f9f6f6a086c77dc28201b2"
+        }
+      ],
+      "screening_containers": 17,
+      "seed": 690047,
+      "training_containers": 12,
+      "training_report": {
+        "gates": [
+          {
+            "name": "syntax",
+            "number": 1,
+            "passed": true
+          },
+          {
+            "name": "ast_safety",
+            "number": 2,
+            "passed": true
+          },
+          {
+            "name": "isolation_boot",
+            "number": 3,
+            "passed": true
+          },
+          {
+            "name": "public",
+            "number": 4,
+            "passed": true
+          },
+          {
+            "name": "regression",
+            "number": 5,
+            "passed": true,
+            "reused_regression_checks": 0
+          },
+          {
+            "name": "holdout",
+            "number": 6,
+            "passed": true
+          },
+          {
+            "name": "generalization",
+            "number": 7,
+            "passed": true
+          },
+          {
+            "name": "performance",
+            "number": 8,
+            "passed": true
+          },
+          {
+            "name": "differential",
+            "number": 9,
+            "passed": true
+          },
+          {
+            "name": "determinism",
+            "number": 10,
+            "passed": true
+          }
+        ],
+        "measurements": {
+          "cpu_seconds": 0.002427372000000011,
+          "max_steps": 1028,
+          "peak_bytes": 4094
+        },
+        "objective": 0.9895221688,
+        "passed": true,
+        "random_cases": 1128,
+        "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+        "suite_version": "autonomy-1",
+        "task": "integer_sqrt:tier1"
+      }
+    }
+  ],
+  "accepted": true,
+  "automatic_promotion": false
+}
