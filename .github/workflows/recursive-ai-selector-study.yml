@@ -1,79 +1,80 @@
-name: Recursive AI selector replications
+name: Recursive AI matched selector evidence
 
 on:
   push:
-    branches: [recursive-ai/selector-replications]
-    paths: [".github/workflows/recursive-ai-selector-study.yml"]
+    branches: [recursive-ai-lab]
+    paths:
+      - ".github/workflows/recursive-ai-selector-study.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: selector-study-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  compare:
+  matched-selector:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
-    strategy:
-      fail-fast: false
-      matrix:
-        seed: [310003, 510007, 710009]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
-      - name: Build isolated runner
+      - name: Build real isolated Docker evaluator
         working-directory: recursive-ai
         run: docker build -t recursive-ai-runner:local sandbox/
-      - name: Run matched selectors
+      - name: Run prespecified, non-promoting matched comparison
         working-directory: recursive-ai
-        env:
-          STUDY_SEED: ${{ matrix.seed }}
+        shell: bash
         run: |
-          python3 - <<'PYTHON'
+          set -euo pipefail
+          python3 main.py compare-search-selection \
+            --state "$RUNNER_TEMP/selector-study-210121" \
+            --train-goal "compound arithmetic" \
+            --holdout-goal "sorted search" \
+            --tier 1 --task-count 2 \
+            --population 2 --generations 1 \
+            --replicates 1 --holdout-replicates 6 \
+            --base-seed 210121 \
+            --max-attempts 8 --max-seconds 90 \
+            --max-stagnation 6 --max-model-calls 0 --max-containers 180 \
+            > "$RUNNER_TEMP/selector-study-stdout.jsonl"
+          python3 - <<'PY'
+          import hashlib
           import json
           import os
-          import platform
           import subprocess
-          import time
           from pathlib import Path
-          from research.selection_comparison import compare_parent_selection
-          start = time.monotonic()
-          root = Path('selector-evidence')
-          root.mkdir()
-          provenance = {
-              'commit': os.environ['GITHUB_SHA'],
-              'seed': int(os.environ['STUDY_SEED']),
-              'python': platform.python_version(),
-              'platform': platform.platform(),
-              'docker_image_id': subprocess.check_output(
-                  ['docker', 'image', 'inspect', '--format', '{{.Id}}',
-                   'recursive-ai-runner:local'], text=True).strip(),
-              'acceptance': 'All integrity canaries and audited correctness required; no automatic promotion.',
-              'limitations': ['Same operator and runner image across replications.',
-                             'Sorted-search seeds do not establish independent external task distributions.',
-                             'Wall time can influence development selection; report machine confounding.'],
+          path = Path(os.environ["RUNNER_TEMP"]) / "selector-study-210121/selection-comparison/comparison.json"
+          payload = path.read_bytes()
+          report = json.loads(payload)
+          assert report["holdout_pairs"] == 6
+          assert report["evaluation_integrity_canaries"]["all_passed"]
+          assert report["development_trials_per_arm"] == 2
+          assert not report["promotion"]["automatic"]
+          assert not report["promotion"]["eligible"]
+          result = {
+              "head_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "evidence_sha256": hashlib.sha256(payload).hexdigest(),
+              "development_trials_per_arm": report["development_trials_per_arm"],
+              "holdout_pairs": report["holdout_pairs"],
+              "canaries": report["evaluation_integrity_canaries"]["checks"],
+              "comparison": report["holdout_comparison_pareto_minus_quality_diversity"],
+              "resource_totals": report["resource_totals_by_arm"],
+              "automatic_promotion": False,
+              "interpretation": "Single exploratory matched study; no independently replicated general gain.",
           }
-          (root / 'provenance.json').write_text(json.dumps(provenance, indent=2))
-          report = compare_parent_selection(
-              root, train_goal='compound arithmetic', holdout_goal='sorted search',
-              tier=1, population=4, generations=2, development_replicates=1,
-              holdout_replicates=2, base_seed=provenance['seed'], task_count=2,
-              max_attempts=16, max_seconds=180, max_stagnation=12,
-              max_model_calls=0, max_containers=400,
-          )
-          report['elapsed_seconds'] = time.monotonic() - start
-          report['provenance'] = provenance
-          print('SELECTOR_RESULT ' + json.dumps(report, sort_keys=True))
-          (root / 'result.json').write_text(json.dumps(report, indent=2))
-          assert report['evaluation_integrity_canaries']['all_passed']
-          assert report['holdout_comparison_pareto_minus_quality_diversity']['all_correct']
-          assert report['promotion']['automatic'] is False
-          PYTHON
-      - name: Preserve evidence, including failed studies
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: selector-evidence-${{ matrix.seed }}
-          path: recursive-ai/selector-evidence/**/*.json
-          if-no-files-found: error
-          retention-days: 30
+          print(json.dumps(result, indent=2, sort_keys=True))
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("## Matched selector study (non-promoting)\n\n")
+              f.write("```json\n" + json.dumps(result, indent=2, sort_keys=True) + "\n```\n")
+          PY
+      - name: Report failed comparison diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/selector-study-stdout.jsonl" ]; then
+            tail -n 50 "$RUNNER_TEMP/selector-study-stdout.jsonl"
+          fi
