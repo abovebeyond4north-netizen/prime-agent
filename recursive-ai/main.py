@@ -171,6 +171,8 @@ def main():
     parser.add_argument("--max-containers", type=int, default=2000)
     parser.add_argument("--repair-public-failures", action="store_true",
                         help="prioritize unresolved public-test failures in autonomous curriculum")
+    parser.add_argument("--learn-inverse-procedure", action="store_true",
+                        help="learn bounded inverse procedure choices from public sandbox executions")
     parser.add_argument("--policy-mode", choices=["learned", "fixed"], default="learned")
     parser.add_argument("--prior-strength", type=float, default=4.0)
     parser.add_argument("--replicates", type=int, default=3)
@@ -179,6 +181,8 @@ def main():
     parser.add_argument("--generations", type=int, default=2)
     parser.add_argument("--base-seed", type=int, default=0)
     args = parser.parse_args()
+    if args.learn_inverse_procedure and args.command != "autonomous":
+        parser.error("--learn-inverse-procedure requires autonomous")
     if args.repair_public_failures and args.command != "autonomous":
         parser.error("--repair-public-failures requires autonomous")
     if not 1 <= args.iterations <= 1000:
@@ -288,6 +292,7 @@ def main():
             max_containers=args.max_containers, provider=provider, image=args.image,
             task_seed=args.task_seed, task_count=args.task_count, policy_mode=args.policy_mode,
             repair_public_failures=args.repair_public_failures,
+            learn_inverse_procedure=args.learn_inverse_procedure,
         )
         if summary["status"] != "goal_reached":
             raise SystemExit(2)
