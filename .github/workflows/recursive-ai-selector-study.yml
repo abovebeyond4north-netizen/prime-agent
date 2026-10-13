@@ -1,0 +1,80 @@
+name: Recursive AI matched selector evidence
+
+on:
+  push:
+    branches: [recursive-ai-lab]
+    paths:
+      - ".github/workflows/recursive-ai-selector-study.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selector-study-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  matched-selector:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build real isolated Docker evaluator
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Run prespecified, non-promoting matched comparison
+        working-directory: recursive-ai
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 main.py compare-search-selection \
+            --state "$RUNNER_TEMP/selector-study-210121" \
+            --train-goal "compound arithmetic" \
+            --holdout-goal "sorted search" \
+            --tier 1 --task-count 2 \
+            --population 2 --generations 1 \
+            --replicates 1 --holdout-replicates 6 \
+            --base-seed 210121 \
+            --max-attempts 8 --max-seconds 90 \
+            --max-stagnation 6 --max-model-calls 0 --max-containers 180 \
+            > "$RUNNER_TEMP/selector-study-stdout.jsonl"
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+          path = Path(os.environ["RUNNER_TEMP"]) / "selector-study-210121/selection-comparison/comparison.json"
+          payload = path.read_bytes()
+          report = json.loads(payload)
+          assert report["holdout_pairs"] == 6
+          assert report["evaluation_integrity_canaries"]["all_passed"]
+          assert report["development_trials_per_arm"] == 2
+          assert not report["promotion"]["automatic"]
+          assert not report["promotion"]["eligible"]
+          result = {
+              "head_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "evidence_sha256": hashlib.sha256(payload).hexdigest(),
+              "development_trials_per_arm": report["development_trials_per_arm"],
+              "holdout_pairs": report["holdout_pairs"],
+              "canaries": report["evaluation_integrity_canaries"]["checks"],
+              "comparison": report["holdout_comparison_pareto_minus_quality_diversity"],
+              "resource_totals": report["resource_totals_by_arm"],
+              "automatic_promotion": False,
+              "interpretation": "Single exploratory matched study; no independently replicated general gain.",
+          }
+          print(json.dumps(result, indent=2, sort_keys=True))
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("## Matched selector study (non-promoting)\n\n")
+              f.write("```json\n" + json.dumps(result, indent=2, sort_keys=True) + "\n```\n")
+          PY
+      - name: Report failed comparison diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/selector-study-stdout.jsonl" ]; then
+            tail -n 50 "$RUNNER_TEMP/selector-study-stdout.jsonl"
+          fi
