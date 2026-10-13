@@ -1,3 +1,4 @@
+import copy
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -39,7 +40,12 @@ class SelectionComparisonTests(unittest.TestCase):
             )
         self.assertEqual(report["development_trials_per_arm"], 6)
         self.assertEqual(report["holdout_pairs"], 6)
-        self.assertEqual(len(calls), 36)
+        # Original independent-arms design executed 36 trials. Reusing five
+        # common baseline holdouts while rechecking one saves five real calls.
+        self.assertEqual(len(calls), 31)
+        self.assertEqual(report["execution_efficiency"]["baseline_evaluations_avoided"], 5)
+        self.assertEqual(report["execution_efficiency"]["independent_baseline_rechecks"], 1)
+        self.assertGreater(report["execution_efficiency"]["estimated_container_runs_avoided"], 0)
         self.assertEqual(set(report["resource_totals_by_arm"]),
                          {"quality_diversity", "pareto"})
         self.assertEqual(report["resource_totals_by_arm"]["pareto"]["holdout"]["model_calls"], 0)
@@ -69,6 +75,27 @@ class SelectionComparisonTests(unittest.TestCase):
                     root, train_goal="compound arithmetic", holdout_goal="sorted search",
                     population=2, generations=1, development_replicates=1,
                     holdout_replicates=1, base_seed=73, task_count=2,
+                )
+
+    def test_shared_baseline_rejects_cache_identity_tampering(self):
+        from research.search_policy_evolution import run_search_policy_evolution
+        options = dict(
+            train_goal="compound arithmetic", holdout_goal="sorted search",
+            population=2, generations=1, development_replicates=1,
+            holdout_replicates=2, base_seed=73, task_count=2,
+        )
+        with tempfile.TemporaryDirectory() as root, patch(
+            "research.search_policy_evolution.execute_goal", side_effect=fake_execute
+        ):
+            original = run_search_policy_evolution(
+                root + "/reference", parent_selection="quality_diversity", **options
+            )
+            tainted = copy.deepcopy(original["cross_family_holdout"]["baseline"])
+            tainted["rows"][1]["seed"] += 1
+            with self.assertRaisesRegex(ValueError, "shared_baseline_consistency"):
+                run_search_policy_evolution(
+                    root + "/candidate", parent_selection="pareto",
+                    _shared_holdout_baseline=tainted, **options
                 )
 
     def test_canaries_reject_proxy_gain_without_correctness(self):
