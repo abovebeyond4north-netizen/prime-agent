@@ -1,0 +1,400 @@
+{
+  "commit": "01021cf91c4421323c8766ffd80474b5e775c36f",
+  "run_url": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/38304173079",
+  "verdict": "gain_not_established",
+  "replications": [
+    {
+      "arm_study_ids": {
+        "pareto": "398b450f54cfec607bf8",
+        "quality_diversity": "a7d3c11aec6dfbbe787b"
+      },
+      "development_trials_per_arm": 8,
+      "elapsed_seconds": 525.569397007,
+      "evaluation_integrity_canaries": {
+        "all_passed": true,
+        "checks": {
+          "correctness_before_resources": true,
+          "equal_development_trials": true,
+          "matched_protocol": true,
+          "matched_unique_holdouts": true,
+          "shared_baseline_consistency": true,
+          "split_isolation": true
+        },
+        "purpose": "Detect protocol drift, leakage, replay, baseline tampering, and proxy-only resource gains."
+      },
+      "holdout_comparison_pareto_minus_quality_diversity": {
+        "all_correct": true,
+        "alpha": 0.05,
+        "assumptions": [
+          "independent prespecified holdout pairs; exchangeable signs under the null",
+          "one frozen finalist selected without inspecting these holdouts",
+          "Holm correction covers three resource metrics within this study only",
+          "sign tests concern win probability, not effect size or universal generalization",
+          "wall time is excluded because machine load is a confounder",
+          "identical or correlated task instances across seeds are not independent evidence"
+        ],
+        "automatic_promotion": false,
+        "coverage_non_regression_every_pair": true,
+        "metrics": {
+          "attempts": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "container_runs": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "model_calls": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          }
+        },
+        "pairs": 2,
+        "resource_non_regression_every_pair": true,
+        "status": "gain_not_established"
+      },
+      "holdout_families": [
+        "binary_search",
+        "count_occurrences",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "holdout_pairs": 2,
+      "limitations": [
+        "A single seed schedule is an exploratory comparison, not a replicated search study.",
+        "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+        "Replay-based screening is not implemented in this comparison."
+      ],
+      "promotion": {
+        "automatic": false,
+        "eligible": false
+      },
+      "protocol": "matched-parent-selection-v1",
+      "protocol_digest": "acd196e67135e6dcfa9b21f84c8884b83900386077f7a8da926d34e72857a840",
+      "provenance": {
+        "acceptance": "All integrity canaries and audited correctness required; no automatic promotion.",
+        "commit": "01021cf91c4421323c8766ffd80474b5e775c36f",
+        "docker_image_id": "sha256:6a18c102f3b2b3fe476dccd92538235b4f059f43780e9908a412b524674fe56c",
+        "limitations": [
+          "Same operator and runner image across replications.",
+          "Sorted-search seeds do not establish independent external task distributions.",
+          "Wall time can influence development selection; report machine confounding."
+        ],
+        "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "seed": 310003
+      },
+      "resource_totals_by_arm": {
+        "pareto": {
+          "development": {
+            "attempts": 32,
+            "container_runs": 384,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 24,
+            "container_runs": 272,
+            "model_calls": 0
+          }
+        },
+        "quality_diversity": {
+          "development": {
+            "attempts": 32,
+            "container_runs": 384,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 24,
+            "container_runs": 272,
+            "model_calls": 0
+          }
+        }
+      }
+    },
+    {
+      "arm_study_ids": {
+        "pareto": "adc04092f836325e085a",
+        "quality_diversity": "be96bb513642ff58d6e4"
+      },
+      "development_trials_per_arm": 8,
+      "elapsed_seconds": 524.4256575,
+      "evaluation_integrity_canaries": {
+        "all_passed": true,
+        "checks": {
+          "correctness_before_resources": true,
+          "equal_development_trials": true,
+          "matched_protocol": true,
+          "matched_unique_holdouts": true,
+          "shared_baseline_consistency": true,
+          "split_isolation": true
+        },
+        "purpose": "Detect protocol drift, leakage, replay, baseline tampering, and proxy-only resource gains."
+      },
+      "holdout_comparison_pareto_minus_quality_diversity": {
+        "all_correct": true,
+        "alpha": 0.05,
+        "assumptions": [
+          "independent prespecified holdout pairs; exchangeable signs under the null",
+          "one frozen finalist selected without inspecting these holdouts",
+          "Holm correction covers three resource metrics within this study only",
+          "sign tests concern win probability, not effect size or universal generalization",
+          "wall time is excluded because machine load is a confounder",
+          "identical or correlated task instances across seeds are not independent evidence"
+        ],
+        "automatic_promotion": false,
+        "coverage_non_regression_every_pair": true,
+        "metrics": {
+          "attempts": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "container_runs": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "model_calls": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          }
+        },
+        "pairs": 2,
+        "resource_non_regression_every_pair": true,
+        "status": "gain_not_established"
+      },
+      "holdout_families": [
+        "binary_search",
+        "count_occurrences",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "holdout_pairs": 2,
+      "limitations": [
+        "A single seed schedule is an exploratory comparison, not a replicated search study.",
+        "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+        "Replay-based screening is not implemented in this comparison."
+      ],
+      "promotion": {
+        "automatic": false,
+        "eligible": false
+      },
+      "protocol": "matched-parent-selection-v1",
+      "protocol_digest": "af64b23ba34d3b9921edbd7ae2577e656e0b5155faf553d34620fb2609891d33",
+      "provenance": {
+        "acceptance": "All integrity canaries and audited correctness required; no automatic promotion.",
+        "commit": "01021cf91c4421323c8766ffd80474b5e775c36f",
+        "docker_image_id": "sha256:331d1921cf144dd9bea96fe4ede676b410ed7e24f6dc04cb6f8f1fcfcc40ef2b",
+        "limitations": [
+          "Same operator and runner image across replications.",
+          "Sorted-search seeds do not establish independent external task distributions.",
+          "Wall time can influence development selection; report machine confounding."
+        ],
+        "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "seed": 510007
+      },
+      "resource_totals_by_arm": {
+        "pareto": {
+          "development": {
+            "attempts": 32,
+            "container_runs": 384,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 24,
+            "container_runs": 272,
+            "model_calls": 0
+          }
+        },
+        "quality_diversity": {
+          "development": {
+            "attempts": 32,
+            "container_runs": 384,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 24,
+            "container_runs": 272,
+            "model_calls": 0
+          }
+        }
+      }
+    },
+    {
+      "arm_study_ids": {
+        "pareto": "7f82eff36fce64534640",
+        "quality_diversity": "7cf3e4280da90e5b2494"
+      },
+      "development_trials_per_arm": 8,
+      "elapsed_seconds": 351.320797984,
+      "evaluation_integrity_canaries": {
+        "all_passed": true,
+        "checks": {
+          "correctness_before_resources": true,
+          "equal_development_trials": true,
+          "matched_protocol": true,
+          "matched_unique_holdouts": true,
+          "shared_baseline_consistency": true,
+          "split_isolation": true
+        },
+        "purpose": "Detect protocol drift, leakage, replay, baseline tampering, and proxy-only resource gains."
+      },
+      "holdout_comparison_pareto_minus_quality_diversity": {
+        "all_correct": true,
+        "alpha": 0.05,
+        "assumptions": [
+          "independent prespecified holdout pairs; exchangeable signs under the null",
+          "one frozen finalist selected without inspecting these holdouts",
+          "Holm correction covers three resource metrics within this study only",
+          "sign tests concern win probability, not effect size or universal generalization",
+          "wall time is excluded because machine load is a confounder",
+          "identical or correlated task instances across seeds are not independent evidence"
+        ],
+        "automatic_promotion": false,
+        "coverage_non_regression_every_pair": true,
+        "metrics": {
+          "attempts": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "container_runs": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          },
+          "model_calls": {
+            "holm_adjusted_p": 1,
+            "losses": 0,
+            "max_delta": 0,
+            "mean_delta_finalist_minus_baseline": 0,
+            "median_delta_finalist_minus_baseline": 0,
+            "min_delta": 0,
+            "one_sided_sign_p": 1,
+            "ties": 2,
+            "wins": 0
+          }
+        },
+        "pairs": 2,
+        "resource_non_regression_every_pair": true,
+        "status": "gain_not_established"
+      },
+      "holdout_families": [
+        "binary_search",
+        "count_occurrences",
+        "lower_bound",
+        "upper_bound"
+      ],
+      "holdout_pairs": 2,
+      "limitations": [
+        "A single seed schedule is an exploratory comparison, not a replicated search study.",
+        "Reusing these holdouts to tune selectors would invalidate independent confirmation.",
+        "Replay-based screening is not implemented in this comparison."
+      ],
+      "promotion": {
+        "automatic": false,
+        "eligible": false
+      },
+      "protocol": "matched-parent-selection-v1",
+      "protocol_digest": "498918a4271fd4d122d8b5ff7aa67b231faa51cf894ef8c6a7805db43764caa0",
+      "provenance": {
+        "acceptance": "All integrity canaries and audited correctness required; no automatic promotion.",
+        "commit": "01021cf91c4421323c8766ffd80474b5e775c36f",
+        "docker_image_id": "sha256:b317cbca26453c59bc579adb10889ac600ce7332f465aa11d1e57536ec6f373b",
+        "limitations": [
+          "Same operator and runner image across replications.",
+          "Sorted-search seeds do not establish independent external task distributions.",
+          "Wall time can influence development selection; report machine confounding."
+        ],
+        "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.12.3",
+        "seed": 710009
+      },
+      "resource_totals_by_arm": {
+        "pareto": {
+          "development": {
+            "attempts": 32,
+            "container_runs": 384,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 24,
+            "container_runs": 272,
+            "model_calls": 0
+          }
+        },
+        "quality_diversity": {
+          "development": {
+            "attempts": 32,
+            "container_runs": 384,
+            "model_calls": 0
+          },
+          "holdout": {
+            "attempts": 24,
+            "container_runs": 272,
+            "model_calls": 0
+          }
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Three seed schedules, same harness and operator; not three independent external evaluations.",
+    "Sorted-search contracts share fixed task families across seeds.",
+    "Resource ties do not establish equivalence on other tasks.",
+    "Wall time influenced development ranking and is not a superiority metric."
+  ]
+}

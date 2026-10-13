@@ -1,0 +1,95 @@
+import contextlib
+import io
+import tempfile
+import unittest
+import main as cli
+from unittest.mock import patch
+
+from autonomy.controller import execute_goal
+from autonomy.curriculum import next_task
+from autonomy.memory import ResearchMemory
+from autonomy.tasks import Task, goal_contract
+from autonomy.verifier import TaskVerifier
+from tests.test_autonomy import ContractRunner, certification
+
+
+class PublicFailureCurriculumTests(unittest.TestCase):
+    def test_priority_uses_only_latest_public_failure_in_this_goal(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = ResearchMemory(root)
+            for goal, key, gate in [('g', 'gcd:tier1', 'public'),
+                                    ('g', 'fibonacci:tier1', 'holdout'),
+                                    ('other', 'upper_bound:tier1', 'public')]:
+                memory.event({'goal_id': goal, 'attempt': 1, 'task': {'key': key}, 'failed_gate': gate})
+            self.assertEqual(memory.public_repair_tasks('g'), {'gcd:tier1'})
+            memory.event({'goal_id': 'g', 'attempt': 2, 'task': {'key': 'gcd:tier1'}, 'failed_gate': None})
+            self.assertEqual(memory.public_repair_tasks('g'), set())
+            memory.db.close()
+
+    def test_repair_priority_preserves_prerequisites_and_tiers(self):
+        contract = goal_contract('algorithms toolkit', tier=2)
+        attempts = {'gcd:tier1': 1}
+        self.assertEqual(next_task(contract, {}, attempts).key, 'fibonacci:tier1')
+        self.assertEqual(next_task(contract, {}, attempts, priority_keys={'gcd:tier1'}).key,
+                         'gcd:tier1')
+        # Neither unadmitted tasks nor unresolved higher-tier dependencies become eligible.
+        picked = next_task(contract, {}, attempts, priority_keys={'binary_search:tier2', 'outside'})
+        self.assertEqual(picked.key, 'fibonacci:tier1')
+        active = {'gcd:tier1': certification(Task('gcd'))}
+        picked = next_task(contract, active, attempts, priority_keys={'gcd:tier2'})
+        self.assertEqual(picked.tier, 1)
+
+    def test_resume_does_not_reuse_summary_from_other_curriculum_mode(self):
+        with tempfile.TemporaryDirectory() as root, patch('autonomy.controller.SandboxRunner', ContractRunner), contextlib.redirect_stdout(io.StringIO()):
+            baseline = execute_goal(root, description='gcd', tier=1, max_model_calls=0)
+            focused = execute_goal(root, description='gcd', tier=1, max_model_calls=0,
+                                   repair_public_failures=True)
+            self.assertFalse(baseline['repair_public_failures'])
+            self.assertTrue(focused['repair_public_failures'])
+            self.assertTrue(focused['audit']['passed'])
+            self.assertEqual(focused['coverage'], baseline['coverage'])
+            self.assertEqual(focused['session_attempts'], 0)
+
+    def test_invalid_mode_fails_before_creating_state(self):
+        with self.assertRaises(ValueError):
+            execute_goal('unused', repair_public_failures='yes')
+
+    def test_cli_passes_explicit_mode_and_keeps_control_default(self):
+        for flags, expected in [([], False), (['--repair-public-failures'], True)]:
+            with patch('sys.argv', ['main.py', 'autonomous', *flags]), patch.object(
+                cli, 'execute_goal', return_value={'status': 'goal_reached'}
+            ) as execute:
+                cli.main()
+                self.assertEqual(execute.call_args.kwargs['repair_public_failures'], expected)
+
+    def test_cli_rejects_mode_for_other_commands(self):
+        with patch('sys.argv', ['main.py', 'plan', '--repair-public-failures']), contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as error:
+                cli.main()
+            self.assertEqual(error.exception.code, 2)
+
+    def test_repeated_public_failure_yields_priority(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = ResearchMemory(root)
+            for attempt in (1, 2):
+                memory.event({'goal_id': 'g', 'attempt': attempt,
+                              'task': {'key': 'fibonacci:tier1'}, 'failed_gate': 'public'})
+            self.assertEqual(memory.public_repair_tasks('g'), set())
+            self.assertEqual(next_task(goal_contract(tier=1), {},
+                                      {'fibonacci:tier1': 2},
+                                      priority_keys=memory.public_repair_tasks('g')).key,
+                             'gcd:tier1')
+            memory.db.close()
+
+    def test_unrepairable_task_does_not_starve_other_skills(self):
+        original = TaskVerifier.verify
+        def reject_fibonacci(verifier, source, task, active):
+            if task.family == 'fibonacci':
+                return {'passed': False, 'gates': [{'number': 4, 'name': 'public', 'passed': False}]}
+            return original(verifier, source, task, active)
+        with tempfile.TemporaryDirectory() as root, patch('autonomy.controller.SandboxRunner', ContractRunner), patch.object(TaskVerifier, 'verify', reject_fibonacci), contextlib.redirect_stdout(io.StringIO()):
+            result = execute_goal(root, tier=1, max_attempts=6, max_model_calls=0,
+                                  repair_public_failures=True)
+            self.assertGreater(result['coverage'], 0)
+            self.assertNotIn('fibonacci:tier1', result['certified_tasks'])
+            self.assertEqual(result['focused_public_repair_attempts'], 1)

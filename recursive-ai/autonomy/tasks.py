@@ -11,7 +11,9 @@ from autonomy.expressions import ExpressionTask, generate_tasks
 
 SUITE_VERSION = "autonomy-1"
 FAMILIES = ("lower_bound", "upper_bound", "binary_search", "count_occurrences", "gcd", "fibonacci")
-DEPENDENCIES = {"binary_search": ("lower_bound",), "count_occurrences": ("lower_bound", "upper_bound")}
+INVERSE_FAMILIES = ("integer_sqrt", "triangular_inverse")
+DEPENDENCIES = {"binary_search": ("lower_bound",), "count_occurrences": ("lower_bound", "upper_bound"),
+                "integer_sqrt": ("lower_bound",), "triangular_inverse": ("lower_bound",)}
 SPECS = {
     "lower_bound": "lower_bound(values, target): sorted integer list; return first index whose value >= target, or len(values).",
     "upper_bound": "upper_bound(values, target): sorted integer list; return first index whose value > target, or len(values).",
@@ -19,6 +21,8 @@ SPECS = {
     "count_occurrences": "count_occurrences(values, target): sorted integer list; return the number of entries equal to target.",
     "gcd": "gcd(a, b): two integers; return nonnegative greatest common divisor; gcd(0, 0) is 0.",
     "fibonacci": "fibonacci(n): nonnegative integer; return F(n), where F(0)=0 and F(1)=1.",
+    "integer_sqrt": "integer_sqrt(n): nonnegative integer; return the greatest integer k with k*k <= n.",
+    "triangular_inverse": "triangular_inverse(n): nonnegative integer; return the greatest integer k with k*(k+1)//2 <= n.",
 }
 
 
@@ -35,7 +39,7 @@ class Task:
     tier: int = 1
 
     def __post_init__(self):
-        if self.family not in FAMILIES or type(self.tier) is not int or not 1 <= self.tier <= 3:
+        if self.family not in FAMILIES + INVERSE_FAMILIES or type(self.tier) is not int or not 1 <= self.tier <= 3:
             raise ValueError("unsupported task family or tier")
 
     def with_tier(self, tier):
@@ -47,6 +51,8 @@ class Task:
 
     @property
     def performance_step_limit(self):
+        if self.family in INVERSE_FAMILIES:
+            return 10000
         return 2500 if self.family == "gcd" else 5000 if self.family == "fibonacci" else 250
 
     @property
@@ -58,6 +64,8 @@ class Task:
         return SPECS[self.family] + f" Difficulty tier {self.tier}. Return an integer, do not mutate inputs. Pure functions only; no imports, attributes, annotations, defaults or I/O."
 
     def public(self):
+        if self.family in INVERSE_FAMILIES:
+            return [(n,) for n in (0, 1, 2, 3, 4, 6, 9, 10, 16, 100)]
         if self.family == "gcd":
             return [(0, 0), (12, 18), (-12, 18), (7, 0), (17, 13)]
         if self.family == "fibonacci":
@@ -66,6 +74,10 @@ class Task:
 
     def expected(self, cases):
         def answer(args):
+            if self.family == "integer_sqrt":
+                return math.isqrt(args[0])
+            if self.family == "triangular_inverse":
+                return (math.isqrt(8 * args[0] + 1) - 1) // 2
             if self.family == "gcd":
                 return math.gcd(*args)
             if self.family == "fibonacci":
@@ -86,6 +98,8 @@ class Task:
 
     def samples(self, count, seed=None, audit=False):
         rng = random.Random(secrets.randbits(128) if seed is None else seed)
+        if self.family in INVERSE_FAMILIES:
+            return [(rng.getrandbits(16 * self.tier + (32 if audit else 0)),) for _ in range(count)]
         if self.family == "gcd":
             bound = 10 ** (3 * self.tier + (3 if audit else 0))
             return [(rng.randint(-bound, bound), rng.randint(-bound, bound)) for _ in range(count)]
@@ -105,6 +119,10 @@ class Task:
         return cases
 
     def properties(self):
+        if self.family in INVERSE_FAMILIES:
+            boundaries = [k * k if self.family == "integer_sqrt" else k * (k + 1) // 2
+                          for k in (1, 2, 3, 100, 10**8)]
+            return [(max(0, n + offset),) for n in boundaries for offset in (-1, 0, 1)]
         if self.family == "gcd":
             return [(a * k, b * k) for a, b in self.public() for k in (-3, 1, 7)] + [(10**50, 10**25)]
         if self.family == "fibonacci":
@@ -116,6 +134,8 @@ class Task:
         return cases
 
     def performance(self):
+        if self.family in INVERSE_FAMILIES:
+            return [(2**128 - 1,), (2**256 - 1,), (10**70,)]
         if self.family == "gcd":
             return [(10**100 - 1, 10**80 - 1)] * 4
         if self.family == "fibonacci":
@@ -145,15 +165,17 @@ def goal_contract(description="algorithms toolkit", tier=2, target=1.0, task_see
         families = list(FAMILIES[:4])
     elif text in ("number theory", "numeric toolkit"):
         families = list(FAMILIES[4:])
+    elif text == "numeric inverses":
+        families = list(INVERSE_FAMILIES)
     else:
-        families = [family for family in FAMILIES if family in text]
+        families = [family for family in FAMILIES + INVERSE_FAMILIES if family in text]
         if not families:
             raise ValueError("Unverifiable goal. Use 'algorithms toolkit', 'sorted search', 'number theory', or explicit supported function names.")
     for family in list(families):
         for dependency in DEPENDENCIES.get(family, ()):
             if dependency not in families:
                 families.append(dependency)
-    families = [family for family in FAMILIES if family in families]
+    families = [family for family in FAMILIES + INVERSE_FAMILIES if family in families]
     if type(tier) is not int or not 1 <= tier <= 3 or not math.isfinite(target) or not 0 < target <= 1:
         raise ValueError("tier must be 1..3 and target must be in (0,1]")
     tasks = [Task(family, level).descriptor() for level in range(1, tier + 1) for family in families]

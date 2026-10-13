@@ -1,0 +1,57 @@
+name: Recursive AI behavior diagnostics
+on:
+  push:
+    branches: [recursive-ai/selector-replications]
+    paths: [".github/workflows/recursive-ai-behavior.yml", "recursive-ai/research/behavior_diversity.py", "recursive-ai/tests/test_behavior_diversity.py"]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Test diagnostic invariants
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_behavior_diversity -v
+      - name: Diagnose real sandbox behavior
+        working-directory: recursive-ai
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from autonomy.search import SKETCHES
+          from research.behavior_diversity import observe_candidates
+          from sandbox.runner import SandboxRunner
+          code = SKETCHES['gcd']
+          report = observe_candidates([
+              ('gcd:tier1', code),
+              ('gcd:tier1', code.replace('return a', 'return a + 0')),
+              ('gcd:tier1', 'def gcd(a, b):\n    return 0\n'),
+          ], SandboxRunner())
+          print('BEHAVIOR_RESULT ' + json.dumps(report, sort_keys=True))
+          Path('behavior-result.json').write_text(json.dumps(report, indent=2))
+          result = report['by_task']['gcd:tier1']
+          assert result['distinct_sources'] == 3 and result['distinct_outputs'] == 2
+          assert result['public_correct_sources'] == 2 and result['distinct_correct_outputs'] == 1
+          assert result['unobserved'] == 0 and report['container_runs'] == 4
+          PY
+      - name: Diagnose generated candidate archive
+        working-directory: recursive-ai
+        run: |
+          python3 main.py autonomous --state .behavior-state --goal gcd --tier 1 --max-attempts 8 --max-seconds 120 --max-model-calls 0
+          python3 -m research.behavior_diversity --root .behavior-state --output archive-behavior.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: public-behavior-evidence
+          path: |
+            recursive-ai/behavior-result.json
+            recursive-ai/archive-behavior.json
+          if-no-files-found: error
+          retention-days: 30

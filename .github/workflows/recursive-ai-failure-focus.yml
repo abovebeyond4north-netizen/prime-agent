@@ -1,0 +1,122 @@
+name: Recursive AI public failure focus
+on:
+  push:
+    branches: [recursive-ai/selector-replications]
+    paths: [".github/workflows/recursive-ai-failure-focus.yml", "recursive-ai/tests/test_public_failure_curriculum.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Test public-feedback boundary and resume
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_public_failure_curriculum tests.test_autonomy -v
+      - name: Matched budget and retention experiment
+        working-directory: recursive-ai
+        run: |
+          python3 - <<'PY'
+          import contextlib
+          import json
+          import os
+          from pathlib import Path
+          from autonomy.controller import execute_goal
+          from autonomy.curriculum import certified
+          from autonomy.memory import ResearchMemory
+          from autonomy.tasks import goal_contract
+          from autonomy.verifier import TaskVerifier
+          from core.rollback import VersionController
+          from sandbox.runner import SandboxRunner
+          evidence = Path('failure-focus-evidence')
+          evidence.mkdir()
+          reports = {}
+          contract = goal_contract('algorithms toolkit', tier=1)
+          for mode, focused in [('control', False), ('public_failure_focus', True)]:
+              root = evidence / mode
+              with (evidence / (mode + '.jsonl')).open('w') as trace, contextlib.redirect_stdout(trace):
+                  partial = execute_goal(root, description='algorithms toolkit', tier=1,
+                                         max_attempts=2, max_seconds=120, max_containers=800,
+                                         max_model_calls=0, repair_public_failures=focused)
+                  memory = ResearchMemory(root)
+                  current = memory.current()
+                  active = certified(VersionController(root).read(current)) if current else {}
+                  memory.db.close()
+                  partial_audit = TaskVerifier(SandboxRunner()).audit(active, contract) if active else None
+                  final = execute_goal(root, description='algorithms toolkit', tier=1,
+                                       max_attempts=32, max_seconds=300, max_containers=800,
+                                       max_model_calls=0, repair_public_failures=focused)
+              reports[mode] = {'partial': partial, 'partial_audit': partial_audit, 'final': final}
+              assert final['status'] == 'goal_reached' and final['audit']['passed']
+              assert set(partial['certified_tasks']).issubset(final['certified_tasks'])
+              assert not active or partial_audit['passed']
+          result = {'code_commit': os.environ['GITHUB_SHA'], 'reports': reports,
+                    'higher_coverage_at_two_attempts': reports['public_failure_focus']['partial']['coverage'] > reports['control']['partial']['coverage'],
+                    'both_final_audits_passed': True,
+                    'limitations': ['One finite sketch-based task suite and one run per arm.',
+                                    'Equal attempt budgets are not equal container or CPU use.',
+                                    'Goal certificates remain governed by all ten existing gates.',
+                                    'Audit is controlled by this harness; no external-party validation.']}
+          (evidence / 'result.json').write_text(json.dumps(result, indent=2))
+          print('FOCUS_RESULT ' + json.dumps(result, sort_keys=True))
+          assert result['higher_coverage_at_two_attempts']
+          PY
+      - name: Equal container budget experiment
+        working-directory: recursive-ai
+        run: |
+          python3 - <<'PY'
+          import contextlib
+          import json
+          import os
+          from pathlib import Path
+          from autonomy.controller import execute_goal
+          from autonomy.curriculum import certified
+          from autonomy.memory import ResearchMemory
+          from autonomy.tasks import goal_contract
+          from autonomy.verifier import TaskVerifier
+          from core.rollback import VersionController
+          from sandbox.runner import SandboxRunner
+          evidence = Path('failure-focus-evidence')
+          rows = {}
+          for mode, focused in [('control', False), ('public_failure_focus', True)]:
+              root = evidence / ('compute-' + mode)
+              with (evidence / ('compute-' + mode + '.jsonl')).open('w') as trace, contextlib.redirect_stdout(trace):
+                  summary = execute_goal(root, description='algorithms toolkit', tier=1,
+                                         max_attempts=32, max_seconds=120, max_containers=16,
+                                         max_model_calls=0, repair_public_failures=focused)
+              memory = ResearchMemory(root)
+              checkpoint = memory.current()
+              active = certified(VersionController(root).read(checkpoint)) if checkpoint else {}
+              memory.db.close()
+              audit = None
+              audit_runner = SandboxRunner()
+              if active:
+                  audit_runner.boot()
+                  audit = TaskVerifier(audit_runner).audit(active, goal_contract('algorithms toolkit', tier=1))
+                  assert audit['passed']
+              rows[mode] = {'summary': summary, 'separate_audit': audit,
+                            'separate_audit_containers': audit_runner.container_runs}
+              assert summary['container_runs'] == 16
+          improved = rows['public_failure_focus']['summary']['coverage'] > rows['control']['summary']['coverage']
+          result = {'code_commit': os.environ['GITHUB_SHA'], 'rows': rows,
+                    'higher_coverage_at_equal_learning_containers': improved,
+                    'limitations': ['One finite sketch-based suite, not broad capability evidence.',
+                                    'Container count is a compute proxy, not equal CPU time.',
+                                    'Independent diagnostic audit cost is reported separately.']}
+          (evidence / 'compute-result.json').write_text(json.dumps(result, indent=2))
+          print('COMPUTE_RESULT ' + json.dumps(result, sort_keys=True))
+          assert improved
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: failure-focus-evidence
+          path: recursive-ai/failure-focus-evidence/**
+          if-no-files-found: error
+          retention-days: 30

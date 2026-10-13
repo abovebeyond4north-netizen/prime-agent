@@ -12,13 +12,14 @@ from autonomy.curriculum import (
     next_task, normalize_curriculum_profile,
 )
 from autonomy.memory import ResearchMemory
+from autonomy.procedure import propose as propose_procedure
 from autonomy.policy import combine_evidence, dispatch, dispatch_fixed
 from autonomy.search_profile import (
     DEFAULT_SEARCH_PROFILE, normalize_search_profile, normalized_parent_weights,
     search_profile_digest,
 )
 from autonomy.search import SearchEngine
-from autonomy.tasks import goal_contract, task_from_key
+from autonomy.tasks import INVERSE_FAMILIES, goal_contract, task_from_key
 from autonomy.verifier import TaskVerifier
 
 
@@ -27,7 +28,16 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                  max_model_calls=12, max_containers=2000,
                  provider="search", image="recursive-ai-runner:local", task_seed=0, task_count=6,
                  policy_mode="learned", policy_prior=None, prior_strength=4.0,
-                 curriculum_profile=None, search_profile=None):
+                 curriculum_profile=None, search_profile=None, repair_public_failures=False,
+                 reuse_regression_checks=False, learn_inverse_procedure=False):
+    if type(learn_inverse_procedure) is not bool:
+        raise ValueError('learn_inverse_procedure must be boolean')
+    if learn_inverse_procedure and provider != 'search':
+        raise ValueError('procedure learning requires search provider')
+    if type(reuse_regression_checks) is not bool:
+        raise ValueError('reuse_regression_checks must be boolean')
+    if type(repair_public_failures) is not bool:
+        raise ValueError('repair_public_failures must be boolean')
     for name, value, ceiling in (("attempts", max_attempts, 1000), ("stagnation", max_stagnation, 1000),
                                   ("model calls", max_model_calls, 1000), ("containers", max_containers, 10000)):
         if type(value) is not int or not (0 if name == "model calls" else 1) <= value <= ceiling:
@@ -64,7 +74,8 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
                             max_stagnation, max_model_calls, max_containers, provider, image,
                             policy_mode, policy_prior, prior_strength, prior_digest,
                             curriculum_profile, curriculum_digest, search_profile,
-                            search_digest, parent_quality, parent_novelty, parent_size)
+                            search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures,
+                            reuse_regression_checks, learn_inverse_procedure)
         finally:
             memory.db.close()
 
@@ -72,14 +83,15 @@ def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,
 def _session(memory, root, contract, start, max_attempts, max_seconds,
              max_stagnation, max_model_calls, max_containers, provider, image, policy_mode,
              policy_prior, prior_strength, prior_digest, curriculum_profile, curriculum_digest,
-             search_profile, search_digest, parent_quality, parent_novelty, parent_size):
+             search_profile, search_digest, parent_quality, parent_novelty, parent_size, repair_public_failures,
+             reuse_regression_checks, learn_inverse_procedure):
     memory.register(contract)
     vcs = VersionController(root)
     runner = SandboxRunner(image)
     runner.deadline = start + max_seconds
     runner.stop_file = root / "STOP"
     runner.max_container_runs = max_containers
-    verifier = TaskVerifier(runner)
+    verifier = TaskVerifier(runner, reuse_regression_checks=reuse_regression_checks)
     search = SearchEngine(provider, max_model_calls=max_model_calls)
     parent = memory.current()
     active = vcs.read(parent) if parent else {}
@@ -88,6 +100,9 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         previous_summary = json.loads(previous_summary)
         if (previous_summary["status"] in ("goal_reached", "audit_failed")
                 and previous_summary["checkpoint"] == parent
+                and previous_summary.get("repair_public_failures", False) == repair_public_failures
+                and previous_summary.get("learn_inverse_procedure", False) == learn_inverse_procedure
+                and previous_summary.get("reuse_regression_checks", False) == reuse_regression_checks
                 and previous_summary.get("policy_mode", "learned") == policy_mode
                 and previous_summary.get("policy_prior_digest") == prior_digest
                 and previous_summary.get("prior_strength", 4.0) == prior_strength
@@ -104,6 +119,7 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
     stagnant = 0
     no_gain_evidence = []
     session_attempts = 0
+    focused_attempts = 0
     stop_reason = "attempt_budget"
     audit = None
     memory.event({"goal_started": contract["id"], "contract": contract, "initial_coverage": initial,
@@ -136,17 +152,20 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         if stagnant >= max_stagnation:
             stop_reason = "stagnation"
             break
+        priorities = memory.public_repair_tasks(contract["id"]) if repair_public_failures else set()
         task = next_task(
-            contract, active, memory.attempts(contract["id"]), curriculum_profile
+            contract, active, memory.attempts(contract["id"]), curriculum_profile, priorities
         )
         if task is None:
             stop_reason = "no_verifiable_task"
             break
         attempt = memory.reserve_attempt(contract["id"], task.key, max_attempts)
+        focused_attempts += int(task.key in priorities)
         task_attempt = memory.attempts(contract["id"])[task.key]
         session_attempts += 1
         candidate_start = time.monotonic()
         source, policy_source, operator, origin = "", "", "direct", "none"
+        procedure_model, procedure_evidence = None, None
         report = {"passed": False, "gates": []}
         local_evidence = memory.operators(task.family)
         evidence = (combine_evidence(local_evidence, policy_prior, prior_strength)
@@ -171,8 +190,12 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                 )
             if provider == "api" and operator in ("direct", "repair"):
                 memory.reserve_model_call(contract["id"], max_model_calls)
-            source, origin = search.propose(task, operator, parents, certified(active), task_attempt,
-                                           runner.deadline - time.monotonic())
+            if learn_inverse_procedure and task.family in INVERSE_FAMILIES:
+                source, procedure_model, procedure_evidence = propose_procedure(runner, task, certified(active))
+                origin = 'learned_inverse_procedure'
+            else:
+                source, origin = search.propose(task, operator, parents, certified(active), task_attempt,
+                                               runner.deadline - time.monotonic())
             report = verifier.verify(source, task, active)
         except Exception as exception:
             error = type(exception).__name__
@@ -184,6 +207,8 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
         if passed:
             updated[task.key] = {"source": source, "report": report, "objective": report["objective"],
                                  "task": task.descriptor(), "origin": origin}
+            if procedure_model is not None:
+                updated[task.key]['procedure_model'] = procedure_model
         after = coverage(contract, updated)
         gain = max(0.0, after - before)
         elapsed = time.monotonic() - candidate_start
@@ -194,16 +219,24 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
             used_parent_digests = parent_digests[:2]
         elif origin == "model":
             used_parent_digests = parent_digests[:3]
+        elif origin == 'learned_inverse_procedure':
+            digest = procedure_evidence.get('parent_source_sha256')
+            used_parent_digests = [digest] if digest else []
+        elif origin == "inverse_scaffold_transfer":
+            used_parent_digests = [hashlib.sha256(skill['source'].encode()).hexdigest()
+                                   for key, skill in certified(active).items()
+                                   if task_from_key(key).family == 'lower_bound']
         else:
             used_parent_digests = []
         episode = {"goal_id": contract["id"], "attempt": attempt, "task": task.descriptor(),
-                   "operator": operator, "origin": origin, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+                   "operator": operator, "origin": origin, "focused_public_repair": task.key in priorities, "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
                    "parent": used_parent_digests[0] if used_parent_digests else None,
                    "candidate_parents": used_parent_digests, "report": report,
                    "delta": gain, "coverage": after, "seconds": elapsed,
                    "provider": provider, "policy_mode": policy_mode, "policy_prior_digest": prior_digest,
                    "prior_strength": prior_strength, "curriculum_profile_digest": curriculum_digest,
                    "search_profile_digest": search_digest,
+                   "procedure_evidence": procedure_evidence,
                    "model_usage": search.model.last_usage,
                    "error_type": error, "failed_gate": failed_gate, "promoted": passed}
         if gain > 0:
@@ -252,6 +285,12 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
                "initial_coverage": initial, "coverage": coverage(contract, active),
                "target": contract["target"], "certified_tasks": sorted(set(contract["weights"]) & set(certified(active))),
                "session_attempts": session_attempts,
+               "repair_public_failures": repair_public_failures,
+               "reuse_regression_checks": reuse_regression_checks,
+               "learn_inverse_procedure": learn_inverse_procedure,
+               "regression_cache_hits": verifier.regression_cache_hits,
+               "regression_executions": verifier.regression_executions,
+               "focused_public_repair_attempts": focused_attempts,
                "total_attempts": memory.db.execute("SELECT attempts FROM research_goals WHERE id=?", (contract["id"],)).fetchone()[0],
                "wall_seconds": time.monotonic() - start, "container_runs": runner.container_runs,
                "model_calls": memory.db.execute("SELECT count(*) FROM model_reservations WHERE goal=?", (contract["id"],)).fetchone()[0],
@@ -291,6 +330,9 @@ def solve(root, family, arguments, image="recursive-ai-runner:local"):
         raise ValueError("arguments must be a bounded JSON array")
     if family == "fibonacci":
         valid = len(arguments) == 1 and type(arguments[0]) is int and 0 <= arguments[0] <= 800
+    elif family in INVERSE_FAMILIES:
+        valid = (len(arguments) == 1 and type(arguments[0]) is int
+                 and arguments[0] >= 0 and arguments[0].bit_length() <= 256)
     elif family == "gcd" or family.startswith("compound_"):
         valid = len(arguments) == 2 and all(type(value) is int and value.bit_length() <= 512 for value in arguments)
     else:

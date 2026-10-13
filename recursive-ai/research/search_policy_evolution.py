@@ -370,7 +370,6 @@ def fitness_vector(summary):
         summary["mean_coverage"],
         -summary["mean_attempts"],
         -summary["mean_container_runs"],
-        -summary["mean_wall_seconds"],
     )
 
 
@@ -638,6 +637,9 @@ def run_search_policy_evolution(
         "search_policy_protocol_digest": search_policy_protocol_digest(),
         "evolvable_surface": list(SEARCH_PROFILE_KEYS),
         "selection": parent_selection + "_successive_halving",
+        "ranking_metrics": ["goal_reached_rate", "audit_pass_rate", "mean_coverage",
+                            "mean_attempts", "mean_container_runs"],
+        "wall_time_role": "reported_only_not_ranked",
         "novelty_floor": NOVELTY_FLOOR,
         "train_families": sorted(train_families),
         "holdout_families": sorted(holdout_families),

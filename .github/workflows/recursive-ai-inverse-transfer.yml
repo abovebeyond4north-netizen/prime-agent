@@ -1,0 +1,144 @@
+name: Recursive AI new inverse capability transfer
+on:
+  push:
+    branches: [recursive-ai/selector-replications]
+    paths: [".github/workflows/recursive-ai-inverse-transfer.yml", "recursive-ai/autonomy/search.py", "recursive-ai/tests/test_inverse_transfer.py", "recursive-ai/research/inverse_induction.py", "recursive-ai/tests/test_inverse_induction.py", "recursive-ai/research/grammar_expansion.py", "recursive-ai/tests/test_grammar_expansion.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [190013, 290021, 390029]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check transfer contracts
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_inverse_transfer tests.test_inverse_induction tests.test_grammar_expansion -v
+      - name: Compare transfer with ablation and shifted evaluation after restart
+        working-directory: recursive-ai
+        env:
+          STUDY_SEED: ${{ matrix.seed }}
+        run: |
+          python3 - <<'PY'
+          import contextlib
+          import json
+          import os
+          import random
+          import shutil
+          import subprocess
+          import sys
+          from pathlib import Path
+          from unittest.mock import patch
+          from autonomy.controller import execute_goal
+          from autonomy.curriculum import certified
+          from autonomy.memory import ResearchMemory
+          from autonomy.tasks import INVERSE_FAMILIES, Task
+          from autonomy.verifier import TaskVerifier
+          from core.rollback import VersionController
+          from sandbox.runner import SandboxRunner
+          root = Path('inverse-transfer-evidence')
+          root.mkdir()
+          seed = int(os.environ['STUDY_SEED'])
+          with (root / 'training.jsonl').open('w') as trace, contextlib.redirect_stdout(trace):
+              training = execute_goal(root / 'training', description='lower_bound', tier=1,
+                                      max_attempts=4, max_seconds=120, max_containers=100,
+                                      max_model_calls=0)
+          assert training['status'] == 'goal_reached' and training['audit']['passed']
+          donor = VersionController(root / 'training').read(training['checkpoint'])
+          (root / 'parent.py').write_text(donor['lower_bound:tier1']['source'])
+          rows = {}
+          for mode in ('ablated', 'transfer'):
+              state = root / mode
+              shutil.copytree(root / 'training', state)
+              ablation = patch('autonomy.search.inverse_transfer', return_value=None) if mode == 'ablated' else contextlib.nullcontext()
+              with ablation, (root / (mode + '.jsonl')).open('w') as trace, contextlib.redirect_stdout(trace):
+                  summary = execute_goal(state, description='numeric inverses', tier=1,
+                                         max_attempts=8, max_stagnation=5, max_seconds=300,
+                                         max_containers=240, max_model_calls=0)
+              memory = ResearchMemory(state)
+              checkpoint = memory.current()
+              active = certified(VersionController(state).read(checkpoint))
+              lineage = memory.lineage()
+              memory.db.close()
+              runner = SandboxRunner()
+              runner.boot()
+              evaluation = []
+              for index, family in enumerate(INVERSE_FAMILIES):
+                  task = Task(family)
+                  acquired = task.key in active
+                  rng = random.Random(seed + index)
+                  cases = [(rng.getrandbits(256),) for _ in range(512)]
+                  for _ in range(256):
+                      k = rng.getrandbits(127)
+                      boundary = k * k if family == 'integer_sqrt' else k * (k + 1) // 2
+                      cases.extend([(max(0, boundary - 1),), (boundary,)])
+                  passed = False
+                  if acquired:
+                      for offset in range(0, len(cases), 64):
+                          TaskVerifier(runner).check(active[task.key]['source'], task, cases[offset:offset + 64])
+                      passed = True
+                      n = 2**255 - 1
+                      answer = json.loads(subprocess.check_output(
+                          [sys.executable, 'main.py', 'solve', '--state', str(state),
+                           '--skill', family, '--arguments', json.dumps([n])], text=True))
+                      assert answer['output'] == task.expected([(n,)])[0]
+                      assert answer['checkpoint'] == checkpoint
+                  evaluation.append({'family': family, 'acquired': acquired, 'cases': len(cases),
+                                     'correct_on_shifted_cases': passed, 'restart_invocation': passed})
+              rows[mode] = {'summary': summary, 'evaluation': evaluation, 'lineage': lineage,
+                            'shifted_audit_containers': runner.container_runs,
+                            'restart_invocation_containers': 2 * sum(r['acquired'] for r in evaluation)}
+          assert not any(r['acquired'] for r in rows['ablated']['evaluation'])
+          assert all(r['acquired'] and r['correct_on_shifted_cases'] and r['restart_invocation']
+                     for r in rows['transfer']['evaluation'])
+          assert rows['transfer']['summary']['status'] == 'goal_reached'
+          assert rows['transfer']['summary']['audit']['passed']
+          assert 'lower_bound:tier1' in rows['transfer']['summary']['certified_tasks']
+          assert sum(e['origin'] == 'inverse_scaffold_transfer' for e in rows['transfer']['lineage']) >= 2
+          state = root / 'transfer'
+          original = rows['transfer']['summary']['checkpoint']
+          subprocess.check_call([sys.executable, 'main.py', 'rollback', '--state', str(state),
+                                 '--checkpoint', training['checkpoint']])
+          blocked = subprocess.run([sys.executable, 'main.py', 'solve', '--state', str(state),
+                                    '--skill', 'integer_sqrt', '--arguments', '[100]'],
+                                   text=True, capture_output=True)
+          assert blocked.returncode != 0 and 'skill has no current certification' in blocked.stderr
+          subprocess.check_call([sys.executable, 'main.py', 'rollback', '--state', str(state),
+                                 '--checkpoint', original])
+          restored = json.loads(subprocess.check_output([sys.executable, 'main.py', 'solve',
+                                '--state', str(state), '--skill', 'integer_sqrt', '--arguments', '[100]'], text=True))
+          assert restored['output'] == 10 and restored['checkpoint'] == original
+          result = {'code_commit': os.environ['GITHUB_SHA'], 'seed': seed, 'training': training,
+                    'budgets_per_mode': {'attempts': 8, 'containers': 240, 'model_calls': 0},
+                    'shifted_evaluation_batch_size': 64,
+                    'rows': rows, 'new_verified_families': list(INVERSE_FAMILIES),
+                    'rollback_blocks_new_skill_and_restore_recovers_it': True,
+                    'limitations': ['Developer-authored task contracts and AST adaptation rule; not autonomous rule invention.',
+                                    'Separate math.isqrt-based oracle implementation, not a third-party evaluator.',
+                                    'Three fresh CI executions and shifted seeds share one operator and environment class.',
+                                    'Task-family expansion and transfer demonstrated; no general intelligence or open-world claim.']}
+          (root / 'result.json').write_text(json.dumps(result, indent=2))
+          print('INVERSE_TRANSFER_RESULT ' + json.dumps(result, sort_keys=True), flush=True)
+          subprocess.check_call([sys.executable, '-m', 'research.inverse_induction',
+                                 '--parent-source', str(root / 'parent.py'), '--seed', str(seed),
+                                 '--output', str(root / 'induction.json')])
+          subprocess.check_call([sys.executable, '-m', 'research.grammar_expansion',
+                                 '--parent-source', str(root / 'parent.py'), '--seed', str(seed),
+                                 '--output', str(root / 'expansion.json')])
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: inverse-transfer-${{ matrix.seed }}
+          path: recursive-ai/inverse-transfer-evidence/**
+          if-no-files-found: error
+          retention-days: 30

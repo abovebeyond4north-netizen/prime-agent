@@ -1,0 +1,94 @@
+{
+  "code_commit": "43a26e56e82dbec251290db46be0dff33ff077c7",
+  "run_id": 38336560354,
+  "job_id": 115097849551,
+  "tests_run": 9,
+  "tests_passed": 9,
+  "summary": {
+    "audit": {
+      "confidence_level": 0.95,
+      "distribution": "independent shifted audit",
+      "passed": true,
+      "reports": [
+        {
+          "cases": 512,
+          "passed": true,
+          "simultaneous_lower_bound": 0.9920351223561302,
+          "task": "lower_bound:tier1"
+        },
+        {
+          "cases": 512,
+          "passed": true,
+          "simultaneous_lower_bound": 0.9920351223561302,
+          "task": "integer_sqrt:tier1"
+        },
+        {
+          "cases": 512,
+          "passed": true,
+          "simultaneous_lower_bound": 0.9920351223561302,
+          "task": "triangular_inverse:tier1"
+        }
+      ]
+    },
+    "candidate_lineage_edges": 2,
+    "certified_tasks": [
+      "integer_sqrt:tier1",
+      "lower_bound:tier1",
+      "triangular_inverse:tier1"
+    ],
+    "checkpoint": "c8ec077b7589903c01273302833f776cd1e02142",
+    "container_runs": 18,
+    "coverage": 1,
+    "curriculum_profile": {
+      "family_balance_weight": 0,
+      "retry_weight": 1,
+      "unlock_weight": 0
+    },
+    "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+    "focused_public_repair_attempts": 0,
+    "goal_id": "80539287366e49f4d9c38cc8",
+    "image": "recursive-ai-runner:local",
+    "initial_coverage": 0.6666666666666666,
+    "learn_inverse_procedure": true,
+    "model_calls": 0,
+    "policy_mode": "learned",
+    "policy_prior_digest": null,
+    "policy_revisions": 4,
+    "prior_strength": 4,
+    "provider": "search",
+    "regression_cache_hits": 0,
+    "regression_executions": 2,
+    "repair_public_failures": false,
+    "reuse_regression_checks": false,
+    "search_profile": {
+      "parent_limit": 8,
+      "parent_novelty_weight": 0.25,
+      "parent_quality_weight": 0.7,
+      "parent_size_weight": 0.05,
+      "ucb_exploration": 2
+    },
+    "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+    "session_attempts": 1,
+    "stagnation_evidence": {
+      "consecutive_no_gain": 0,
+      "enforced_by_harness": true,
+      "limit": 16,
+      "observations": []
+    },
+    "status": "goal_reached",
+    "target": 1,
+    "total_attempts": 4,
+    "wall_seconds": 7.579201015999999
+  },
+  "container_scope": "final continuation session only",
+  "assertions_verified": [
+    "certified model acquisition",
+    "fresh-process configuration reuse and predicate reinduction",
+    "fresh final audit",
+    "255-bit invocation",
+    "rollback removes certification and model",
+    "forward restoration invocation",
+    "failed certification cannot promote model",
+    "corrupt model rejected"
+  ]
+}

@@ -2,7 +2,7 @@ name: Recursive AI laboratory
 
 on:
   push:
-    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization, recursive-ai-evolution-lab, recursive-ai-search-policy-evolution, recursive-ai/paired-research-evidence, recursive-ai/acceptance-comparison]
+    branches: [recursive-ai-lab, recursive-ai-meta-evaluation, recursive-ai-transfer-generalization, recursive-ai-evolution-lab, recursive-ai-search-policy-evolution, recursive-ai/paired-research-evidence, recursive-ai/acceptance-comparison, recursive-ai/selector-replications]
     paths:
       - "recursive-ai/**"
       - ".github/workflows/recursive-ai.yml"
@@ -31,7 +31,7 @@ jobs:
         working-directory: recursive-ai
         run: |
           docker info
-          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_evolution tests.test_search_policy_evolution tests.test_selection_comparison tests.test_paired_evidence tests.test_pareto_selection tests.test_docker tests.test_changing_policy -v
+          python3 -m unittest tests.test_lab tests.test_autonomy tests.test_model_adapter tests.test_expressions tests.test_meta_eval tests.test_transfer_eval tests.test_evolution tests.test_search_policy_evolution tests.test_selection_comparison tests.test_paired_evidence tests.test_pareto_selection tests.test_docker tests.test_changing_policy tests.test_regression_reuse tests.test_public_failure_curriculum -v
       - name: Reproduce changing-policy reference experiment
         working-directory: recursive-ai
         run: |

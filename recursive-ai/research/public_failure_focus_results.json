@@ -1,0 +1,491 @@
+{
+  "run_url": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/38320371878",
+  "equal_attempt_experiment": {
+    "both_final_audits_passed": true,
+    "code_commit": "65a9334df661c008fe099c204c000c7382f1329b",
+    "higher_coverage_at_two_attempts": true,
+    "limitations": [
+      "One finite sketch-based task suite and one run per arm.",
+      "Equal attempt budgets are not equal container or CPU use.",
+      "Goal certificates remain governed by all ten existing gates.",
+      "Audit is controlled by this harness; no external-party validation."
+    ],
+    "reports": {
+      "control": {
+        "final": {
+          "audit": {
+            "confidence_level": 0.95,
+            "distribution": "independent shifted audit",
+            "passed": true,
+            "reports": [
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "lower_bound:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "upper_bound:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "binary_search:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "count_occurrences:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "gcd:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "fibonacci:tier1"
+              }
+            ]
+          },
+          "candidate_lineage_edges": 4,
+          "certified_tasks": [
+            "binary_search:tier1",
+            "count_occurrences:tier1",
+            "fibonacci:tier1",
+            "gcd:tier1",
+            "lower_bound:tier1",
+            "upper_bound:tier1"
+          ],
+          "checkpoint": "d1df3842984db3bf338aebb44b94645ac78c83e6",
+          "container_runs": 105,
+          "coverage": 1,
+          "curriculum_profile": {
+            "family_balance_weight": 0,
+            "retry_weight": 1,
+            "unlock_weight": 0
+          },
+          "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+          "focused_public_repair_attempts": 0,
+          "goal_id": "530c3d69bf50af43c906922c",
+          "image": "recursive-ai-runner:local",
+          "initial_coverage": 0,
+          "model_calls": 0,
+          "policy_mode": "learned",
+          "policy_prior_digest": null,
+          "policy_revisions": 10,
+          "prior_strength": 4,
+          "provider": "search",
+          "repair_public_failures": false,
+          "search_profile": {
+            "parent_limit": 8,
+            "parent_novelty_weight": 0.25,
+            "parent_quality_weight": 0.7,
+            "parent_size_weight": 0.05,
+            "ucb_exploration": 2
+          },
+          "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+          "session_attempts": 8,
+          "stagnation_evidence": {
+            "consecutive_no_gain": 0,
+            "enforced_by_harness": true,
+            "limit": 16,
+            "observations": []
+          },
+          "status": "goal_reached",
+          "target": 1,
+          "total_attempts": 10,
+          "wall_seconds": 30.299298529999987
+        },
+        "partial": {
+          "audit": null,
+          "candidate_lineage_edges": 0,
+          "certified_tasks": [],
+          "checkpoint": null,
+          "container_runs": 6,
+          "coverage": 0,
+          "curriculum_profile": {
+            "family_balance_weight": 0,
+            "retry_weight": 1,
+            "unlock_weight": 0
+          },
+          "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+          "focused_public_repair_attempts": 0,
+          "goal_id": "530c3d69bf50af43c906922c",
+          "image": "recursive-ai-runner:local",
+          "initial_coverage": 0,
+          "model_calls": 0,
+          "policy_mode": "learned",
+          "policy_prior_digest": null,
+          "policy_revisions": 2,
+          "prior_strength": 4,
+          "provider": "search",
+          "repair_public_failures": false,
+          "search_profile": {
+            "parent_limit": 8,
+            "parent_novelty_weight": 0.25,
+            "parent_quality_weight": 0.7,
+            "parent_size_weight": 0.05,
+            "ucb_exploration": 2
+          },
+          "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+          "session_attempts": 2,
+          "stagnation_evidence": {
+            "consecutive_no_gain": 2,
+            "enforced_by_harness": true,
+            "limit": 16,
+            "observations": [
+              {
+                "attempt": 1,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "public",
+                "passed": false,
+                "task": "fibonacci:tier1"
+              },
+              {
+                "attempt": 2,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "public",
+                "passed": false,
+                "task": "gcd:tier1"
+              }
+            ]
+          },
+          "status": "attempt_budget",
+          "target": 1,
+          "total_attempts": 2,
+          "wall_seconds": 1.745433104
+        },
+        "partial_audit": null
+      },
+      "public_failure_focus": {
+        "final": {
+          "audit": {
+            "confidence_level": 0.95,
+            "distribution": "independent shifted audit",
+            "passed": true,
+            "reports": [
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "lower_bound:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "upper_bound:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "binary_search:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "count_occurrences:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "gcd:tier1"
+              },
+              {
+                "cases": 512,
+                "passed": true,
+                "simultaneous_lower_bound": 0.9906930108273898,
+                "task": "fibonacci:tier1"
+              }
+            ]
+          },
+          "candidate_lineage_edges": 4,
+          "certified_tasks": [
+            "binary_search:tier1",
+            "count_occurrences:tier1",
+            "fibonacci:tier1",
+            "gcd:tier1",
+            "lower_bound:tier1",
+            "upper_bound:tier1"
+          ],
+          "checkpoint": "7f877908c46907a7e39e6301210dd3bfc538a0e2",
+          "container_runs": 95,
+          "coverage": 1,
+          "curriculum_profile": {
+            "family_balance_weight": 0,
+            "retry_weight": 1,
+            "unlock_weight": 0
+          },
+          "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+          "focused_public_repair_attempts": 3,
+          "goal_id": "530c3d69bf50af43c906922c",
+          "image": "recursive-ai-runner:local",
+          "initial_coverage": 0.16666666666666666,
+          "model_calls": 0,
+          "policy_mode": "learned",
+          "policy_prior_digest": null,
+          "policy_revisions": 10,
+          "prior_strength": 4,
+          "provider": "search",
+          "repair_public_failures": true,
+          "search_profile": {
+            "parent_limit": 8,
+            "parent_novelty_weight": 0.25,
+            "parent_quality_weight": 0.7,
+            "parent_size_weight": 0.05,
+            "ucb_exploration": 2
+          },
+          "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+          "session_attempts": 8,
+          "stagnation_evidence": {
+            "consecutive_no_gain": 0,
+            "enforced_by_harness": true,
+            "limit": 16,
+            "observations": []
+          },
+          "status": "goal_reached",
+          "target": 1,
+          "total_attempts": 10,
+          "wall_seconds": 27.433981869000036
+        },
+        "partial": {
+          "audit": null,
+          "candidate_lineage_edges": 1,
+          "certified_tasks": [
+            "fibonacci:tier1"
+          ],
+          "checkpoint": "e403c7fea6f0d01649bcf8bb9c33b89acc840f83",
+          "container_runs": 16,
+          "coverage": 0.16666666666666666,
+          "curriculum_profile": {
+            "family_balance_weight": 0,
+            "retry_weight": 1,
+            "unlock_weight": 0
+          },
+          "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+          "focused_public_repair_attempts": 1,
+          "goal_id": "530c3d69bf50af43c906922c",
+          "image": "recursive-ai-runner:local",
+          "initial_coverage": 0,
+          "model_calls": 0,
+          "policy_mode": "learned",
+          "policy_prior_digest": null,
+          "policy_revisions": 2,
+          "prior_strength": 4,
+          "provider": "search",
+          "repair_public_failures": true,
+          "search_profile": {
+            "parent_limit": 8,
+            "parent_novelty_weight": 0.25,
+            "parent_quality_weight": 0.7,
+            "parent_size_weight": 0.05,
+            "ucb_exploration": 2
+          },
+          "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+          "session_attempts": 2,
+          "stagnation_evidence": {
+            "consecutive_no_gain": 0,
+            "enforced_by_harness": true,
+            "limit": 16,
+            "observations": []
+          },
+          "status": "attempt_budget",
+          "target": 1,
+          "total_attempts": 2,
+          "wall_seconds": 4.4707516269999985
+        },
+        "partial_audit": {
+          "confidence_level": 0.95,
+          "distribution": "independent shifted audit",
+          "passed": true,
+          "reports": [
+            {
+              "cases": 512,
+              "passed": true,
+              "simultaneous_lower_bound": 0.9906930108273898,
+              "task": "fibonacci:tier1"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "equal_container_experiment": {
+    "code_commit": "65a9334df661c008fe099c204c000c7382f1329b",
+    "higher_coverage_at_equal_learning_containers": true,
+    "limitations": [
+      "One finite sketch-based suite, not broad capability evidence.",
+      "Container count is a compute proxy, not equal CPU time.",
+      "Independent diagnostic audit cost is reported separately."
+    ],
+    "rows": {
+      "control": {
+        "separate_audit": null,
+        "separate_audit_containers": 0,
+        "summary": {
+          "audit": null,
+          "candidate_lineage_edges": 1,
+          "certified_tasks": [],
+          "checkpoint": null,
+          "container_runs": 16,
+          "coverage": 0,
+          "curriculum_profile": {
+            "family_balance_weight": 0,
+            "retry_weight": 1,
+            "unlock_weight": 0
+          },
+          "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+          "focused_public_repair_attempts": 0,
+          "goal_id": "530c3d69bf50af43c906922c",
+          "image": "recursive-ai-runner:local",
+          "initial_coverage": 0,
+          "model_calls": 0,
+          "policy_mode": "learned",
+          "policy_prior_digest": null,
+          "policy_revisions": 5,
+          "prior_strength": 4,
+          "provider": "search",
+          "repair_public_failures": false,
+          "search_profile": {
+            "parent_limit": 8,
+            "parent_novelty_weight": 0.25,
+            "parent_quality_weight": 0.7,
+            "parent_size_weight": 0.05,
+            "ucb_exploration": 2
+          },
+          "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+          "session_attempts": 5,
+          "stagnation_evidence": {
+            "consecutive_no_gain": 5,
+            "enforced_by_harness": true,
+            "limit": 16,
+            "observations": [
+              {
+                "attempt": 1,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "public",
+                "passed": false,
+                "task": "fibonacci:tier1"
+              },
+              {
+                "attempt": 2,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "public",
+                "passed": false,
+                "task": "gcd:tier1"
+              },
+              {
+                "attempt": 3,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "public",
+                "passed": false,
+                "task": "lower_bound:tier1"
+              },
+              {
+                "attempt": 4,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "public",
+                "passed": false,
+                "task": "upper_bound:tier1"
+              },
+              {
+                "attempt": 5,
+                "coverage": 0,
+                "error_type": null,
+                "failed_gate": "holdout",
+                "passed": false,
+                "task": "fibonacci:tier1"
+              }
+            ]
+          },
+          "status": "container_budget",
+          "target": 1,
+          "total_attempts": 5,
+          "wall_seconds": 4.468034163000027
+        }
+      },
+      "public_failure_focus": {
+        "separate_audit": {
+          "confidence_level": 0.95,
+          "distribution": "independent shifted audit",
+          "passed": true,
+          "reports": [
+            {
+              "cases": 512,
+              "passed": true,
+              "simultaneous_lower_bound": 0.9906930108273898,
+              "task": "fibonacci:tier1"
+            }
+          ]
+        },
+        "separate_audit_containers": 2,
+        "summary": {
+          "audit": null,
+          "candidate_lineage_edges": 1,
+          "certified_tasks": [
+            "fibonacci:tier1"
+          ],
+          "checkpoint": "7049673a48d60c7f53fc2c847b6435dd8095776b",
+          "container_runs": 16,
+          "coverage": 0.16666666666666666,
+          "curriculum_profile": {
+            "family_balance_weight": 0,
+            "retry_weight": 1,
+            "unlock_weight": 0
+          },
+          "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+          "focused_public_repair_attempts": 1,
+          "goal_id": "530c3d69bf50af43c906922c",
+          "image": "recursive-ai-runner:local",
+          "initial_coverage": 0,
+          "model_calls": 0,
+          "policy_mode": "learned",
+          "policy_prior_digest": null,
+          "policy_revisions": 2,
+          "prior_strength": 4,
+          "provider": "search",
+          "repair_public_failures": true,
+          "search_profile": {
+            "parent_limit": 8,
+            "parent_novelty_weight": 0.25,
+            "parent_quality_weight": 0.7,
+            "parent_size_weight": 0.05,
+            "ucb_exploration": 2
+          },
+          "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+          "session_attempts": 2,
+          "stagnation_evidence": {
+            "consecutive_no_gain": 0,
+            "enforced_by_harness": true,
+            "limit": 16,
+            "observations": []
+          },
+          "status": "container_budget",
+          "target": 1,
+          "total_attempts": 2,
+          "wall_seconds": 4.426149555000052
+        }
+      }
+    }
+  },
+  "verdict": "Earlier certification in a finite sketch-based suite under equal learning-container caps; no reduction in full-goal attempts or learning containers.",
+  "automatic_default_change": false
+}

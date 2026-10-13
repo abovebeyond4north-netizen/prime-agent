@@ -126,6 +126,36 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
         self.assertEqual(len(hybrid.parents), 2)
         self.assertGreater(profile_distance(population[0].profile, population[1].profile), 0)
 
+    def test_machine_timing_does_not_change_survivors_or_finalist(self):
+        for mode in ('quality_diversity', 'pareto'):
+            reports = []
+            for reverse in (False, True):
+                def fake_execute(root, **kwargs):
+                    profile = normalize_search_profile(kwargs['search_profile'])
+                    seconds = profile['ucb_exploration']
+                    return {
+                        'status': 'goal_reached', 'audit': {'passed': True},
+                        'coverage': 1.0, 'total_attempts': 4, 'container_runs': 8,
+                        'model_calls': 0,
+                        'wall_seconds': 100 - seconds if reverse else seconds,
+                        'checkpoint': 'fixture',
+                        'search_profile_digest': search_profile_digest(profile),
+                    }
+                with tempfile.TemporaryDirectory() as root, patch(
+                    'research.search_policy_evolution.execute_goal', side_effect=fake_execute
+                ):
+                    reports.append(run_search_policy_evolution(
+                        root, population=4, generations=2, development_replicates=2,
+                        holdout_replicates=1, base_seed=9517, task_count=2,
+                        max_model_calls=0, parent_selection=mode,
+                    ))
+            with self.subTest(mode=mode):
+                self.assertEqual(reports[0]['generations'], reports[1]['generations'])
+                self.assertEqual(reports[0]['finalist'], reports[1]['finalist'])
+                self.assertNotEqual(reports[0]['cross_family_holdout']['finalist']['summary']['mean_wall_seconds'],
+                                    reports[1]['cross_family_holdout']['finalist']['summary']['mean_wall_seconds'])
+                self.assertEqual(reports[0]['config']['wall_time_role'], 'reported_only_not_ranked')
+
     def test_successive_halving_saves_trials_and_cross_family_holdout_gates(self):
         self._run_study("quality_diversity")
 

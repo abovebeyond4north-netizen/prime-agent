@@ -1,8 +1,9 @@
 """Finite program sketches plus optional model proposals and reusable archived programs."""
 import ast
 import hashlib
+import math
 from autonomy.expressions import ExpressionTask
-from autonomy.tasks import task_from_key
+from autonomy.tasks import INVERSE_FAMILIES, task_from_key
 from synthesizer.generator import CandidateSynthesizer
 from synthesizer.mutator import mutate_ast
 from synthesizer.recombinator import recombine_ast
@@ -49,13 +50,104 @@ def count_occurrences(values, target):
     return a
 """,
 }
+for family, predicate in [('integer_sqrt', '(root + 1) * (root + 1)'),
+                          ('triangular_inverse', '(root + 1) * (root + 2) // 2')]:
+    SKETCHES[family] = (f'def {family}(n):\n    root = 0\n'
+                        f'    while {predicate} <= n:\n        root = root + 1\n    return root\n')
 
 
 def normalized_digest(source):
     return hashlib.sha256(ast.dump(ast.parse(source), include_attributes=False).encode()).hexdigest()
 
 
+def _validate_inverse_examples(examples):
+    if not isinstance(examples, (list, tuple)) or not 1 <= len(examples) <= 64:
+        raise ValueError('expected 1..64 public examples')
+    for row in examples:
+        if (not isinstance(row, (list, tuple)) or len(row) != 2
+                or any(type(value) is not int for value in row)
+                or not 0 <= row[1] <= row[0] or row[0].bit_length() > 256):
+            raise ValueError('invalid public inverse example')
+
+
+def _fit_inverse_rules(examples, degree):
+    fits = []
+    for p in range(1, 5):
+        for q in range(5):
+            for d in range(1, 5):
+                if math.gcd(math.gcd(p, q), d) != 1 or p + q < d:
+                    continue
+                if all(p * k**degree + q * k <= d * n < p * (k + 1)**degree + q * (k + 1)
+                       for n, k in examples):
+                    fits.append((p, q, d))
+    return fits
+
+
+def infer_inverse_rule(examples):
+    """Infer one normalized quadratic predicate from public labels only."""
+    _validate_inverse_examples(examples)
+    fits = _fit_inverse_rules(examples, 2)
+    return fits[0] if len(fits) == 1 else None
+
+
+def expand_inverse_grammar(examples):
+    """Compose another multiplication feature only after the current grammar has no fit."""
+    _validate_inverse_examples(examples)
+    stages = []
+    for degree in range(2, 5):
+        fits = _fit_inverse_rules(examples, degree)
+        stages.append({'degree': degree, 'raw_hypotheses': 80, 'compatible_rules': len(fits)})
+        if fits:
+            return {'rule': fits[0] if len(fits) == 1 else None, 'degree': degree,
+                    'status': 'unique' if len(fits) == 1 else 'ambiguous', 'stages': stages}
+    return {'rule': None, 'degree': None, 'status': 'expansion_budget_exhausted', 'stages': stages}
+
+
+def adapt_inverse_scaffold(entrypoint, active, rule, degree=2):
+    if rule is None:
+        return None
+    if (not isinstance(entrypoint, str) or not entrypoint.isidentifier() or entrypoint.startswith('_')
+            or not isinstance(rule, tuple) or len(rule) != 3
+            or any(type(value) is not int for value in rule)
+            or type(degree) is not int or not 2 <= degree <= 4):
+        raise ValueError('invalid inverse scaffold parameters')
+    p, q, d = rule
+    if not (1 <= p <= 4 and 0 <= q <= 4 and 1 <= d <= 4 and p + q >= d
+            and math.gcd(math.gcd(p, q), d) == 1):
+        raise ValueError('rule outside inverse grammar')
+    reference = ast.dump(ast.parse(BOUND).body[0], include_attributes=False)
+    for key, skill in active.items():
+        if task_from_key(key).family != 'lower_bound':
+            continue
+        for node in ast.parse(skill['source']).body:
+            if not isinstance(node, ast.FunctionDef) or node.name != 'lower_bound':
+                continue
+            if ast.dump(node, include_attributes=False) != reference:
+                continue
+            # Adapt syntax only; emitted candidates are evaluated exclusively in Docker.
+            function = ast.parse(ast.unparse(node)).body[0]
+            function.name = entrypoint
+            function.args.args = [ast.arg(arg='n')]
+            function.body[1].value = ast.parse('n + 1', mode='eval').body
+            feature = ' * '.join(['mid'] * degree)
+            predicate = f'{p} * {feature} + {q} * mid <= {d} * n'
+            function.body[2].body[1].test = ast.parse(predicate, mode='eval').body
+            function.body[-1].value = ast.parse('low - 1', mode='eval').body
+            return ast.unparse(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[]))) + '\n'
+    return None
+
+
+def inverse_transfer(task, active):
+    if task.family not in INVERSE_FAMILIES:
+        return None
+    cases = task.public()
+    expansion = expand_inverse_grammar([(case[0], value) for case, value in zip(cases, task.expected(cases))])
+    return adapt_inverse_scaffold(task.family, active, expansion['rule'], expansion['degree'])
+
+
 def transfer(task, active):
+    if task.family in INVERSE_FAMILIES:
+        return inverse_transfer(task, active)
     if task.family not in ("binary_search", "count_occurrences"):
         return None
     helpers = {}
@@ -129,7 +221,7 @@ class SearchEngine:
             return recombine_ast(sources[0], sources[1], attempt) or sources[0], "ast_crossover"
         composed = transfer(task, active)
         if composed:
-            return composed, "skill_composition"
+            return composed, "inverse_scaffold_transfer" if task.family in INVERSE_FAMILIES else "skill_composition"
         if isinstance(task, ExpressionTask):
             return compile_expression(task, active), "expression_compilation"
         # Search starts from an imperfect sketch and repairs from executable feedback.
