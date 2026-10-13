@@ -1,13 +1,29 @@
 import ast
+import math
 import unittest
 from unittest.mock import patch
 
-from autonomy.search import BOUND, SKETCHES, SearchEngine, inverse_transfer
+from autonomy.search import BOUND, SKETCHES, SearchEngine, infer_inverse_rule, inverse_transfer
 from autonomy.tasks import INVERSE_FAMILIES, Task, goal_contract
 from core.ast_validator import parse, validate
 
 
 class InverseTransferTests(unittest.TestCase):
+    def test_rule_is_induced_from_labels_and_ambiguity_fails_closed(self):
+        for family, expected in [('integer_sqrt', (1, 0, 1)), ('triangular_inverse', (1, 1, 2))]:
+            task = Task(family)
+            cases = task.public()
+            self.assertEqual(infer_inverse_rule([(c[0], y) for c, y in zip(cases, task.expected(cases))]), expected)
+        self.assertIsNone(infer_inverse_rule([(0, 0)]))
+        with self.assertRaises(ValueError):
+            infer_inverse_rule([(0, 1)])
+
+    def test_task_name_does_not_select_the_predicate(self):
+        task = Task('integer_sqrt')
+        with patch.object(Task, 'expected', lambda self, cases: [(math.isqrt(8 * c[0] + 1) - 1) // 2 for c in cases]):
+            source = inverse_transfer(task, {'lower_bound:tier1': {'source': BOUND}})
+        self.assertIn('1 * mid * mid + 1 * mid <= 2 * n', source)
+
     def test_new_goals_preserve_default_contract_and_dependencies(self):
         self.assertEqual(len(goal_contract(tier=2)['tasks']), 12)
         contract = goal_contract('numeric inverses', tier=1)

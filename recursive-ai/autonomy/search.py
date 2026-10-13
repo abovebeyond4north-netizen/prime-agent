@@ -1,6 +1,7 @@
 """Finite program sketches plus optional model proposals and reusable archived programs."""
 import ast
 import hashlib
+import math
 from autonomy.expressions import ExpressionTask
 from autonomy.tasks import INVERSE_FAMILIES, task_from_key
 from synthesizer.generator import CandidateSynthesizer
@@ -59,9 +60,38 @@ def normalized_digest(source):
     return hashlib.sha256(ast.dump(ast.parse(source), include_attributes=False).encode()).hexdigest()
 
 
-def inverse_transfer(task, active):
-    if task.family not in INVERSE_FAMILIES:
+def infer_inverse_rule(examples):
+    """Infer one normalized quadratic predicate from public labels only."""
+    if not isinstance(examples, (list, tuple)) or not 1 <= len(examples) <= 64:
+        raise ValueError('expected 1..64 public examples')
+    for row in examples:
+        if (not isinstance(row, (list, tuple)) or len(row) != 2
+                or any(type(value) is not int for value in row)
+                or not 0 <= row[1] <= row[0] or row[0].bit_length() > 256):
+            raise ValueError('invalid public inverse example')
+    fits = []
+    for p in range(1, 5):
+        for q in range(5):
+            for d in range(1, 5):
+                if math.gcd(math.gcd(p, q), d) != 1 or p + q < d:
+                    continue
+                if all(p * k * k + q * k <= d * n < p * (k + 1) * (k + 1) + q * (k + 1)
+                       for n, k in examples):
+                    fits.append((p, q, d))
+    return fits[0] if len(fits) == 1 else None
+
+
+def adapt_inverse_scaffold(entrypoint, active, rule):
+    if rule is None:
         return None
+    if (not isinstance(entrypoint, str) or not entrypoint.isidentifier() or entrypoint.startswith('_')
+            or not isinstance(rule, tuple) or len(rule) != 3
+            or any(type(value) is not int for value in rule)):
+        raise ValueError('invalid inverse scaffold parameters')
+    p, q, d = rule
+    if not (1 <= p <= 4 and 0 <= q <= 4 and 1 <= d <= 4 and p + q >= d
+            and math.gcd(math.gcd(p, q), d) == 1):
+        raise ValueError('rule outside inverse grammar')
     reference = ast.dump(ast.parse(BOUND).body[0], include_attributes=False)
     for key, skill in active.items():
         if task_from_key(key).family != 'lower_bound':
@@ -71,16 +101,24 @@ def inverse_transfer(task, active):
                 continue
             if ast.dump(node, include_attributes=False) != reference:
                 continue
-            # Adapt a certified search scaffold; do not invent or execute code on the host.
+            # Adapt syntax only; emitted candidates are evaluated exclusively in Docker.
             function = ast.parse(ast.unparse(node)).body[0]
-            function.name = task.family
+            function.name = entrypoint
             function.args.args = [ast.arg(arg='n')]
             function.body[1].value = ast.parse('n + 1', mode='eval').body
-            predicate = 'mid * mid' if task.family == 'integer_sqrt' else 'mid * (mid + 1) // 2'
-            function.body[2].body[1].test = ast.parse(predicate + ' <= n', mode='eval').body
+            predicate = f'{p} * mid * mid + {q} * mid <= {d} * n'
+            function.body[2].body[1].test = ast.parse(predicate, mode='eval').body
             function.body[-1].value = ast.parse('low - 1', mode='eval').body
             return ast.unparse(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[]))) + '\n'
     return None
+
+
+def inverse_transfer(task, active):
+    if task.family not in INVERSE_FAMILIES:
+        return None
+    cases = task.public()
+    rule = infer_inverse_rule([(case[0], value) for case, value in zip(cases, task.expected(cases))])
+    return adapt_inverse_scaffold(task.family, active, rule)
 
 
 def transfer(task, active):
