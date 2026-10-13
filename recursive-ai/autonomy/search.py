@@ -2,7 +2,7 @@
 import ast
 import hashlib
 from autonomy.expressions import ExpressionTask
-from autonomy.tasks import task_from_key
+from autonomy.tasks import INVERSE_FAMILIES, task_from_key
 from synthesizer.generator import CandidateSynthesizer
 from synthesizer.mutator import mutate_ast
 from synthesizer.recombinator import recombine_ast
@@ -49,13 +49,43 @@ def count_occurrences(values, target):
     return a
 """,
 }
+for family, predicate in [('integer_sqrt', '(root + 1) * (root + 1)'),
+                          ('triangular_inverse', '(root + 1) * (root + 2) // 2')]:
+    SKETCHES[family] = (f'def {family}(n):\n    root = 0\n'
+                        f'    while {predicate} <= n:\n        root = root + 1\n    return root\n')
 
 
 def normalized_digest(source):
     return hashlib.sha256(ast.dump(ast.parse(source), include_attributes=False).encode()).hexdigest()
 
 
+def inverse_transfer(task, active):
+    if task.family not in INVERSE_FAMILIES:
+        return None
+    reference = ast.dump(ast.parse(BOUND).body[0], include_attributes=False)
+    for key, skill in active.items():
+        if task_from_key(key).family != 'lower_bound':
+            continue
+        for node in ast.parse(skill['source']).body:
+            if not isinstance(node, ast.FunctionDef) or node.name != 'lower_bound':
+                continue
+            if ast.dump(node, include_attributes=False) != reference:
+                continue
+            # Adapt a certified search scaffold; do not invent or execute code on the host.
+            function = ast.parse(ast.unparse(node)).body[0]
+            function.name = task.family
+            function.args.args = [ast.arg(arg='n')]
+            function.body[1].value = ast.parse('n + 1', mode='eval').body
+            predicate = 'mid * mid' if task.family == 'integer_sqrt' else 'mid * (mid + 1) // 2'
+            function.body[2].body[1].test = ast.parse(predicate + ' <= n', mode='eval').body
+            function.body[-1].value = ast.parse('low - 1', mode='eval').body
+            return ast.unparse(ast.fix_missing_locations(ast.Module(body=[function], type_ignores=[]))) + '\n'
+    return None
+
+
 def transfer(task, active):
+    if task.family in INVERSE_FAMILIES:
+        return inverse_transfer(task, active)
     if task.family not in ("binary_search", "count_occurrences"):
         return None
     helpers = {}
@@ -129,7 +159,7 @@ class SearchEngine:
             return recombine_ast(sources[0], sources[1], attempt) or sources[0], "ast_crossover"
         composed = transfer(task, active)
         if composed:
-            return composed, "skill_composition"
+            return composed, "inverse_scaffold_transfer" if task.family in INVERSE_FAMILIES else "skill_composition"
         if isinstance(task, ExpressionTask):
             return compile_expression(task, active), "expression_compilation"
         # Search starts from an imperfect sketch and repairs from executable feedback.

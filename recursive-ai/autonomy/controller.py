@@ -18,7 +18,7 @@ from autonomy.search_profile import (
     search_profile_digest,
 )
 from autonomy.search import SearchEngine
-from autonomy.tasks import goal_contract, task_from_key
+from autonomy.tasks import INVERSE_FAMILIES, goal_contract, task_from_key
 from autonomy.verifier import TaskVerifier
 
 
@@ -206,6 +206,10 @@ def _session(memory, root, contract, start, max_attempts, max_seconds,
             used_parent_digests = parent_digests[:2]
         elif origin == "model":
             used_parent_digests = parent_digests[:3]
+        elif origin == "inverse_scaffold_transfer":
+            used_parent_digests = [hashlib.sha256(skill['source'].encode()).hexdigest()
+                                   for key, skill in certified(active).items()
+                                   if task_from_key(key).family == 'lower_bound']
         else:
             used_parent_digests = []
         episode = {"goal_id": contract["id"], "attempt": attempt, "task": task.descriptor(),
@@ -308,6 +312,9 @@ def solve(root, family, arguments, image="recursive-ai-runner:local"):
         raise ValueError("arguments must be a bounded JSON array")
     if family == "fibonacci":
         valid = len(arguments) == 1 and type(arguments[0]) is int and 0 <= arguments[0] <= 800
+    elif family in INVERSE_FAMILIES:
+        valid = (len(arguments) == 1 and type(arguments[0]) is int
+                 and arguments[0] >= 0 and arguments[0].bit_length() <= 256)
     elif family == "gcd" or family.startswith("compound_"):
         valid = len(arguments) == 2 and all(type(value) is int and value.bit_length() <= 512 for value in arguments)
     else:
