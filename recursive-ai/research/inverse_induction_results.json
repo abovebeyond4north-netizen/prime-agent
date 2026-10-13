@@ -1,0 +1,4437 @@
+{
+  "protocol": "public-quadratic-rule-induction-v1",
+  "code_commit": "7631ad477dd0c30e99dca416dbb909977116d134",
+  "workflow_run": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/38326814775",
+  "reports": [
+    {
+      "ambiguous_labels_refused": true,
+      "automatic_promotion": false,
+      "donor_source_sha256": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+      "heldout_rules": [
+        {
+          "coefficients": [
+            2,
+            3,
+            2
+          ],
+          "inferred_from_public_labels": [
+            2,
+            3,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              3
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              4
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              24,
+              4
+            ],
+            [
+              25,
+              4
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              5
+            ],
+            [
+              34,
+              5
+            ],
+            [
+              35,
+              5
+            ],
+            [
+              36,
+              5
+            ],
+            [
+              37,
+              5
+            ],
+            [
+              38,
+              5
+            ],
+            [
+              39,
+              5
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              6
+            ],
+            [
+              46,
+              6
+            ],
+            [
+              47,
+              6
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              49,
+              6
+            ],
+            [
+              50,
+              6
+            ],
+            [
+              51,
+              6
+            ],
+            [
+              52,
+              6
+            ],
+            [
+              53,
+              6
+            ],
+            [
+              54,
+              6
+            ],
+            [
+              55,
+              6
+            ],
+            [
+              56,
+              6
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              7
+            ],
+            [
+              61,
+              7
+            ],
+            [
+              62,
+              7
+            ],
+            [
+              63,
+              7
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_2_3_2"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0037323009999999934,
+                "max_steps": 1028,
+                "peak_bytes": 4154
+              },
+              "objective": 0.9893826159,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_2_3_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "747d9ec0ce78394b6bc0fe1acf95751b3c5b07fa7f33d052efa65a9891bd88fb"
+        },
+        {
+          "coefficients": [
+            3,
+            1,
+            2
+          ],
+          "inferred_from_public_labels": [
+            3,
+            1,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              3
+            ],
+            [
+              23,
+              3
+            ],
+            [
+              24,
+              3
+            ],
+            [
+              25,
+              3
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              4
+            ],
+            [
+              34,
+              4
+            ],
+            [
+              35,
+              4
+            ],
+            [
+              36,
+              4
+            ],
+            [
+              37,
+              4
+            ],
+            [
+              38,
+              4
+            ],
+            [
+              39,
+              4
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              5
+            ],
+            [
+              46,
+              5
+            ],
+            [
+              47,
+              5
+            ],
+            [
+              48,
+              5
+            ],
+            [
+              49,
+              5
+            ],
+            [
+              50,
+              5
+            ],
+            [
+              51,
+              5
+            ],
+            [
+              52,
+              5
+            ],
+            [
+              53,
+              5
+            ],
+            [
+              54,
+              5
+            ],
+            [
+              55,
+              5
+            ],
+            [
+              56,
+              5
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              6
+            ],
+            [
+              61,
+              6
+            ],
+            [
+              62,
+              6
+            ],
+            [
+              63,
+              6
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_3_1_2"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0035592569999999824,
+                "max_steps": 1028,
+                "peak_bytes": 4154
+              },
+              "objective": 0.9893999203,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_3_1_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_3_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "2b6a8a7f0f0dad7eb7868b9103fc628c4bb3337e30fdbabb0c519cf0bc316c76"
+        },
+        {
+          "coefficients": [
+            4,
+            0,
+            3
+          ],
+          "inferred_from_public_labels": [
+            4,
+            0,
+            3
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              2
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              3
+            ],
+            [
+              13,
+              3
+            ],
+            [
+              14,
+              3
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              4
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              24,
+              4
+            ],
+            [
+              25,
+              4
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              4
+            ],
+            [
+              34,
+              5
+            ],
+            [
+              35,
+              5
+            ],
+            [
+              36,
+              5
+            ],
+            [
+              37,
+              5
+            ],
+            [
+              38,
+              5
+            ],
+            [
+              39,
+              5
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              5
+            ],
+            [
+              46,
+              5
+            ],
+            [
+              47,
+              5
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              49,
+              6
+            ],
+            [
+              50,
+              6
+            ],
+            [
+              51,
+              6
+            ],
+            [
+              52,
+              6
+            ],
+            [
+              53,
+              6
+            ],
+            [
+              54,
+              6
+            ],
+            [
+              55,
+              6
+            ],
+            [
+              56,
+              6
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              6
+            ],
+            [
+              61,
+              6
+            ],
+            [
+              62,
+              6
+            ],
+            [
+              63,
+              6
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_4_0_3"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.002992637999999992,
+                "max_steps": 1028,
+                "peak_bytes": 4094
+              },
+              "objective": 0.9894566422,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_4_0_3"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_4_0_3(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 4 * mid * mid + 0 * mid <= 3 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "cacacc6769747800492ecb7b05b9b322f8f8a8f36b29e421550fa54207c2beb8"
+        }
+      ],
+      "limitations": [
+        "Finite developer-authored grammar and scaffold, not unrestricted rule invention.",
+        "Research predicates are not registered production task families or promoted checkpoints.",
+        "Public labels supplied by trusted oracle; shifted cases never enter induction.",
+        "Separate closed-form oracle; same operator and environment class."
+      ],
+      "seed": 190013
+    },
+    {
+      "ambiguous_labels_refused": true,
+      "automatic_promotion": false,
+      "donor_source_sha256": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+      "heldout_rules": [
+        {
+          "coefficients": [
+            2,
+            3,
+            2
+          ],
+          "inferred_from_public_labels": [
+            2,
+            3,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              3
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              4
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              24,
+              4
+            ],
+            [
+              25,
+              4
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              5
+            ],
+            [
+              34,
+              5
+            ],
+            [
+              35,
+              5
+            ],
+            [
+              36,
+              5
+            ],
+            [
+              37,
+              5
+            ],
+            [
+              38,
+              5
+            ],
+            [
+              39,
+              5
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              6
+            ],
+            [
+              46,
+              6
+            ],
+            [
+              47,
+              6
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              49,
+              6
+            ],
+            [
+              50,
+              6
+            ],
+            [
+              51,
+              6
+            ],
+            [
+              52,
+              6
+            ],
+            [
+              53,
+              6
+            ],
+            [
+              54,
+              6
+            ],
+            [
+              55,
+              6
+            ],
+            [
+              56,
+              6
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              7
+            ],
+            [
+              61,
+              7
+            ],
+            [
+              62,
+              7
+            ],
+            [
+              63,
+              7
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_2_3_2"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.003485519999999964,
+                "max_steps": 1028,
+                "peak_bytes": 4154
+              },
+              "objective": 0.989407294,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_2_3_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "747d9ec0ce78394b6bc0fe1acf95751b3c5b07fa7f33d052efa65a9891bd88fb"
+        },
+        {
+          "coefficients": [
+            3,
+            1,
+            2
+          ],
+          "inferred_from_public_labels": [
+            3,
+            1,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              3
+            ],
+            [
+              23,
+              3
+            ],
+            [
+              24,
+              3
+            ],
+            [
+              25,
+              3
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              4
+            ],
+            [
+              34,
+              4
+            ],
+            [
+              35,
+              4
+            ],
+            [
+              36,
+              4
+            ],
+            [
+              37,
+              4
+            ],
+            [
+              38,
+              4
+            ],
+            [
+              39,
+              4
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              5
+            ],
+            [
+              46,
+              5
+            ],
+            [
+              47,
+              5
+            ],
+            [
+              48,
+              5
+            ],
+            [
+              49,
+              5
+            ],
+            [
+              50,
+              5
+            ],
+            [
+              51,
+              5
+            ],
+            [
+              52,
+              5
+            ],
+            [
+              53,
+              5
+            ],
+            [
+              54,
+              5
+            ],
+            [
+              55,
+              5
+            ],
+            [
+              56,
+              5
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              6
+            ],
+            [
+              61,
+              6
+            ],
+            [
+              62,
+              6
+            ],
+            [
+              63,
+              6
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_3_1_2"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0037797350000000063,
+                "max_steps": 1028,
+                "peak_bytes": 4154
+              },
+              "objective": 0.9893778725,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_3_1_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_3_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "2b6a8a7f0f0dad7eb7868b9103fc628c4bb3337e30fdbabb0c519cf0bc316c76"
+        },
+        {
+          "coefficients": [
+            4,
+            0,
+            3
+          ],
+          "inferred_from_public_labels": [
+            4,
+            0,
+            3
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              2
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              3
+            ],
+            [
+              13,
+              3
+            ],
+            [
+              14,
+              3
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              4
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              24,
+              4
+            ],
+            [
+              25,
+              4
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              4
+            ],
+            [
+              34,
+              5
+            ],
+            [
+              35,
+              5
+            ],
+            [
+              36,
+              5
+            ],
+            [
+              37,
+              5
+            ],
+            [
+              38,
+              5
+            ],
+            [
+              39,
+              5
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              5
+            ],
+            [
+              46,
+              5
+            ],
+            [
+              47,
+              5
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              49,
+              6
+            ],
+            [
+              50,
+              6
+            ],
+            [
+              51,
+              6
+            ],
+            [
+              52,
+              6
+            ],
+            [
+              53,
+              6
+            ],
+            [
+              54,
+              6
+            ],
+            [
+              55,
+              6
+            ],
+            [
+              56,
+              6
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              6
+            ],
+            [
+              61,
+              6
+            ],
+            [
+              62,
+              6
+            ],
+            [
+              63,
+              6
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_4_0_3"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0034867219999999977,
+                "max_steps": 1028,
+                "peak_bytes": 4094
+              },
+              "objective": 0.9894072338,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_4_0_3"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_4_0_3(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 4 * mid * mid + 0 * mid <= 3 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "cacacc6769747800492ecb7b05b9b322f8f8a8f36b29e421550fa54207c2beb8"
+        }
+      ],
+      "limitations": [
+        "Finite developer-authored grammar and scaffold, not unrestricted rule invention.",
+        "Research predicates are not registered production task families or promoted checkpoints.",
+        "Public labels supplied by trusted oracle; shifted cases never enter induction.",
+        "Separate closed-form oracle; same operator and environment class."
+      ],
+      "seed": 290021
+    },
+    {
+      "ambiguous_labels_refused": true,
+      "automatic_promotion": false,
+      "donor_source_sha256": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+      "heldout_rules": [
+        {
+          "coefficients": [
+            2,
+            3,
+            2
+          ],
+          "inferred_from_public_labels": [
+            2,
+            3,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              3
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              4
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              24,
+              4
+            ],
+            [
+              25,
+              4
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              5
+            ],
+            [
+              34,
+              5
+            ],
+            [
+              35,
+              5
+            ],
+            [
+              36,
+              5
+            ],
+            [
+              37,
+              5
+            ],
+            [
+              38,
+              5
+            ],
+            [
+              39,
+              5
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              6
+            ],
+            [
+              46,
+              6
+            ],
+            [
+              47,
+              6
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              49,
+              6
+            ],
+            [
+              50,
+              6
+            ],
+            [
+              51,
+              6
+            ],
+            [
+              52,
+              6
+            ],
+            [
+              53,
+              6
+            ],
+            [
+              54,
+              6
+            ],
+            [
+              55,
+              6
+            ],
+            [
+              56,
+              6
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              7
+            ],
+            [
+              61,
+              7
+            ],
+            [
+              62,
+              7
+            ],
+            [
+              63,
+              7
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_2_3_2"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.0026391020000000043,
+                "max_steps": 1028,
+                "peak_bytes": 4154
+              },
+              "objective": 0.9894919357999999,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_2_3_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "747d9ec0ce78394b6bc0fe1acf95751b3c5b07fa7f33d052efa65a9891bd88fb"
+        },
+        {
+          "coefficients": [
+            3,
+            1,
+            2
+          ],
+          "inferred_from_public_labels": [
+            3,
+            1,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              3
+            ],
+            [
+              23,
+              3
+            ],
+            [
+              24,
+              3
+            ],
+            [
+              25,
+              3
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              4
+            ],
+            [
+              34,
+              4
+            ],
+            [
+              35,
+              4
+            ],
+            [
+              36,
+              4
+            ],
+            [
+              37,
+              4
+            ],
+            [
+              38,
+              4
+            ],
+            [
+              39,
+              4
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              5
+            ],
+            [
+              46,
+              5
+            ],
+            [
+              47,
+              5
+            ],
+            [
+              48,
+              5
+            ],
+            [
+              49,
+              5
+            ],
+            [
+              50,
+              5
+            ],
+            [
+              51,
+              5
+            ],
+            [
+              52,
+              5
+            ],
+            [
+              53,
+              5
+            ],
+            [
+              54,
+              5
+            ],
+            [
+              55,
+              5
+            ],
+            [
+              56,
+              5
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              6
+            ],
+            [
+              61,
+              6
+            ],
+            [
+              62,
+              6
+            ],
+            [
+              63,
+              6
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_3_1_2"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.002700523999999982,
+                "max_steps": 1028,
+                "peak_bytes": 4154
+              },
+              "objective": 0.9894857936,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_3_1_2"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_3_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "2b6a8a7f0f0dad7eb7868b9103fc628c4bb3337e30fdbabb0c519cf0bc316c76"
+        },
+        {
+          "coefficients": [
+            4,
+            0,
+            3
+          ],
+          "inferred_from_public_labels": [
+            4,
+            0,
+            3
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              2
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              3
+            ],
+            [
+              13,
+              3
+            ],
+            [
+              14,
+              3
+            ],
+            [
+              15,
+              3
+            ],
+            [
+              16,
+              3
+            ],
+            [
+              17,
+              3
+            ],
+            [
+              18,
+              3
+            ],
+            [
+              19,
+              3
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              4
+            ],
+            [
+              23,
+              4
+            ],
+            [
+              24,
+              4
+            ],
+            [
+              25,
+              4
+            ],
+            [
+              26,
+              4
+            ],
+            [
+              27,
+              4
+            ],
+            [
+              28,
+              4
+            ],
+            [
+              29,
+              4
+            ],
+            [
+              30,
+              4
+            ],
+            [
+              31,
+              4
+            ],
+            [
+              32,
+              4
+            ],
+            [
+              33,
+              4
+            ],
+            [
+              34,
+              5
+            ],
+            [
+              35,
+              5
+            ],
+            [
+              36,
+              5
+            ],
+            [
+              37,
+              5
+            ],
+            [
+              38,
+              5
+            ],
+            [
+              39,
+              5
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              41,
+              5
+            ],
+            [
+              42,
+              5
+            ],
+            [
+              43,
+              5
+            ],
+            [
+              44,
+              5
+            ],
+            [
+              45,
+              5
+            ],
+            [
+              46,
+              5
+            ],
+            [
+              47,
+              5
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              49,
+              6
+            ],
+            [
+              50,
+              6
+            ],
+            [
+              51,
+              6
+            ],
+            [
+              52,
+              6
+            ],
+            [
+              53,
+              6
+            ],
+            [
+              54,
+              6
+            ],
+            [
+              55,
+              6
+            ],
+            [
+              56,
+              6
+            ],
+            [
+              57,
+              6
+            ],
+            [
+              58,
+              6
+            ],
+            [
+              59,
+              6
+            ],
+            [
+              60,
+              6
+            ],
+            [
+              61,
+              6
+            ],
+            [
+              62,
+              6
+            ],
+            [
+              63,
+              6
+            ]
+          ],
+          "reports": {
+            "frozen_square": {
+              "containers": 2,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "error_type": "ValueError",
+                  "name": "public",
+                  "number": 4,
+                  "passed": false
+                }
+              ],
+              "passed": false,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_4_0_3"
+            },
+            "induced": {
+              "containers": 12,
+              "gates": [
+                {
+                  "name": "syntax",
+                  "number": 1,
+                  "passed": true
+                },
+                {
+                  "name": "ast_safety",
+                  "number": 2,
+                  "passed": true
+                },
+                {
+                  "name": "isolation_boot",
+                  "number": 3,
+                  "passed": true
+                },
+                {
+                  "name": "public",
+                  "number": 4,
+                  "passed": true
+                },
+                {
+                  "name": "regression",
+                  "number": 5,
+                  "passed": true,
+                  "reused_regression_checks": 0
+                },
+                {
+                  "name": "holdout",
+                  "number": 6,
+                  "passed": true
+                },
+                {
+                  "name": "generalization",
+                  "number": 7,
+                  "passed": true
+                },
+                {
+                  "name": "performance",
+                  "number": 8,
+                  "passed": true
+                },
+                {
+                  "name": "differential",
+                  "number": 9,
+                  "passed": true
+                },
+                {
+                  "name": "determinism",
+                  "number": 10,
+                  "passed": true
+                }
+              ],
+              "measurements": {
+                "cpu_seconds": 0.001995918999999985,
+                "max_steps": 1028,
+                "peak_bytes": 4094
+              },
+              "objective": 0.9895563141,
+              "passed": true,
+              "random_cases": 1128,
+              "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+              "suite_version": "autonomy-1",
+              "task": "research:induced_inverse_4_0_3"
+            }
+          },
+          "shifted_cases_passed": 1024,
+          "shifted_containers": 17,
+          "source": "def induced_inverse_4_0_3(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 4 * mid * mid + 0 * mid <= 3 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n",
+          "source_sha256": "cacacc6769747800492ecb7b05b9b322f8f8a8f36b29e421550fa54207c2beb8"
+        }
+      ],
+      "limitations": [
+        "Finite developer-authored grammar and scaffold, not unrestricted rule invention.",
+        "Research predicates are not registered production task families or promoted checkpoints.",
+        "Public labels supplied by trusted oracle; shifted cases never enter induction.",
+        "Separate closed-form oracle; same operator and environment class."
+      ],
+      "seed": 390029
+    }
+  ],
+  "production_inverse_reverification": [
+    {
+      "budgets_per_mode": {
+        "attempts": 8,
+        "containers": 240,
+        "model_calls": 0
+      },
+      "code_commit": "7631ad477dd0c30e99dca416dbb909977116d134",
+      "limitations": [
+        "Developer-authored task contracts and AST adaptation rule; not autonomous rule invention.",
+        "Separate math.isqrt-based oracle implementation, not a third-party evaluator.",
+        "Three fresh CI executions and shifted seeds share one operator and environment class.",
+        "Task-family expansion and transfer demonstrated; no general intelligence or open-world claim."
+      ],
+      "new_verified_families": [
+        "integer_sqrt",
+        "triangular_inverse"
+      ],
+      "rollback_blocks_new_skill_and_restore_recovers_it": true,
+      "rows": {
+        "ablated": {
+          "evaluation": [
+            {
+              "acquired": false,
+              "cases": 1024,
+              "correct_on_shifted_cases": false,
+              "family": "integer_sqrt",
+              "restart_invocation": false
+            },
+            {
+              "acquired": false,
+              "cases": 1024,
+              "correct_on_shifted_cases": false,
+              "family": "triangular_inverse",
+              "restart_invocation": false
+            }
+          ],
+          "lineage": [
+            {
+              "child_digest": "49a9b37d08e134fc183db905c17f6aeb1f3f76455632e018011d5373f34f35fd",
+              "family": "integer_sqrt",
+              "operator": "mutation",
+              "origin": "ast_mutation",
+              "parent_digest": "800d76811042776846818ee66765ea8df884e2c61d25be8a6d9462cb973a61cd"
+            },
+            {
+              "child_digest": "800d76811042776846818ee66765ea8df884e2c61d25be8a6d9462cb973a61cd",
+              "family": "integer_sqrt",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "c1bde813ac6985c0b3f2df4210ea651849d07e79143fd3a6c1171ec5733a3f5a"
+            },
+            {
+              "child_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+              "family": "lower_bound",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "af81d5b445bf3412c05235e93d4c5927f0e716ff38b10f2578f8d827a119038e"
+            },
+            {
+              "child_digest": "a104e0046eeb529ac36bc3d3f237ec187e949e61d2b74551782b29399042306f",
+              "family": "triangular_inverse",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "87b024edee96104e210315f47990c7ffd538b4742e0823b37ec6b6544444ae1d"
+            }
+          ],
+          "restart_invocation_containers": 0,
+          "shifted_audit_containers": 1,
+          "summary": {
+            "audit": null,
+            "candidate_lineage_edges": 4,
+            "certified_tasks": [
+              "lower_bound:tier1"
+            ],
+            "checkpoint": "4ae338074ad2af397ddca9cd073c4a5e730502b6",
+            "container_runs": 17,
+            "coverage": 0.3333333333333333,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "80539287366e49f4d9c38cc8",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0.3333333333333333,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 7,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 0,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 5,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 5,
+              "enforced_by_harness": true,
+              "limit": 5,
+              "observations": [
+                {
+                  "attempt": 1,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "attempt": 2,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "attempt": 3,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "regression",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "attempt": 4,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "regression",
+                  "passed": false,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "attempt": 5,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                }
+              ]
+            },
+            "status": "stagnation",
+            "target": 1,
+            "total_attempts": 5,
+            "wall_seconds": 8.642829879000033
+          }
+        },
+        "transfer": {
+          "evaluation": [
+            {
+              "acquired": true,
+              "cases": 1024,
+              "correct_on_shifted_cases": true,
+              "family": "integer_sqrt",
+              "restart_invocation": true
+            },
+            {
+              "acquired": true,
+              "cases": 1024,
+              "correct_on_shifted_cases": true,
+              "family": "triangular_inverse",
+              "restart_invocation": true
+            }
+          ],
+          "lineage": [
+            {
+              "child_digest": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+              "family": "integer_sqrt",
+              "operator": "direct",
+              "origin": "inverse_scaffold_transfer",
+              "parent_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+            },
+            {
+              "child_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+              "family": "lower_bound",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "af81d5b445bf3412c05235e93d4c5927f0e716ff38b10f2578f8d827a119038e"
+            },
+            {
+              "child_digest": "d3faa488d23bc3ffcb71dd9c2bc23caad0f99cc4550c6df84919709f8efb5ceb",
+              "family": "triangular_inverse",
+              "operator": "direct",
+              "origin": "inverse_scaffold_transfer",
+              "parent_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+            }
+          ],
+          "restart_invocation_containers": 4,
+          "shifted_audit_containers": 33,
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "triangular_inverse:tier1"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "lower_bound:tier1",
+              "triangular_inverse:tier1"
+            ],
+            "checkpoint": "b24d64fa3d7f42568b2d09edf4a486792998f6bf",
+            "container_runs": 32,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "80539287366e49f4d9c38cc8",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0.3333333333333333,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 3,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 2,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 5,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 2,
+            "wall_seconds": 12.921543527999972
+          }
+        }
+      },
+      "seed": 190013,
+      "shifted_evaluation_batch_size": 64,
+      "training": {
+        "audit": {
+          "confidence_level": 0.95,
+          "distribution": "independent shifted audit",
+          "passed": true,
+          "reports": [
+            {
+              "cases": 512,
+              "passed": true,
+              "simultaneous_lower_bound": 0.9941660443994438,
+              "task": "lower_bound:tier1"
+            }
+          ]
+        },
+        "candidate_lineage_edges": 1,
+        "certified_tasks": [
+          "lower_bound:tier1"
+        ],
+        "checkpoint": "4ae338074ad2af397ddca9cd073c4a5e730502b6",
+        "container_runs": 17,
+        "coverage": 1,
+        "curriculum_profile": {
+          "family_balance_weight": 0,
+          "retry_weight": 1,
+          "unlock_weight": 0
+        },
+        "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+        "focused_public_repair_attempts": 0,
+        "goal_id": "997348bc4ebafb40684596a0",
+        "image": "recursive-ai-runner:local",
+        "initial_coverage": 0,
+        "model_calls": 0,
+        "policy_mode": "learned",
+        "policy_prior_digest": null,
+        "policy_revisions": 2,
+        "prior_strength": 4,
+        "provider": "search",
+        "regression_cache_hits": 0,
+        "regression_executions": 0,
+        "repair_public_failures": false,
+        "reuse_regression_checks": false,
+        "search_profile": {
+          "parent_limit": 8,
+          "parent_novelty_weight": 0.25,
+          "parent_quality_weight": 0.7,
+          "parent_size_weight": 0.05,
+          "ucb_exploration": 2
+        },
+        "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+        "session_attempts": 2,
+        "stagnation_evidence": {
+          "consecutive_no_gain": 0,
+          "enforced_by_harness": true,
+          "limit": 16,
+          "observations": []
+        },
+        "status": "goal_reached",
+        "target": 1,
+        "total_attempts": 2,
+        "wall_seconds": 7.047814141999993
+      }
+    },
+    {
+      "budgets_per_mode": {
+        "attempts": 8,
+        "containers": 240,
+        "model_calls": 0
+      },
+      "code_commit": "7631ad477dd0c30e99dca416dbb909977116d134",
+      "limitations": [
+        "Developer-authored task contracts and AST adaptation rule; not autonomous rule invention.",
+        "Separate math.isqrt-based oracle implementation, not a third-party evaluator.",
+        "Three fresh CI executions and shifted seeds share one operator and environment class.",
+        "Task-family expansion and transfer demonstrated; no general intelligence or open-world claim."
+      ],
+      "new_verified_families": [
+        "integer_sqrt",
+        "triangular_inverse"
+      ],
+      "rollback_blocks_new_skill_and_restore_recovers_it": true,
+      "rows": {
+        "ablated": {
+          "evaluation": [
+            {
+              "acquired": false,
+              "cases": 1024,
+              "correct_on_shifted_cases": false,
+              "family": "integer_sqrt",
+              "restart_invocation": false
+            },
+            {
+              "acquired": false,
+              "cases": 1024,
+              "correct_on_shifted_cases": false,
+              "family": "triangular_inverse",
+              "restart_invocation": false
+            }
+          ],
+          "lineage": [
+            {
+              "child_digest": "49a9b37d08e134fc183db905c17f6aeb1f3f76455632e018011d5373f34f35fd",
+              "family": "integer_sqrt",
+              "operator": "mutation",
+              "origin": "ast_mutation",
+              "parent_digest": "800d76811042776846818ee66765ea8df884e2c61d25be8a6d9462cb973a61cd"
+            },
+            {
+              "child_digest": "800d76811042776846818ee66765ea8df884e2c61d25be8a6d9462cb973a61cd",
+              "family": "integer_sqrt",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "c1bde813ac6985c0b3f2df4210ea651849d07e79143fd3a6c1171ec5733a3f5a"
+            },
+            {
+              "child_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+              "family": "lower_bound",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "af81d5b445bf3412c05235e93d4c5927f0e716ff38b10f2578f8d827a119038e"
+            },
+            {
+              "child_digest": "a104e0046eeb529ac36bc3d3f237ec187e949e61d2b74551782b29399042306f",
+              "family": "triangular_inverse",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "87b024edee96104e210315f47990c7ffd538b4742e0823b37ec6b6544444ae1d"
+            }
+          ],
+          "restart_invocation_containers": 0,
+          "shifted_audit_containers": 1,
+          "summary": {
+            "audit": null,
+            "candidate_lineage_edges": 4,
+            "certified_tasks": [
+              "lower_bound:tier1"
+            ],
+            "checkpoint": "d03fe3ebe7a8cfb6f53bf9609082ed83ac5dd232",
+            "container_runs": 17,
+            "coverage": 0.3333333333333333,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "80539287366e49f4d9c38cc8",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0.3333333333333333,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 7,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 0,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 5,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 5,
+              "enforced_by_harness": true,
+              "limit": 5,
+              "observations": [
+                {
+                  "attempt": 1,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "attempt": 2,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "attempt": 3,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "regression",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "attempt": 4,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "regression",
+                  "passed": false,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "attempt": 5,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                }
+              ]
+            },
+            "status": "stagnation",
+            "target": 1,
+            "total_attempts": 5,
+            "wall_seconds": 8.519194960999997
+          }
+        },
+        "transfer": {
+          "evaluation": [
+            {
+              "acquired": true,
+              "cases": 1024,
+              "correct_on_shifted_cases": true,
+              "family": "integer_sqrt",
+              "restart_invocation": true
+            },
+            {
+              "acquired": true,
+              "cases": 1024,
+              "correct_on_shifted_cases": true,
+              "family": "triangular_inverse",
+              "restart_invocation": true
+            }
+          ],
+          "lineage": [
+            {
+              "child_digest": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+              "family": "integer_sqrt",
+              "operator": "direct",
+              "origin": "inverse_scaffold_transfer",
+              "parent_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+            },
+            {
+              "child_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+              "family": "lower_bound",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "af81d5b445bf3412c05235e93d4c5927f0e716ff38b10f2578f8d827a119038e"
+            },
+            {
+              "child_digest": "d3faa488d23bc3ffcb71dd9c2bc23caad0f99cc4550c6df84919709f8efb5ceb",
+              "family": "triangular_inverse",
+              "operator": "direct",
+              "origin": "inverse_scaffold_transfer",
+              "parent_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+            }
+          ],
+          "restart_invocation_containers": 4,
+          "shifted_audit_containers": 33,
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "triangular_inverse:tier1"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "lower_bound:tier1",
+              "triangular_inverse:tier1"
+            ],
+            "checkpoint": "a5ca2ce4406b02348035ed49423a2ca2530d588e",
+            "container_runs": 32,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "80539287366e49f4d9c38cc8",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0.3333333333333333,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 3,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 2,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 5,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 2,
+            "wall_seconds": 13.051690431000011
+          }
+        }
+      },
+      "seed": 290021,
+      "shifted_evaluation_batch_size": 64,
+      "training": {
+        "audit": {
+          "confidence_level": 0.95,
+          "distribution": "independent shifted audit",
+          "passed": true,
+          "reports": [
+            {
+              "cases": 512,
+              "passed": true,
+              "simultaneous_lower_bound": 0.9941660443994438,
+              "task": "lower_bound:tier1"
+            }
+          ]
+        },
+        "candidate_lineage_edges": 1,
+        "certified_tasks": [
+          "lower_bound:tier1"
+        ],
+        "checkpoint": "d03fe3ebe7a8cfb6f53bf9609082ed83ac5dd232",
+        "container_runs": 17,
+        "coverage": 1,
+        "curriculum_profile": {
+          "family_balance_weight": 0,
+          "retry_weight": 1,
+          "unlock_weight": 0
+        },
+        "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+        "focused_public_repair_attempts": 0,
+        "goal_id": "997348bc4ebafb40684596a0",
+        "image": "recursive-ai-runner:local",
+        "initial_coverage": 0,
+        "model_calls": 0,
+        "policy_mode": "learned",
+        "policy_prior_digest": null,
+        "policy_revisions": 2,
+        "prior_strength": 4,
+        "provider": "search",
+        "regression_cache_hits": 0,
+        "regression_executions": 0,
+        "repair_public_failures": false,
+        "reuse_regression_checks": false,
+        "search_profile": {
+          "parent_limit": 8,
+          "parent_novelty_weight": 0.25,
+          "parent_quality_weight": 0.7,
+          "parent_size_weight": 0.05,
+          "ucb_exploration": 2
+        },
+        "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+        "session_attempts": 2,
+        "stagnation_evidence": {
+          "consecutive_no_gain": 0,
+          "enforced_by_harness": true,
+          "limit": 16,
+          "observations": []
+        },
+        "status": "goal_reached",
+        "target": 1,
+        "total_attempts": 2,
+        "wall_seconds": 7.158416680000002
+      }
+    },
+    {
+      "budgets_per_mode": {
+        "attempts": 8,
+        "containers": 240,
+        "model_calls": 0
+      },
+      "code_commit": "7631ad477dd0c30e99dca416dbb909977116d134",
+      "limitations": [
+        "Developer-authored task contracts and AST adaptation rule; not autonomous rule invention.",
+        "Separate math.isqrt-based oracle implementation, not a third-party evaluator.",
+        "Three fresh CI executions and shifted seeds share one operator and environment class.",
+        "Task-family expansion and transfer demonstrated; no general intelligence or open-world claim."
+      ],
+      "new_verified_families": [
+        "integer_sqrt",
+        "triangular_inverse"
+      ],
+      "rollback_blocks_new_skill_and_restore_recovers_it": true,
+      "rows": {
+        "ablated": {
+          "evaluation": [
+            {
+              "acquired": false,
+              "cases": 1024,
+              "correct_on_shifted_cases": false,
+              "family": "integer_sqrt",
+              "restart_invocation": false
+            },
+            {
+              "acquired": false,
+              "cases": 1024,
+              "correct_on_shifted_cases": false,
+              "family": "triangular_inverse",
+              "restart_invocation": false
+            }
+          ],
+          "lineage": [
+            {
+              "child_digest": "49a9b37d08e134fc183db905c17f6aeb1f3f76455632e018011d5373f34f35fd",
+              "family": "integer_sqrt",
+              "operator": "mutation",
+              "origin": "ast_mutation",
+              "parent_digest": "800d76811042776846818ee66765ea8df884e2c61d25be8a6d9462cb973a61cd"
+            },
+            {
+              "child_digest": "800d76811042776846818ee66765ea8df884e2c61d25be8a6d9462cb973a61cd",
+              "family": "integer_sqrt",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "c1bde813ac6985c0b3f2df4210ea651849d07e79143fd3a6c1171ec5733a3f5a"
+            },
+            {
+              "child_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+              "family": "lower_bound",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "af81d5b445bf3412c05235e93d4c5927f0e716ff38b10f2578f8d827a119038e"
+            },
+            {
+              "child_digest": "a104e0046eeb529ac36bc3d3f237ec187e949e61d2b74551782b29399042306f",
+              "family": "triangular_inverse",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "87b024edee96104e210315f47990c7ffd538b4742e0823b37ec6b6544444ae1d"
+            }
+          ],
+          "restart_invocation_containers": 0,
+          "shifted_audit_containers": 1,
+          "summary": {
+            "audit": null,
+            "candidate_lineage_edges": 4,
+            "certified_tasks": [
+              "lower_bound:tier1"
+            ],
+            "checkpoint": "0fba77af8e3615a2e1bde4f3db9865762345063a",
+            "container_runs": 17,
+            "coverage": 0.3333333333333333,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "80539287366e49f4d9c38cc8",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0.3333333333333333,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 7,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 0,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 5,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 5,
+              "enforced_by_harness": true,
+              "limit": 5,
+              "observations": [
+                {
+                  "attempt": 1,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "attempt": 2,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "attempt": 3,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "regression",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "attempt": 4,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "regression",
+                  "passed": false,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "attempt": 5,
+                  "coverage": 0.3333333333333333,
+                  "error_type": null,
+                  "failed_gate": "public",
+                  "passed": false,
+                  "task": "integer_sqrt:tier1"
+                }
+              ]
+            },
+            "status": "stagnation",
+            "target": 1,
+            "total_attempts": 5,
+            "wall_seconds": 8.497025276999999
+          }
+        },
+        "transfer": {
+          "evaluation": [
+            {
+              "acquired": true,
+              "cases": 1024,
+              "correct_on_shifted_cases": true,
+              "family": "integer_sqrt",
+              "restart_invocation": true
+            },
+            {
+              "acquired": true,
+              "cases": 1024,
+              "correct_on_shifted_cases": true,
+              "family": "triangular_inverse",
+              "restart_invocation": true
+            }
+          ],
+          "lineage": [
+            {
+              "child_digest": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+              "family": "integer_sqrt",
+              "operator": "direct",
+              "origin": "inverse_scaffold_transfer",
+              "parent_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+            },
+            {
+              "child_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d",
+              "family": "lower_bound",
+              "operator": "repair",
+              "origin": "archive_return_repair",
+              "parent_digest": "af81d5b445bf3412c05235e93d4c5927f0e716ff38b10f2578f8d827a119038e"
+            },
+            {
+              "child_digest": "d3faa488d23bc3ffcb71dd9c2bc23caad0f99cc4550c6df84919709f8efb5ceb",
+              "family": "triangular_inverse",
+              "operator": "direct",
+              "origin": "inverse_scaffold_transfer",
+              "parent_digest": "e6d47ad651666e7f818c4ecfd65b1ecf7b3404725c36a304eed3367b61bc513d"
+            }
+          ],
+          "restart_invocation_containers": 4,
+          "shifted_audit_containers": 33,
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9920351223561302,
+                  "task": "triangular_inverse:tier1"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "lower_bound:tier1",
+              "triangular_inverse:tier1"
+            ],
+            "checkpoint": "ca2adfe2c2de5036a0bfa85ac38722415e2fec6f",
+            "container_runs": 32,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "80539287366e49f4d9c38cc8",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0.3333333333333333,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 3,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 2,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 5,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 2,
+            "wall_seconds": 11.597995078999993
+          }
+        }
+      },
+      "seed": 390029,
+      "shifted_evaluation_batch_size": 64,
+      "training": {
+        "audit": {
+          "confidence_level": 0.95,
+          "distribution": "independent shifted audit",
+          "passed": true,
+          "reports": [
+            {
+              "cases": 512,
+              "passed": true,
+              "simultaneous_lower_bound": 0.9941660443994438,
+              "task": "lower_bound:tier1"
+            }
+          ]
+        },
+        "candidate_lineage_edges": 1,
+        "certified_tasks": [
+          "lower_bound:tier1"
+        ],
+        "checkpoint": "0fba77af8e3615a2e1bde4f3db9865762345063a",
+        "container_runs": 17,
+        "coverage": 1,
+        "curriculum_profile": {
+          "family_balance_weight": 0,
+          "retry_weight": 1,
+          "unlock_weight": 0
+        },
+        "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+        "focused_public_repair_attempts": 0,
+        "goal_id": "997348bc4ebafb40684596a0",
+        "image": "recursive-ai-runner:local",
+        "initial_coverage": 0,
+        "model_calls": 0,
+        "policy_mode": "learned",
+        "policy_prior_digest": null,
+        "policy_revisions": 2,
+        "prior_strength": 4,
+        "provider": "search",
+        "regression_cache_hits": 0,
+        "regression_executions": 0,
+        "repair_public_failures": false,
+        "reuse_regression_checks": false,
+        "search_profile": {
+          "parent_limit": 8,
+          "parent_novelty_weight": 0.25,
+          "parent_quality_weight": 0.7,
+          "parent_size_weight": 0.05,
+          "ucb_exploration": 2
+        },
+        "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+        "session_attempts": 2,
+        "stagnation_evidence": {
+          "consecutive_no_gain": 0,
+          "enforced_by_harness": true,
+          "limit": 16,
+          "observations": []
+        },
+        "status": "goal_reached",
+        "target": 1,
+        "total_attempts": 2,
+        "wall_seconds": 8.534009161
+      }
+    }
+  ],
+  "accepted": true,
+  "information_boundary": "Only supplied public (input,output) pairs enter infer_inverse_rule; task name, specification, private coefficients and protected samples do not select the rule.",
+  "automatic_promotion": false
+}
