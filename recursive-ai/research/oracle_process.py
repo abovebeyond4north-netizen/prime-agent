@@ -1,18 +1,21 @@
-"""Run the trusted query selector with a public-label-only message interface.
+"""Public-label-only selector IPC with explicit process or Docker transport.
 
-This separates Python state and strips inherited environment variables. It is
-not an OS sandbox: the worker still has the current user's filesystem access.
+The process backend shares host filesystem authority. Docker uses a separate,
+read-only public-selector image without network or host mounts.
 """
 import argparse
 import json
 import math
 import os
 from pathlib import Path
+import re
 import selectors
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 from research.query_fallback import PublicOracle, acquire_fallback
 
@@ -22,16 +25,37 @@ def _command(mode, seed):
             '--mode', mode, '--seed', str(seed)]
 
 
-def acquire_via_process(label, mode, seed, timeout=30):
+def docker_command(image, name):
+    if not isinstance(image, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.:/@-]{0,254}', image):
+        raise ValueError('invalid selector image')
+    return ['docker', 'run', '--rm', '--pull=never', '--name', name, '-i',
+            '--network=none', '--cpus=1', '--memory=128m', '--memory-swap=128m',
+            '--pids-limit=16', '--read-only', '--cap-drop=ALL', '--user=65534:65534',
+            '--security-opt=no-new-privileges:true',
+            '--tmpfs=/tmp:rw,noexec,nosuid,nodev,size=4m',
+            '--ulimit', 'nofile=64:64', '--log-driver=none', image]
+
+
+def acquire_via_process(label, mode, seed, timeout=30, *, backend='process',
+                        image='recursive-ai-selector:local'):
     if mode not in ('extended_fixed', 'boundary_fallback') or type(seed) is not int:
         raise ValueError('invalid selector configuration')
     if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('invalid selector timeout')
+    if backend not in ('process', 'docker'):
+        raise ValueError('invalid selector backend')
+    name = 'recursive-selector-' + uuid.uuid4().hex
+    if backend == 'docker':
+        if not shutil.which('docker'):
+            raise RuntimeError('Docker unavailable; selector host fallback is forbidden')
+        command = docker_command(image, name) + ['--worker', '--mode', mode, '--seed', str(seed)]
+    else:
+        command = _command(mode, seed)
     oracle, examples = PublicOracle(label), []
     deadline = time.monotonic() + timeout
     environment = {'PYTHONPATH': str(Path(__file__).resolve().parents[1])}
     with tempfile.TemporaryDirectory(prefix='public-selector-') as directory:
-        process = subprocess.Popen(_command(mode, seed), stdin=subprocess.PIPE,
+        process = subprocess.Popen(command, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, cwd=directory,
             env=environment)
         try:
@@ -78,6 +102,15 @@ def acquire_via_process(label, mode, seed, timeout=30):
             if process.poll() is None:
                 process.kill()
             process.wait()
+            if backend == 'docker':
+                cleanup = subprocess.run(['docker', 'rm', '-f', name],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False)
+                if cleanup.returncode:
+                    # --rm may have already removed the successfully exited container.
+                    inspected = subprocess.run(['docker', 'ps', '-aq', '--filter', 'name=^/'+name+'$'],
+                        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10, check=False)
+                    if inspected.returncode or inspected.stdout.strip():
+                        raise RuntimeError('selector container cleanup unverified')
             if not process.stdin.closed:
                 process.stdin.close()
             process.stdout.close()

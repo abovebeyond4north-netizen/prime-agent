@@ -4,7 +4,7 @@ import random
 from collections import Counter
 from functools import lru_cache
 
-from research.mixed_features import infer
+from research.mixed_inference import infer
 
 
 def universe():

@@ -2,15 +2,15 @@
 import argparse
 import ast
 import json
-import math
 from dataclasses import dataclass
 from pathlib import Path
 
 from autonomy.procedure import build_candidate, propose
-from autonomy.search import BOUND, _validate_inverse_examples, expand_inverse_grammar
+from autonomy.search import BOUND, expand_inverse_grammar
 from autonomy.tasks import Task
 from autonomy.verifier import TaskVerifier
 from research.grammar_expansion import PowerTask
+from research.mixed_inference import infer
 from sandbox.runner import SandboxRunner
 
 
@@ -39,31 +39,6 @@ class MixedTask(PowerTask):
     def properties(self):
         boundaries = [(self.value(k)+self.d-1)//self.d for k in (1,2,3,100,10**12)]
         return [(max(0,n+offset),) for n in boundaries for offset in (-1,0,1)]
-
-
-def infer(examples):
-    _validate_inverse_examples(examples)
-    stages = []
-    compatible = []
-    for degree in (3,4):
-        fits = []
-        for p in range(1,5):
-            for r in range(1,5):
-                for q in range(5):
-                    for d in range(1,5):
-                        if math.gcd(math.gcd(p,r),math.gcd(q,d)) != 1 or p+r+q < d:
-                            continue
-                        if all(p*k**degree+r*k*k+q*k <= d*n < p*(k+1)**degree+r*(k+1)**2+q*(k+1)
-                               for n,k in examples):
-                            fits.append((p,r,q,d))
-        stages.append({'degree':degree,'raw_hypotheses':320,'compatible':len(fits)})
-        compatible.extend((degree,rule) for rule in fits)
-    if compatible:
-        unique = len(compatible) == 1
-        return {'status':'unique' if unique else 'ambiguous',
-                'degree':compatible[0][0] if unique else None,
-                'rule':compatible[0][1] if unique else None,'stages':stages}
-    return {'status':'no_fit','rule':None,'degree':None,'stages':stages}
 
 
 def construct(name, hypothesis, configuration):
