@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from research.public_queries import sampled_rules, universe
-from research.query_fallback import acquire_fallback
+from research.oracle_process import acquire_via_process
 from research.query_scale import rule_partition as previous_partition, study as paired_study
 
 
@@ -20,7 +20,7 @@ def rule_partition(shard):
 
 
 def selector(label, mode, seed):
-    return acquire_fallback(label,{'fixed':'extended_fixed','random':'boundary_fallback'}[mode],seed)
+    return acquire_via_process(label,{'fixed':'extended_fixed','random':'boundary_fallback'}[mode],seed)
 
 
 def study(root, seed, shard):
@@ -32,6 +32,7 @@ def study(root, seed, shard):
     result['arms'] = {names[key]:value for key,value in result['arms'].items()}
     result['order'] = [names[key] for key in result['order']]
     result.update({'sampling_seed':620019,'query_ceiling':128,'baseline_query_count':64})
+    result['selector_interface'] = 'public_jsonl_subprocess_v1'
     for arm in result['arms'].values():
         arm['baseline64_certified'] = sum(row['certified'] and
             row['selection']['baseline_hypothesis']['status'] == 'unique' for row in arm['rows'][:6])
@@ -47,6 +48,8 @@ def study(root, seed, shard):
         'Extended fixed inputs control for additional labels; actual query counts may differ.',
         'Baseline64 certifications reuse checks of identical preserved programs, not a third execution arm.',
         'Only public supplier/selector substituted in the existing paired harness; evaluator unchanged.',
+        'Selector receives public labels through JSONL in a fresh process; parent enforces 128 calls.',
+        'Worker has no evaluator Python objects or inherited secrets; not an OS filesystem sandbox.',
         'Same internal grammar/evaluator/operator class; not independent or real-world recovery.']
     return result
 

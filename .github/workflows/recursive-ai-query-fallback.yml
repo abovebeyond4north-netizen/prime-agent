@@ -2,7 +2,7 @@ name: Recursive AI baseline preserving query fallback
 on:
   push:
     branches: [recursive-ai/procedure-memory-ablation]
-    paths: [".github/workflows/recursive-ai-query-fallback.yml", "recursive-ai/research/query_fallback.py", "recursive-ai/research/fallback_study.py", "recursive-ai/tests/test_query_fallback.py"]
+    paths: [".github/workflows/recursive-ai-query-fallback.yml", "recursive-ai/research/query_fallback.py", "recursive-ai/research/oracle_process.py", "recursive-ai/research/fallback_study.py", "recursive-ai/tests/test_query_fallback.py", "recursive-ai/tests/test_oracle_process.py"]
 permissions:
   contents: read
 jobs:
@@ -24,7 +24,7 @@ jobs:
         run: docker build -t recursive-ai-runner:local sandbox/
       - name: Check preservation and query budget boundaries
         working-directory: recursive-ai
-        run: python3 -m unittest tests.test_query_fallback -v
+        run: python3 -m unittest tests.test_query_fallback tests.test_oracle_process -v
       - name: Compare fixed extension and boundary fallback
         working-directory: recursive-ai
         env:
