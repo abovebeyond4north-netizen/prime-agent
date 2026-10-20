@@ -178,6 +178,14 @@ class ContractTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'stale'):
                 acquire(self.root, B, lambda n: self.fail('queried with stale state'), CONFIG)
 
+    def test_stop_prevents_persisted_skill_invocation(self):
+        self.learn()
+        (self.root/'STOP').touch()
+        with patch('research.skill_contract.SandboxRunner') as runner:
+            with self.assertRaisesRegex(RuntimeError, 'operator stop'):
+                invoke(self.root, task_contract(A).key, 100)
+            runner.assert_not_called()
+
 
 @unittest.skipUnless(shutil.which('docker'), 'Docker required for actual contract service integration')
 class ContractDockerTests(unittest.TestCase):
@@ -223,6 +231,12 @@ class ContractDockerTests(unittest.TestCase):
             cli('activate', '--checkpoint', second['checkpoint'])
             restored = call(B)
             self.assertEqual((restored['checkpoint'], restored['output']), (before['checkpoint'], before['output']))
+            stop = state/'STOP'
+            stop.touch()
+            stopped = cli('invoke', '--key', task_contract(B).key, '--input', str(n), '--image', runner, check=False)
+            self.assertNotEqual(stopped.returncode, 0)
+            self.assertIn('operator stop', stopped.stderr)
+            stop.unlink()
             mismatch = {'degree': 3, 'p': 1, 'r': 1, 'q': 0, 'd': 1}
             rejected = acquire(state, mismatch, public(B), CONFIG, **options)
             self.assertEqual(rejected['status'], 'certification_failed')
@@ -232,6 +246,7 @@ class ContractDockerTests(unittest.TestCase):
             result = {'seed': seed, 'first': first, 'second': second, 'reused': reused,
                       'invocations': invocations, 'rejected': rejected, 'rollback_removed_skill': True,
                       'restoration_reproduced_output': True, 'runner_image': runner,
+                      'operator_stop_prevented_invocation': True,
                       'selector_image': options['selector_image'], 'configuration_origin': 'caller_supplied',
                       'production_integration': False, 'independent_evaluation': False}
             (root/'result.json').write_text(json.dumps(result, indent=2)+'\n')

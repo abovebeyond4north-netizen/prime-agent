@@ -204,6 +204,8 @@ def acquire(root, descriptor, public_label, configuration, *, seed=0, max_contai
 def invoke(root, key, n, image='recursive-ai-runner:local'):
     if type(n) is not int or not 0 <= n or n.bit_length() > 256:
         raise ValueError('invocation input outside nonnegative 256-bit integers')
+    if (Path(root)/'STOP').exists():
+        raise RuntimeError('operator stop requested')
     with state_session(root) as (memory, versions):
         checkpoint = memory.current()
         skills = read_skills(versions, checkpoint)
@@ -212,6 +214,7 @@ def invoke(root, key, n, image='recursive-ai-runner:local'):
         skill = skills[key]
         runner = SandboxRunner(image)
         runner.max_container_runs = 2
+        runner.stop_file = Path(root)/'STOP'
         runner.boot()
         result = TaskVerifier(runner).check(skill['source'], task_contract(skill['descriptor']), [(n,)])
         return {'checkpoint': checkpoint, 'task': key, 'output': result['outputs'][0],
