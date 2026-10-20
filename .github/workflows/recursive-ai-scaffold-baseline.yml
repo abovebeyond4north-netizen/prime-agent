@@ -1,0 +1,39 @@
+name: Recursive AI supplied scaffold baseline
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: [".github/workflows/recursive-ai-scaffold-baseline.yml", "recursive-ai/research/scaffold_baseline.py", "recursive-ai/tests/test_scaffold_baseline.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [130002, 130003, 130004]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check comparison and abstention boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_scaffold_baseline -v
+      - name: Compare learned configuration with supplied adapter
+        working-directory: recursive-ai
+        env:
+          STUDY_SEED: ${{ matrix.seed }}
+        run: |
+          mkdir scaffold-baseline-evidence
+          python3 -m research.scaffold_baseline --seed "$STUDY_SEED" --output scaffold-baseline-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: scaffold-baseline-${{ matrix.seed }}
+          path: recursive-ai/scaffold-baseline-evidence/**
+          if-no-files-found: error
+          retention-days: 30

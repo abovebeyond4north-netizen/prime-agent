@@ -1,0 +1,39 @@
+name: Recursive AI opt-in skill contract
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: ["recursive-ai/research/skill_contract.py", "recursive-ai/tests/test_skill_contract.py", ".github/workflows/recursive-ai-skill-contract.yml"]
+permissions:
+  contents: read
+jobs:
+  lifecycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [920022, 920023, 920024]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated candidate and selector images
+        working-directory: recursive-ai
+        run: |
+          docker build -t recursive-ai-runner:local sandbox/
+          docker build -t recursive-ai-selector:local -f sandbox/selector.Dockerfile .
+          echo "CONTRACT_RUNNER_IMAGE=$(docker image inspect --format '{{.Id}}' recursive-ai-runner:local)" >> "$GITHUB_ENV"
+          echo "RECURSIVE_SELECTOR_IMAGE=$(docker image inspect --format '{{.Id}}' recursive-ai-selector:local)" >> "$GITHUB_ENV"
+      - name: Verify isolated contract lifecycle and failure boundaries
+        working-directory: recursive-ai
+        env:
+          CONTRACT_SEED: ${{ matrix.seed }}
+          CONTRACT_EVIDENCE_DIR: contract-evidence
+        run: python3 -m unittest tests.test_selector_container tests.test_skill_contract -v
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: skill-contract-${{ matrix.seed }}
+          path: recursive-ai/contract-evidence/**
+          if-no-files-found: error
+          retention-days: 30
