@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from autonomy.verifier import TaskVerifier
+from autonomy.controller import acquire_skill_contract
 from autonomy.tasks import SUITE_VERSION, suite_digest
 from core.rollback import VersionController
 from memory.skill_store import MemoryEngine
@@ -200,8 +201,8 @@ class ContractDockerTests(unittest.TestCase):
             runner = os.environ.get('CONTRACT_RUNNER_IMAGE', 'recursive-ai-runner:local')
             options = {'seed': seed, 'image': runner,
                        'selector_image': os.environ.get('RECURSIVE_SELECTOR_IMAGE', 'recursive-ai-selector:local')}
-            first = acquire(state, A, public(A), CONFIG, **options)
-            second = acquire(state, B, public(B), CONFIG, **options)
+            first = acquire_skill_contract(state, A, public(A), CONFIG, **options)
+            second = acquire_skill_contract(state, B, public(B), CONFIG, **options)
             self.assertEqual(first['status'], 'certified', first)
             self.assertEqual(second['status'], 'certified', second)
             self.assertTrue(second['retention'][task_contract(A).key]['passed'])
@@ -210,45 +211,53 @@ class ContractDockerTests(unittest.TestCase):
             self.assertLessEqual(first['candidate_containers'], 20)
             self.assertLessEqual(second['candidate_containers'], 20)
             def cli(command, *arguments, check=True):
-                return subprocess.run([sys.executable, '-m', 'research.skill_contract', command,
-                    '--state', str(state), *arguments], text=True, capture_output=True, timeout=60, check=check)
+                return subprocess.run([sys.executable, 'main.py', command,
+                    '--contract-state', str(state), *arguments], text=True,
+                    capture_output=True, timeout=60, check=check)
             n, invocations = 2**255-1, []
             def call(descriptor):
-                result = json.loads(cli('invoke', '--key', task_contract(descriptor).key,
-                                        '--input', str(n), '--image', runner).stdout)
+                result = json.loads(cli('contract-invoke', '--contract-key', task_contract(descriptor).key,
+                                        '--contract-input', str(n), '--image', runner).stdout)
                 self.assertEqual(result['output'], public(descriptor)(n))
                 invocations.append(result)
                 return result
             before = call(B)
             call(A)
-            reused = acquire(state, B, lambda n: self.fail('labels requested after restart'), CONFIG, **options)
+            reused = acquire_skill_contract(
+                state, B, lambda n: self.fail('labels requested after restart'), CONFIG, **options
+            )
             self.assertEqual((reused['label_queries'], reused['containers']), (0, 0))
-            cli('activate', '--checkpoint', first['checkpoint'])
-            missing = cli('invoke', '--key', task_contract(B).key, '--input', str(n), '--image', runner, check=False)
+            cli('contract-activate', '--checkpoint', first['checkpoint'])
+            missing = cli('contract-invoke', '--contract-key', task_contract(B).key,
+                          '--contract-input', str(n), '--image', runner, check=False)
             self.assertNotEqual(missing.returncode, 0)
             self.assertIn('no current contract certification', missing.stderr)
             call(A)
-            cli('activate', '--checkpoint', second['checkpoint'])
+            cli('contract-activate', '--checkpoint', second['checkpoint'])
             restored = call(B)
             self.assertEqual((restored['checkpoint'], restored['output']), (before['checkpoint'], before['output']))
             stop = state/'STOP'
             stop.touch()
-            stopped = cli('invoke', '--key', task_contract(B).key, '--input', str(n), '--image', runner, check=False)
+            stopped = cli('contract-invoke', '--contract-key', task_contract(B).key,
+                          '--contract-input', str(n), '--image', runner, check=False)
             self.assertNotEqual(stopped.returncode, 0)
             self.assertIn('operator stop', stopped.stderr)
             stop.unlink()
             mismatch = {'degree': 3, 'p': 1, 'r': 1, 'q': 0, 'd': 1}
-            rejected = acquire(state, mismatch, public(B), CONFIG, **options)
+            rejected = acquire_skill_contract(state, mismatch, public(B), CONFIG, **options)
             self.assertEqual(rejected['status'], 'certification_failed')
             self.assertEqual(rejected['checkpoint'], second['checkpoint'])
             with self.assertRaisesRegex(ValueError, 'already attempted'):
-                acquire(state, mismatch, lambda n: self.fail('retried protected failure'), CONFIG, **options)
+                acquire_skill_contract(
+                    state, mismatch, lambda n: self.fail('retried protected failure'), CONFIG, **options
+                )
             result = {'seed': seed, 'first': first, 'second': second, 'reused': reused,
                       'invocations': invocations, 'rejected': rejected, 'rollback_removed_skill': True,
                       'restoration_reproduced_output': True, 'runner_image': runner,
                       'operator_stop_prevented_invocation': True,
                       'selector_image': options['selector_image'], 'configuration_origin': 'caller_supplied',
-                      'production_integration': False, 'independent_evaluation': False}
+                      'controller_integration': 'opt_in', 'production_defaults_changed': False,
+                      'independent_evaluation': False}
             (root/'result.json').write_text(json.dumps(result, indent=2)+'\n')
             print('SKILL_CONTRACT_RESULT '+json.dumps(result, sort_keys=True), flush=True)
 

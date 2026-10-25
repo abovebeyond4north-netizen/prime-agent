@@ -2,7 +2,7 @@ name: Recursive AI opt-in skill contract
 on:
   push:
     branches: [recursive-ai/procedure-memory-ablation]
-    paths: ["recursive-ai/research/skill_contract.py", "recursive-ai/tests/test_skill_contract.py", ".github/workflows/recursive-ai-skill-contract.yml"]
+    paths: ["recursive-ai/main.py", "recursive-ai/autonomy/controller.py", "recursive-ai/research/skill_contract.py", "recursive-ai/tests/test_skill_contract.py", ".github/workflows/recursive-ai-skill-contract.yml"]
 permissions:
   contents: read
 jobs:
