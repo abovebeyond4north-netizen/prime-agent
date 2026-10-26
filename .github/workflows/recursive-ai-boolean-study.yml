@@ -1,0 +1,41 @@
+name: Recursive AI Boolean word transfer
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: ["recursive-ai/research/boolean_induction.py", "recursive-ai/research/boolean_study.py", "recursive-ai/tests/test_boolean_induction.py", ".github/workflows/recursive-ai-boolean-study.yml"]
+permissions:
+  contents: read
+jobs:
+  transfer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build pinned isolated runner
+        working-directory: recursive-ai
+        run: |
+          docker build -t recursive-ai-runner:local sandbox/
+          echo "CONTRACT_RUNNER_IMAGE=$(docker image inspect --format '{{.Id}}' recursive-ai-runner:local)" >> "$GITHUB_ENV"
+      - name: Check public learner boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_boolean_induction -v
+      - name: Run frozen transfer and ablation
+        working-directory: recursive-ai
+        env:
+          STUDY_SHARD: ${{ matrix.shard }}
+        run: |
+          mkdir boolean-evidence
+          python3 -m research.boolean_study --shard "$STUDY_SHARD" --output boolean-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: boolean-transfer-${{ matrix.shard }}
+          path: recursive-ai/boolean-evidence/**
+          if-no-files-found: error
+          retention-days: 30
