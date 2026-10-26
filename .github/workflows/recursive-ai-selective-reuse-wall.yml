@@ -1,0 +1,35 @@
+name: Recursive AI matched-wall selective reuse
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths:
+      - "recursive-ai/research/selective_reuse.py"
+      - "recursive-ai/research/selective_reuse_study.py"
+      - "recursive-ai/research/selective_reuse_wall_study.py"
+      - "recursive-ai/tests/test_selective_reuse_wall_study.py"
+      - ".github/workflows/recursive-ai-selective-reuse-wall.yml"
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Test fresh-task and wall-budget boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_selective_reuse_wall_study tests.test_selective_reuse -v
+      - name: Execute frozen matched-wall comparison
+        working-directory: recursive-ai
+        run: |
+          mkdir selective-wall-evidence
+          python3 -m research.selective_reuse_wall_study --state selective-wall-evidence/state --output selective-wall-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: selective-reuse-matched-wall
+          path: recursive-ai/selective-wall-evidence/**
+          if-no-files-found: error
+          retention-days: 30
