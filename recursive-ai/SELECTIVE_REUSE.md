@@ -52,3 +52,53 @@ a new evaluation set. Three timing repetitions are not independent replications.
 
 The affine model, inversion rules and planner are developer supplied. Any observed
 gain is bounded compositional reuse, not autonomous invention or broad intelligence.
+
+## Verified results, 2026-10-26
+
+Frozen code `889015e2e9be39abb88e405a3315ddf53fed1041` passed the
+[four-arm workflow](https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40283316654)
+(35 lifecycle/routing/search tests plus the comparison) and the
+[full Docker laboratory regression](https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40283323666)
+(108 core tests plus promotion, autonomous goals, transfer, evolution and restart
+smoke checks). Local full-suite verification before publication had 235 passes
+and 13 Docker-dependent skips; repository checks passed with npm 11.10.1.
+
+| Arm | Solved / 93 | Median end-to-end batch time |
+| --- | ---: | ---: |
+| Eager forward baseline | 0 | 421.67 ms |
+| Primitive backward ablation | 0 | 430.64 ms |
+| Unconditional macro priority | 0 | 395.00 ms |
+| Selective saved-macro planning | 35 | 307.11 ms |
+
+All three repetitions have identical coverage. Selective reuse solves 30/30
+composition-favoring tasks, 5/60 random-program tasks and 0/3 unsupported controls.
+All returned programs pass symbolic certification and five large signed-integer
+audits each (525 repeated audit executions across the three repetitions). Median
+batch time is 27.17% lower than forward search including training, compression,
+storage, loading and routing. These are short, same-runner timing measurements,
+not a portable speed guarantee or equal-wall-deadline comparison.
+
+Selective search consumes 582,228 primitive evaluations, 1,066 planner states and
+2,100 symbolic edges per repetition; library training adds 2,637 primitive
+evaluations. The forward baseline consumes 929,907 primitive evaluations. These
+different work types must not be treated as interchangeable unit costs.
+
+The fresh set had zero baseline successes, so its no-lost-success condition alone
+is vacuous. A separately labeled, post-hoc regression check used 244 previously
+seen tasks without changing the policy: both arms solve 204, with no losses.
+The task list, outcome, and exact runnable reproduction script are retained in
+`selective_reuse_results.json`. This is retention evidence, not a fresh holdout.
+
+The receipt also preserves the CI summary and artifact metadata. Full task-level
+programs, timing rows and saved state are in the 70,500-byte artifact, expiring
+2026-11-25. Its reported SHA-256 is
+`08328c8a1a81293552bf0aab3385b7e9f54b0bf3e640e1d6aa9623249c8bb77b`;
+the archive itself was not independently downloaded and hashed. The published
+policy was not tuned after evaluation. PR #81 remains draft, production defaults
+are unchanged, and the control branch remains at
+`3466d1a7dc88262cb0f4f1c250d795ec43f33e55`.
+
+Next gate: a new mixed-difficulty distribution with positive baseline successes,
+matched end-to-end wall budgets, primitive-planning and no-memory ablations, and
+an evaluator operated independently of development. Require no lost correctness,
+count setup costs, and preserve per-cohort failures before proposing promotion.
