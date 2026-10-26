@@ -37,6 +37,30 @@ class CompositionSearchTests(unittest.TestCase):
     def test_large_intermediate_values_remain_valid(self):
         self.assertEqual(run(('double',), 10**13), 2*10**13)
 
+    def test_recognize_success_before_budget_exhausts(self):
+        examples = [(0, 1), (2, 3)]
+        self.assertEqual(search(examples, budget=2)['status'], 'exhausted')
+        result = search(examples, budget=2, eager=True)
+        self.assertEqual(result['program'], ('increment',))
+        self.assertEqual(result['cost'], 2)
+
+    def test_eager_preserves_development_successes_at_no_extra_cost(self):
+        for a in (-2, 2, 4):
+            for b in range(-3, 4):
+                for budget in (0, 3, 30, 300, 3000):
+                    examples = [(x, a*x+b) for x in (-2, 0, 3)]
+                    old = search(examples, budget)
+                    new = search(examples, budget, eager=True)
+                    self.assertLessEqual(new['cost'], old['cost'])
+                    if old['program'] is not None:
+                        self.assertIsNotNone(new['program'])
+                    if new['program'] is not None:
+                        self.assertTrue(all(run(new['program'], x) == a*x+b for x in range(-10, 11)))
+
+    def test_eager_requires_boolean(self):
+        with self.assertRaises(ValueError):
+            search([(0, 1)], eager=1)
+
 
 if __name__ == '__main__':
     unittest.main()

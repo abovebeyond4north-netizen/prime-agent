@@ -50,14 +50,18 @@ def compress(programs):
     return best if gains[best] > 0 else None
 
 
-def search(examples, budget=1000, macro=None):
+def search(examples, budget=1000, macro=None, *, eager=False):
     """BFS with public semantic deduplication and primitive-operation budget.
 
     Macro execution pays for every expanded primitive on every public input.
     Public equivalence does not certify unseen inputs.
+    Eager recognition returns a matching successor immediately, rather than
+    spending budget expanding unrelated queued states before recognizing it.
     """
     if type(budget) is not int or not 0 <= budget <= 100000:
         raise ValueError('invalid budget')
+    if type(eager) is not bool:
+        raise ValueError('eager must be boolean')
     if not examples or len(examples) > 32:
         raise ValueError('invalid examples')
     for row in examples:
@@ -86,6 +90,8 @@ def search(examples, budget=1000, macro=None):
                 return {'program': None, 'cost': spent, 'status': 'exhausted'}
             spent += cost
             output = tuple(run(operation, value) for value in values)
+            if eager and output == target:
+                return {'program': program+operation, 'cost': spent, 'status': 'candidate'}
             if output not in seen:
                 seen.add(output)
                 queue.append((program+operation, output))
