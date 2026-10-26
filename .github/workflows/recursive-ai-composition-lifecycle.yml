@@ -1,0 +1,39 @@
+name: Recursive AI composition lifecycle
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths:
+      - "recursive-ai/research/composition_contract.py"
+      - "recursive-ai/research/composition_lifecycle.py"
+      - "recursive-ai/research/composition_search.py"
+      - "recursive-ai/research/composition_validation.py"
+      - "recursive-ai/core/rollback.py"
+      - "recursive-ai/core/ledger.py"
+      - "recursive-ai/memory/skill_store.py"
+      - "recursive-ai/tests/test_composition_contract.py"
+      - ".github/workflows/recursive-ai-composition-lifecycle.yml"
+permissions:
+  contents: read
+jobs:
+  lifecycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Test real persistence and failure recovery
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_composition_contract tests.test_composition_search -v
+      - name: Reproduce fresh-process lifecycle
+        working-directory: recursive-ai
+        run: |
+          mkdir composition-evidence
+          python3 -m research.composition_lifecycle --state composition-evidence/state --output composition-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: composition-lifecycle
+          path: recursive-ai/composition-evidence/**
+          if-no-files-found: error
+          retention-days: 30
