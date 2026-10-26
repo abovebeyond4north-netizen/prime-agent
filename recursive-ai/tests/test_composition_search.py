@@ -61,6 +61,22 @@ class CompositionSearchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             search([(0, 1)], eager=1)
 
+    def test_inverse_pruning_preserves_development_solutions(self):
+        for a in (-4, 2, 8):
+            for b in range(-4, 5):
+                examples = [(x, a*x+b) for x in (-3, 0, 2)]
+                old = search(examples, 3000, eager=True)
+                new = search(examples, 3000, eager=True, prune_inverse=True)
+                if old['program'] is not None:
+                    self.assertEqual(old['program'], new['program'])
+                    self.assertLessEqual(new['cost'], old['cost'])
+                if new['program'] is not None:
+                    self.assertTrue(all(run(new['program'], x) == a*x+b for x in range(-20, 21)))
+
+    def test_pruning_requires_boolean(self):
+        with self.assertRaises(ValueError):
+            search([(0, 1)], prune_inverse=1)
+
 
 if __name__ == '__main__':
     unittest.main()

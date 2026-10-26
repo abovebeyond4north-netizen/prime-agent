@@ -50,7 +50,7 @@ def compress(programs):
     return best if gains[best] > 0 else None
 
 
-def search(examples, budget=1000, macro=None, *, eager=False):
+def search(examples, budget=1000, macro=None, *, eager=False, prune_inverse=False):
     """BFS with public semantic deduplication and primitive-operation budget.
 
     Macro execution pays for every expanded primitive on every public input.
@@ -62,6 +62,8 @@ def search(examples, budget=1000, macro=None, *, eager=False):
         raise ValueError('invalid budget')
     if type(eager) is not bool:
         raise ValueError('eager must be boolean')
+    if type(prune_inverse) is not bool:
+        raise ValueError('prune_inverse must be boolean')
     if not examples or len(examples) > 32:
         raise ValueError('invalid examples')
     for row in examples:
@@ -83,6 +85,9 @@ def search(examples, budget=1000, macro=None, *, eager=False):
         if values == target:
             return {'program': program, 'cost': spent, 'status': 'candidate'}
         for operation in operations:
+            # Negating twice returns the already visited predecessor state.
+            if prune_inverse and operation == ('negate',) and program[-1:] == ('negate',):
+                continue
             if len(program)+len(operation) > 32:
                 continue
             cost = len(operation)*len(values)
