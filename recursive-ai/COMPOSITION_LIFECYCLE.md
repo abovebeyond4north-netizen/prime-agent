@@ -68,3 +68,26 @@ as a 30-day artifact. CI outcomes must be linked separately once observed.
 Next capability gate remains adaptive optional reuse with equal-total-cost
 comparisons on a fresh evaluation set, including lost baseline tasks and overhead.
 Saved invocation verifies retention, not improved search coverage.
+
+## Verified execution
+
+Code checkpoint `9256daa9785ff773d37289bc42f1c4148a92bfb7` passed:
+
+- [Composition lifecycle CI](https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40276246685):
+  all 26 lifecycle/search tests and twelve exact fresh-process invocation outputs.
+  Cached acquisition used zero new search evaluations; rollback removed the later
+  macro, restoration recovered it, and STOP blocked invocation. The tests also
+  verified recovery after a real child-process exit during uncommitted activation.
+- [Full Docker laboratory regression](https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40276251912):
+  controller/sandbox tests, promotion, autonomous goals, cross-family transfer,
+  both evolution smoke tests, and compound-skill reuse after restart passed.
+
+`composition_lifecycle_results.json` preserves the raw lifecycle receipt without
+floating-point conversion, workflow links, test outcome and artifact metadata.
+All twelve exact-integer outputs were rechecked locally with integer arithmetic.
+The 21,958-byte Git/SQLite artifact expires 2026-11-25; its reported SHA-256 is
+`1c0fc900c3a528f84d28b24cf4973d3b9f3a1e0001e3621b46dfd268e4afb3bf`.
+Artifact metadata was inspected; the archive itself was not independently hashed.
+Evidence/documentation commits do not change the verified implementation. PR #81
+remains draft, production defaults are unchanged, and `recursive-ai-lab` remains
+frozen at `3466d1a7dc88262cb0f4f1c250d795ec43f33e55`.
