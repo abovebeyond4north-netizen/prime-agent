@@ -1,9 +1,9 @@
 """Fail-closed identity and resource preflight for external verification.
 
 This module never runs an external verifier.  It binds a proposed run and any
-cached receipt to the benchmark revision, dataset, predictions/patches and
-evaluator inputs so a harness cache with a weaker key cannot silently stand in
-for fresh evaluation.
+cached receipt to the benchmark revision, runtime image, dataset,
+predictions/patches and evaluator inputs so a harness cache with a weaker key
+cannot silently stand in for fresh evaluation.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Iterable
 
 
-PROTOCOL = "external-verifier-preflight-1"
+PROTOCOL = "external-verifier-preflight-2"
 
 
 def digest_files(paths: Iterable[Path]) -> str:
@@ -41,6 +41,7 @@ def digest_files(paths: Iterable[Path]) -> str:
 def evaluation_identity(
     *,
     benchmark_revision: str,
+    runtime_image_digest: str,
     datasets: Iterable[Path],
     predictions: Path,
     evaluators: Iterable[Path],
@@ -48,9 +49,15 @@ def evaluation_identity(
     revision = benchmark_revision.strip()
     if len(revision) != 40 or any(character not in "0123456789abcdef" for character in revision):
         raise ValueError("benchmark revision must be a full lowercase 40-character SHA")
+    image_digest = runtime_image_digest.strip()
+    if not image_digest.startswith("sha256:") or len(image_digest) != 71:
+        raise ValueError("runtime image digest must be sha256 followed by 64 lowercase hex characters")
+    if any(character not in "0123456789abcdef" for character in image_digest[7:]):
+        raise ValueError("runtime image digest must be sha256 followed by 64 lowercase hex characters")
     identity = {
         "protocol": PROTOCOL,
         "benchmark_revision": revision,
+        "runtime_image_digest": image_digest,
         "dataset_sha256": digest_files(datasets),
         "predictions_sha256": digest_files((predictions,)),
         "evaluator_sha256": digest_files(evaluators),
@@ -73,6 +80,7 @@ def cache_decision(
     for key in (
         "protocol",
         "benchmark_revision",
+        "runtime_image_digest",
         "dataset_sha256",
         "predictions_sha256",
         "evaluator_sha256",
@@ -116,6 +124,7 @@ def resource_preflight(path: Path, *, minimum_free_gib: int = 60) -> dict[str, o
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--benchmark-revision", required=True)
+    parser.add_argument("--runtime-image-digest", required=True)
     parser.add_argument("--dataset", action="append", required=True, type=Path)
     parser.add_argument("--predictions", required=True, type=Path)
     parser.add_argument("--evaluator", action="append", required=True, type=Path)
@@ -131,6 +140,7 @@ def main() -> int:
     args = _parse_args()
     identity = evaluation_identity(
         benchmark_revision=args.benchmark_revision,
+        runtime_image_digest=args.runtime_image_digest,
         datasets=args.dataset,
         predictions=args.predictions,
         evaluators=args.evaluator,
@@ -150,6 +160,7 @@ def main() -> int:
         "limits": [
             "This preflight does not install or execute an external verifier.",
             "Resource readiness does not establish evaluator correctness or independence.",
+            "The runtime digest binds cache identity but does not prove that image was executed.",
             "A reusable receipt proves identity continuity, not that its result is correct.",
         ],
     }

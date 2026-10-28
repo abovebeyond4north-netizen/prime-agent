@@ -14,6 +14,8 @@ from research.external_verifier_preflight import (
 
 
 class ExternalVerifierPreflightTests(unittest.TestCase):
+    runtime_image_digest = "sha256:" + "a" * 64
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
@@ -32,6 +34,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
     def identity(self):
         return evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(self.evaluator,),
@@ -54,10 +57,36 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             with self.subTest(revision=revision), self.assertRaises(ValueError):
                 evaluation_identity(
                     benchmark_revision=revision,
+                    runtime_image_digest=self.runtime_image_digest,
                     datasets=(self.dataset,),
                     predictions=self.predictions,
                     evaluators=(self.evaluator,),
                 )
+
+    def test_identity_rejects_missing_or_ambiguous_runtime_digest(self):
+        for image_digest in ("", "latest", "sha256:abc", "sha256:" + "G" * 64):
+            with self.subTest(image_digest=image_digest), self.assertRaises(ValueError):
+                evaluation_identity(
+                    benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+                    runtime_image_digest=image_digest,
+                    datasets=(self.dataset,),
+                    predictions=self.predictions,
+                    evaluators=(self.evaluator,),
+                )
+
+    def test_changed_runtime_digest_forces_distinct_run_and_cache_miss(self):
+        first = self.identity()
+        second = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest="sha256:" + "b" * 64,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(self.evaluator,),
+        )
+        self.assertNotEqual(first["run_id"], second["run_id"])
+        decision = cache_decision(self.receipt(first), second, result=self.result)
+        self.assertFalse(decision["reusable"])
+        self.assertIn("runtime_image_digest mismatch", decision["reasons"])
 
     def test_changed_patch_forces_distinct_run(self):
         first = self.identity()
