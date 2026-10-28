@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import shutil
 import sys
@@ -18,23 +19,37 @@ from pathlib import Path
 from typing import Iterable
 
 
-PROTOCOL = "external-verifier-preflight-2"
+PROTOCOL = "external-verifier-preflight-3"
 
 
-def digest_files(paths: Iterable[Path]) -> str:
+def digest_files(paths: Iterable[Path], *, role: str) -> str:
     digest = hashlib.sha256()
-    resolved = [Path(path) for path in paths]
+    if not role or role.strip() != role:
+        raise ValueError("file role must be a nonempty canonical string")
+    resolved = [Path(path).resolve() for path in paths]
     if not resolved:
         raise ValueError("at least one file is required")
+    root = Path(os.path.commonpath([path.parent for path in resolved]))
     entries = []
+    names = set()
     for path in resolved:
         if not path.is_file():
             raise ValueError(f"not a regular file: {path}")
         content = path.read_bytes()
-        entries.append((hashlib.sha256(content).digest(), len(content)))
-    for content_digest, content_length in sorted(entries):
-        digest.update(content_digest)
-        digest.update(content_length.to_bytes(8, "big"))
+        name = path.relative_to(root).as_posix()
+        if name in names:
+            raise ValueError(f"duplicate canonical file name: {name}")
+        names.add(name)
+        entries.append(
+            {
+                "role": role,
+                "path": name,
+                "sha256": hashlib.sha256(content).hexdigest(),
+                "size": len(content),
+            }
+        )
+    for entry in sorted(entries, key=lambda item: item["path"]):
+        digest.update(json.dumps(entry, sort_keys=True, separators=(",", ":")).encode())
     return digest.hexdigest()
 
 
@@ -58,9 +73,9 @@ def evaluation_identity(
         "protocol": PROTOCOL,
         "benchmark_revision": revision,
         "runtime_image_digest": image_digest,
-        "dataset_sha256": digest_files(datasets),
-        "predictions_sha256": digest_files((predictions,)),
-        "evaluator_sha256": digest_files(evaluators),
+        "dataset_sha256": digest_files(datasets, role="dataset"),
+        "predictions_sha256": digest_files((predictions,), role="predictions"),
+        "evaluator_sha256": digest_files(evaluators, role="evaluator"),
     }
     payload = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
     identity["evaluation_sha256"] = hashlib.sha256(payload).hexdigest()
@@ -94,7 +109,7 @@ def cache_decision(
         reasons.append("result file absent")
     elif not isinstance(expected_result, str) or not expected_result:
         reasons.append("result digest absent")
-    elif digest_files((result,)) != expected_result:
+    elif digest_files((result,), role="result") != expected_result:
         reasons.append("result digest mismatch")
     return {"reusable": not reasons, "reasons": reasons}
 

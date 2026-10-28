@@ -42,7 +42,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
 
     def receipt(self, identity):
         receipt = dict(identity)
-        receipt["result_sha256"] = digest_files((self.result,))
+        receipt["result_sha256"] = digest_files((self.result,), role="result")
         return receipt
 
     def test_identity_is_deterministic_and_namespaced(self):
@@ -104,6 +104,33 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         changed_evaluator = self.identity()
         self.assertNotEqual(first["run_id"], changed_dataset["run_id"])
         self.assertNotEqual(first["run_id"], changed_evaluator["run_id"])
+
+    def test_swapped_evaluator_contents_force_distinct_run_and_cache_miss(self):
+        helper = self.root / "helper.py"
+        helper.write_text("def helper(): return False\n")
+        first = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(self.evaluator, helper),
+        )
+        evaluator_content = self.evaluator.read_text()
+        helper_content = helper.read_text()
+        self.evaluator.write_text(helper_content)
+        helper.write_text(evaluator_content)
+        swapped = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(self.evaluator, helper),
+        )
+        self.assertNotEqual(first["evaluator_sha256"], swapped["evaluator_sha256"])
+        self.assertNotEqual(first["run_id"], swapped["run_id"])
+        decision = cache_decision(self.receipt(first), swapped, result=self.result)
+        self.assertFalse(decision["reusable"])
+        self.assertIn("evaluator_sha256 mismatch", decision["reasons"])
 
     def test_exact_receipt_and_result_are_reusable(self):
         identity = self.identity()
