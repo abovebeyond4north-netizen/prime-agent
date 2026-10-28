@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import platform
 import shutil
 import sys
@@ -19,24 +18,29 @@ from pathlib import Path
 from typing import Iterable
 
 
-PROTOCOL = "external-verifier-preflight-3"
+PROTOCOL = "external-verifier-preflight-4"
 
 
-def digest_files(paths: Iterable[Path], *, role: str) -> str:
+def digest_files(paths: Iterable[Path], *, role: str, workspace_root: Path) -> str:
     digest = hashlib.sha256()
     if not role or role.strip() != role:
         raise ValueError("file role must be a nonempty canonical string")
+    root = workspace_root.resolve()
+    if not root.is_dir():
+        raise ValueError(f"workspace root is not a directory: {root}")
     resolved = [Path(path).resolve() for path in paths]
     if not resolved:
         raise ValueError("at least one file is required")
-    root = Path(os.path.commonpath([path.parent for path in resolved]))
     entries = []
     names = set()
     for path in resolved:
         if not path.is_file():
             raise ValueError(f"not a regular file: {path}")
         content = path.read_bytes()
-        name = path.relative_to(root).as_posix()
+        try:
+            name = path.relative_to(root).as_posix()
+        except ValueError as error:
+            raise ValueError(f"file is outside workspace root: {path}") from error
         if name in names:
             raise ValueError(f"duplicate canonical file name: {name}")
         names.add(name)
@@ -57,6 +61,7 @@ def evaluation_identity(
     *,
     benchmark_revision: str,
     runtime_image_digest: str,
+    workspace_root: Path,
     datasets: Iterable[Path],
     predictions: Path,
     evaluators: Iterable[Path],
@@ -73,9 +78,15 @@ def evaluation_identity(
         "protocol": PROTOCOL,
         "benchmark_revision": revision,
         "runtime_image_digest": image_digest,
-        "dataset_sha256": digest_files(datasets, role="dataset"),
-        "predictions_sha256": digest_files((predictions,), role="predictions"),
-        "evaluator_sha256": digest_files(evaluators, role="evaluator"),
+        "dataset_sha256": digest_files(
+            datasets, role="dataset", workspace_root=workspace_root
+        ),
+        "predictions_sha256": digest_files(
+            (predictions,), role="predictions", workspace_root=workspace_root
+        ),
+        "evaluator_sha256": digest_files(
+            evaluators, role="evaluator", workspace_root=workspace_root
+        ),
     }
     payload = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
     identity["evaluation_sha256"] = hashlib.sha256(payload).hexdigest()
@@ -88,6 +99,7 @@ def cache_decision(
     identity: dict[str, str],
     *,
     result: Path | None = None,
+    workspace_root: Path,
 ) -> dict[str, object]:
     if receipt is None:
         return {"reusable": False, "reasons": ["cache receipt absent"]}
@@ -109,7 +121,9 @@ def cache_decision(
         reasons.append("result file absent")
     elif not isinstance(expected_result, str) or not expected_result:
         reasons.append("result digest absent")
-    elif digest_files((result,), role="result") != expected_result:
+    elif digest_files(
+        (result,), role="result", workspace_root=workspace_root
+    ) != expected_result:
         reasons.append("result digest mismatch")
     return {"reusable": not reasons, "reasons": reasons}
 
@@ -140,6 +154,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--benchmark-revision", required=True)
     parser.add_argument("--runtime-image-digest", required=True)
+    parser.add_argument("--workspace-root", required=True, type=Path)
     parser.add_argument("--dataset", action="append", required=True, type=Path)
     parser.add_argument("--predictions", required=True, type=Path)
     parser.add_argument("--evaluator", action="append", required=True, type=Path)
@@ -156,6 +171,7 @@ def main() -> int:
     identity = evaluation_identity(
         benchmark_revision=args.benchmark_revision,
         runtime_image_digest=args.runtime_image_digest,
+        workspace_root=args.workspace_root,
         datasets=args.dataset,
         predictions=args.predictions,
         evaluators=args.evaluator,
@@ -167,7 +183,12 @@ def main() -> int:
             raise ValueError("cache receipt must be a JSON object")
     report = {
         "identity": identity,
-        "cache": cache_decision(receipt, identity, result=args.result),
+        "cache": cache_decision(
+            receipt,
+            identity,
+            result=args.result,
+            workspace_root=args.workspace_root,
+        ),
         "resources": resource_preflight(
             args.resource_path, minimum_free_gib=args.minimum_free_gib
         ),

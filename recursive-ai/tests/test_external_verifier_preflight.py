@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -35,6 +37,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         return evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
             runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(self.evaluator,),
@@ -42,7 +45,9 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
 
     def receipt(self, identity):
         receipt = dict(identity)
-        receipt["result_sha256"] = digest_files((self.result,), role="result")
+        receipt["result_sha256"] = digest_files(
+            (self.result,), role="result", workspace_root=self.root
+        )
         return receipt
 
     def test_identity_is_deterministic_and_namespaced(self):
@@ -58,6 +63,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
                 evaluation_identity(
                     benchmark_revision=revision,
                     runtime_image_digest=self.runtime_image_digest,
+                    workspace_root=self.root,
                     datasets=(self.dataset,),
                     predictions=self.predictions,
                     evaluators=(self.evaluator,),
@@ -69,6 +75,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
                 evaluation_identity(
                     benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
                     runtime_image_digest=image_digest,
+                    workspace_root=self.root,
                     datasets=(self.dataset,),
                     predictions=self.predictions,
                     evaluators=(self.evaluator,),
@@ -79,12 +86,15 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         second = evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
             runtime_image_digest="sha256:" + "b" * 64,
+            workspace_root=self.root,
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(self.evaluator,),
         )
         self.assertNotEqual(first["run_id"], second["run_id"])
-        decision = cache_decision(self.receipt(first), second, result=self.result)
+        decision = cache_decision(
+            self.receipt(first), second, result=self.result, workspace_root=self.root
+        )
         self.assertFalse(decision["reusable"])
         self.assertIn("runtime_image_digest mismatch", decision["reasons"])
 
@@ -111,6 +121,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         first = evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
             runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(self.evaluator, helper),
@@ -122,37 +133,104 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         swapped = evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
             runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(self.evaluator, helper),
         )
         self.assertNotEqual(first["evaluator_sha256"], swapped["evaluator_sha256"])
         self.assertNotEqual(first["run_id"], swapped["run_id"])
-        decision = cache_decision(self.receipt(first), swapped, result=self.result)
+        decision = cache_decision(
+            self.receipt(first), swapped, result=self.result, workspace_root=self.root
+        )
+        self.assertFalse(decision["reusable"])
+        self.assertIn("evaluator_sha256 mismatch", decision["reasons"])
+
+    def test_relocated_evaluator_changes_identity_when_package_behavior_changes(self):
+        primary = self.root / "primary"
+        secondary = self.root / "secondary"
+        primary.mkdir()
+        secondary.mkdir()
+        evaluator_source = "from config import VERIFY\nprint(VERIFY)\n"
+        (primary / "evaluator.py").write_text(evaluator_source)
+        (secondary / "evaluator.py").write_text(evaluator_source)
+        (primary / "config.py").write_text("VERIFY = True\n")
+        (secondary / "config.py").write_text("VERIFY = False\n")
+        first_output = subprocess.run(
+            [sys.executable, "evaluator.py"],
+            cwd=primary,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        second_output = subprocess.run(
+            [sys.executable, "evaluator.py"],
+            cwd=secondary,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        self.assertEqual((first_output, second_output), ("True", "False"))
+        first = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(primary / "evaluator.py",),
+        )
+        relocated = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(secondary / "evaluator.py",),
+        )
+        self.assertNotEqual(first["evaluator_sha256"], relocated["evaluator_sha256"])
+        self.assertNotEqual(first["run_id"], relocated["run_id"])
+        decision = cache_decision(
+            self.receipt(first),
+            relocated,
+            result=self.result,
+            workspace_root=self.root,
+        )
         self.assertFalse(decision["reusable"])
         self.assertIn("evaluator_sha256 mismatch", decision["reasons"])
 
     def test_exact_receipt_and_result_are_reusable(self):
         identity = self.identity()
-        decision = cache_decision(self.receipt(identity), identity, result=self.result)
+        decision = cache_decision(
+            self.receipt(identity), identity, result=self.result, workspace_root=self.root
+        )
         self.assertEqual(decision, {"reusable": True, "reasons": []})
 
     def test_missing_receipt_or_result_fails_closed(self):
         identity = self.identity()
-        self.assertFalse(cache_decision(None, identity, result=self.result)["reusable"])
-        decision = cache_decision(self.receipt(identity), identity)
+        self.assertFalse(
+            cache_decision(
+                None, identity, result=self.result, workspace_root=self.root
+            )["reusable"]
+        )
+        decision = cache_decision(
+            self.receipt(identity), identity, workspace_root=self.root
+        )
         self.assertEqual(decision["reasons"], ["result file absent"])
 
     def test_mismatch_or_result_tampering_fails_closed(self):
         identity = self.identity()
         receipt = self.receipt(identity)
         receipt["benchmark_revision"] = "different"
-        mismatch = cache_decision(receipt, identity, result=self.result)
+        mismatch = cache_decision(
+            receipt, identity, result=self.result, workspace_root=self.root
+        )
         self.assertFalse(mismatch["reusable"])
         self.assertIn("benchmark_revision mismatch", mismatch["reasons"])
         receipt = self.receipt(identity)
         self.result.write_text(json.dumps({"resolved": False}))
-        tampered = cache_decision(receipt, identity, result=self.result)
+        tampered = cache_decision(
+            receipt, identity, result=self.result, workspace_root=self.root
+        )
         self.assertEqual(tampered["reasons"], ["result digest mismatch"])
 
     def test_resource_preflight_reports_each_requirement(self):

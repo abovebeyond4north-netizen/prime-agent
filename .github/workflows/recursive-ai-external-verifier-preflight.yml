@@ -6,6 +6,11 @@ on:
       - "recursive-ai/research/external_verifier_preflight.py"
       - "recursive-ai/tests/test_external_verifier_preflight.py"
       - ".github/workflows/recursive-ai-external-verifier-preflight.yml"
+  pull_request:
+    paths:
+      - "recursive-ai/research/external_verifier_preflight.py"
+      - "recursive-ai/tests/test_external_verifier_preflight.py"
+      - ".github/workflows/recursive-ai-external-verifier-preflight.yml"
 permissions:
   contents: read
 jobs:
