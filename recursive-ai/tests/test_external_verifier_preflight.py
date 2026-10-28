@@ -198,6 +198,53 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         self.assertFalse(decision["reusable"])
         self.assertIn("evaluator_sha256 mismatch", decision["reasons"])
 
+    def test_changed_imported_dependency_forces_cache_miss(self):
+        package = self.root / "package"
+        package.mkdir()
+        evaluator = package / "evaluator.py"
+        dependency = package / "config.py"
+        evaluator.write_text("from config import VERIFY\nprint(VERIFY)\n")
+        dependency.write_text("VERIFY = True\n")
+        first_output = subprocess.run(
+            [sys.executable, "evaluator.py"],
+            cwd=package,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        first = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(evaluator,),
+        )
+        dependency.write_text("VERIFY = False\n")
+        second_output = subprocess.run(
+            [sys.executable, "evaluator.py"],
+            cwd=package,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        changed = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(evaluator,),
+        )
+        self.assertEqual((first_output, second_output), ("True", "False"))
+        self.assertNotEqual(first["evaluator_sha256"], changed["evaluator_sha256"])
+        self.assertNotEqual(first["run_id"], changed["run_id"])
+        decision = cache_decision(
+            self.receipt(first), changed, result=self.result, workspace_root=self.root
+        )
+        self.assertFalse(decision["reusable"])
+        self.assertIn("evaluator_sha256 mismatch", decision["reasons"])
+
     def test_exact_receipt_and_result_are_reusable(self):
         identity = self.identity()
         decision = cache_decision(
