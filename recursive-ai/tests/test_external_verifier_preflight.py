@@ -129,6 +129,57 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             {"reusable": True, "reasons": []},
         )
 
+    def test_generated_result_beside_explicit_dependency_does_not_invalidate_identity(self):
+        package = self.root / "package"
+        package.mkdir()
+        evaluator = package / "evaluator.py"
+        dependency = package / "config.py"
+        result = package / "result.json"
+        evaluator.write_text("from config import VERIFY\nprint(VERIFY)\n")
+        dependency.write_text("VERIFY = True\n")
+        first = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(evaluator,),
+            evaluator_dependencies=(dependency,),
+        )
+        result.write_text(json.dumps({"resolved": True}))
+        second = evaluation_identity(
+            benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+            runtime_image_digest=self.runtime_image_digest,
+            workspace_root=self.root,
+            datasets=(self.dataset,),
+            predictions=self.predictions,
+            evaluators=(evaluator,),
+            evaluator_dependencies=(dependency,),
+        )
+        receipt = dict(first)
+        receipt["result_sha256"] = digest_files(
+            (result,), role="result", workspace_root=self.root
+        )
+        self.assertEqual(first, second)
+        self.assertEqual(
+            cache_decision(receipt, second, result=result, workspace_root=self.root),
+            {"reusable": True, "reasons": []},
+        )
+
+    def test_dependency_directory_is_rejected(self):
+        package = self.root / "package"
+        package.mkdir()
+        with self.assertRaisesRegex(ValueError, "explicit regular file"):
+            evaluation_identity(
+                benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
+                runtime_image_digest=self.runtime_image_digest,
+                workspace_root=self.root,
+                datasets=(self.dataset,),
+                predictions=self.predictions,
+                evaluators=(self.evaluator,),
+                evaluator_dependencies=(package,),
+            )
+
     def test_swapped_evaluator_contents_force_distinct_run_and_cache_miss(self):
         helper = self.root / "helper.py"
         helper.write_text("def helper(): return False\n")
@@ -192,7 +243,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(primary / "evaluator.py",),
-            evaluator_dependencies=(primary,),
+            evaluator_dependencies=(primary / "config.py",),
         )
         relocated = evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
@@ -201,7 +252,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(secondary / "evaluator.py",),
-            evaluator_dependencies=(secondary,),
+            evaluator_dependencies=(secondary / "config.py",),
         )
         self.assertNotEqual(first["evaluator_sha256"], relocated["evaluator_sha256"])
         self.assertNotEqual(first["run_id"], relocated["run_id"])
@@ -235,7 +286,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(evaluator,),
-            evaluator_dependencies=(package,),
+            evaluator_dependencies=(dependency,),
         )
         dependency.write_text("VERIFY = False\n")
         second_output = subprocess.run(
@@ -252,7 +303,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(evaluator,),
-            evaluator_dependencies=(package,),
+            evaluator_dependencies=(dependency,),
         )
         self.assertEqual((first_output, second_output), ("True", "False"))
         self.assertNotEqual(first["evaluator_sha256"], changed["evaluator_sha256"])

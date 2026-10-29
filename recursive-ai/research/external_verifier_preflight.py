@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Iterable
 
 
-PROTOCOL = "external-verifier-preflight-6"
+PROTOCOL = "external-verifier-preflight-7"
 
 
 def digest_files(paths: Iterable[Path], *, role: str, workspace_root: Path) -> str:
@@ -86,18 +86,11 @@ def digest_evaluator_bundles(
             raise ValueError(f"evaluator dependency is outside workspace root: {dependency}") from error
         if dependency.is_symlink():
             raise ValueError(f"evaluator dependency is a symbolic link: {dependency}")
-        if dependency.is_file():
-            files.add(dependency)
-            continue
-        if not dependency.is_dir():
-            raise ValueError(f"evaluator dependency does not exist: {dependency}")
-        for candidate in dependency.rglob("*"):
-            if "__pycache__" in candidate.parts or candidate.suffix == ".pyc":
-                continue
-            if candidate.is_symlink():
-                raise ValueError(f"evaluator dependency contains a symbolic link: {candidate}")
-            if candidate.is_file():
-                files.add(candidate.resolve())
+        if not dependency.is_file():
+            raise ValueError(
+                f"evaluator dependency must be an explicit regular file: {dependency}"
+            )
+        files.add(dependency)
     return digest_files(files, role="evaluator-bundle", workspace_root=root)
 
 
@@ -205,7 +198,13 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset", action="append", required=True, type=Path)
     parser.add_argument("--predictions", required=True, type=Path)
     parser.add_argument("--evaluator", action="append", required=True, type=Path)
-    parser.add_argument("--evaluator-dependency", action="append", default=[], type=Path)
+    parser.add_argument(
+        "--evaluator-dependency",
+        action="append",
+        default=[],
+        type=Path,
+        help="immutable evaluator dependency file; repeat for each file",
+    )
     parser.add_argument("--cache-receipt", type=Path)
     parser.add_argument("--result", type=Path)
     parser.add_argument("--resource-path", type=Path, default=Path.cwd())
@@ -246,7 +245,7 @@ def main() -> int:
             "This preflight does not install or execute an external verifier.",
             "Resource readiness does not establish evaluator correctness or independence.",
             "The runtime digest binds cache identity but does not prove that image was executed.",
-            "Evaluator hashing covers entry points and declared dependencies, not undeclared dependencies.",
+            "Evaluator hashing covers entry points and declared dependency files, not undeclared dependencies.",
             "A reusable receipt proves identity continuity, not that its result is correct.",
         ],
     }
