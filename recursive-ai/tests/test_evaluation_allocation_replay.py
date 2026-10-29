@@ -20,6 +20,18 @@ def matrix():
     }
 
 
+def core_sensitive_matrix():
+    return {
+        "complete": True,
+        "items": [{"task": f"task-{index}"} for index in range(4)],
+        "candidates": [
+            {"id": "a", "order": 0, "scores": [1, 0, 1, 1]},
+            {"id": "b", "order": 1, "scores": [0, 1, 1, 1]},
+            {"id": "c", "order": 2, "scores": [0, 1, 0, 0]},
+        ],
+    }
+
+
 class EvaluationAllocationReplayTests(unittest.TestCase):
     def test_replay_has_full_random_informative_and_confirmation_ablations(self):
         report = replay(matrix(), core_size=2, warmup_candidates=2, seed=19)
@@ -43,6 +55,22 @@ class EvaluationAllocationReplayTests(unittest.TestCase):
 
     def test_replay_is_deterministic(self):
         self.assertEqual(replay(matrix(), seed=7), replay(matrix(), seed=7))
+
+    def test_confirmation_decisions_depend_on_each_policy_core(self):
+        report = replay(
+            core_sensitive_matrix(), core_size=1, warmup_candidates=2, seed=1
+        )
+        random_policy = report["policies"]["random_confirmed"]
+        informative_policy = report["policies"]["informative_confirmed"]
+        self.assertEqual(random_policy["confirmation_rounds"][0]["observed_items"], [1])
+        self.assertEqual(
+            informative_policy["confirmation_rounds"][0]["observed_items"], [0]
+        )
+        self.assertNotEqual(
+            random_policy["confirmation_rounds"][0]["survivors"],
+            informative_policy["confirmation_rounds"][0]["survivors"],
+        )
+        self.assertNotEqual(random_policy["selected"], informative_policy["selected"])
 
     def test_rejects_protected_or_non_discriminating_evidence(self):
         protected = matrix()

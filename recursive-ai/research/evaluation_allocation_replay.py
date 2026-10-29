@@ -66,20 +66,27 @@ def _pick(candidate_ids, rows, indexes):
     return winner, means
 
 
-def _confirm(candidate_ids, rows, observed, item_order, core_size):
+def _confirm(candidate_ids, rows, observed, core, item_order):
     survivors = list(candidate_ids)
-    prefix_size = core_size
+    ordered_items = list(core) + [index for index in item_order if index not in core]
+    prefix_size = len(core)
     rounds = []
     while len(survivors) > 1:
-        prefix = item_order[:prefix_size]
+        prefix = ordered_items[:prefix_size]
         for candidate_id in survivors:
             observed[candidate_id].update(prefix)
         winner, means = _pick(survivors, rows, prefix)
         keep = max(1, math.ceil(len(survivors) / 2))
         survivors = sorted(survivors, key=lambda item: (-means[item], item))[:keep]
-        rounds.append({"items": len(prefix), "survivors": list(survivors)})
-        prefix_size = min(len(item_order), max(prefix_size + 1, prefix_size * 2))
-        if len(prefix) == len(item_order) and len(survivors) > 1:
+        rounds.append({
+            "items": len(prefix),
+            "observed_items": list(prefix),
+            "survivors": list(survivors),
+        })
+        prefix_size = min(
+            len(ordered_items), max(prefix_size + 1, prefix_size * 2)
+        )
+        if len(prefix) == len(ordered_items) and len(survivors) > 1:
             survivors = [winner]
     return survivors[0], rounds
 
@@ -125,7 +132,7 @@ def replay(matrix, core_size=2, warmup_candidates=2, seed=0):
         rounds = []
         if confirm:
             selected, rounds = _confirm(
-                candidate_ids, rows, observed, confirmation_order, core_size
+                candidate_ids, rows, observed, core, confirmation_order
             )
         lost = [
             index for index in all_indexes
