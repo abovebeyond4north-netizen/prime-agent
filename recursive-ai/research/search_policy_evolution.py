@@ -459,6 +459,9 @@ def development_evaluation_matrices(archive, generations):
             {"seed": seed, "task": task}
             for seed, task in sorted(shared or set())
         ]
+        candidate_order = {
+            record["genome"]["id"]: index for index, record in enumerate(records)
+        }
         candidates = []
         for record in sorted(records, key=lambda item: item["genome"]["id"]):
             rows = _generation_rows(record, generation)
@@ -469,6 +472,7 @@ def development_evaluation_matrices(archive, generations):
             }
             candidates.append({
                 "id": record["genome"]["id"],
+                "order": candidate_order[record["genome"]["id"]],
                 "profile_digest": record["genome"]["profile_digest"],
                 "scores": [int(outcomes[(item["seed"], item["task"])]) for item in items],
                 "runs": [{

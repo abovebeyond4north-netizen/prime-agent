@@ -277,6 +277,8 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
         generation = matrix["matrices"][0]
         self.assertTrue(generation["complete"])
         self.assertEqual(len(generation["candidates"]), 4)
+        self.assertEqual(sorted(candidate["order"] for candidate in generation["candidates"]),
+                         [0, 1, 2, 3])
         self.assertEqual(len(generation["items"]), 4)
         self.assertTrue(all(candidate["scores"] == [1, 1, 1, 1]
                             for candidate in generation["candidates"]))
