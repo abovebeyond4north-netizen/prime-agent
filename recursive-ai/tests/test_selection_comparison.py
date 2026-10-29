@@ -4,11 +4,16 @@ import unittest
 from unittest.mock import patch
 
 from autonomy.search_profile import normalize_search_profile, search_profile_digest
+from autonomy.tasks import goal_contract
 from research.selection_comparison import compare_parent_selection, evaluation_integrity_canaries
 
 
 def fake_execute(root, **kwargs):
     profile = normalize_search_profile(kwargs["search_profile"])
+    contract = goal_contract(
+        kwargs["description"], kwargs["tier"], kwargs["target"],
+        kwargs["task_seed"], kwargs["task_count"],
+    )
     weight_total = sum(profile[key] for key in
                        ("parent_quality_weight", "parent_novelty_weight", "parent_size_weight"))
     novelty = profile["parent_novelty_weight"] / weight_total
@@ -19,6 +24,7 @@ def fake_execute(root, **kwargs):
         "container_runs": attempts + 3, "model_calls": 0,
         "checkpoint": f"checkpoint-{kwargs['task_seed']}",
         "search_profile_digest": search_profile_digest(profile),
+        "certified_tasks": sorted(contract["weights"]),
     }
 
 

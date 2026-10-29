@@ -339,6 +339,8 @@ def _trial_row(summary, seed, goal, task_keys):
     certified = summary.get("certified_tasks")
     if not isinstance(certified, list) or any(not isinstance(key, str) for key in certified):
         raise ValueError("goal summary must retain certified task keys")
+    if len(set(certified)) != len(certified):
+        raise ValueError("goal summary contains duplicate certified task keys")
     unexpected = set(certified) - set(task_keys)
     if unexpected:
         raise ValueError("goal summary contains tasks outside the development contract")

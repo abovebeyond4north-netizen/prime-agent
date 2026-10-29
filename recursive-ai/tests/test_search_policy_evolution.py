@@ -13,6 +13,7 @@ from autonomy.search_profile import (
 )
 from autonomy.tasks import Task, goal_contract
 from research.search_policy_evolution import (
+    _trial_row,
     initial_population,
     mutate,
     profile_distance,
@@ -22,6 +23,20 @@ from research.search_policy_evolution import (
 
 
 class SearchPolicyEvolutionTests(unittest.TestCase):
+    def test_task_evidence_validation_fails_closed(self):
+        summary = {
+            "status": "goal_reached", "audit": {"passed": True},
+            "coverage": 1.0, "total_attempts": 1, "wall_seconds": 0.1,
+            "container_runs": 1, "model_calls": 0,
+            "search_profile_digest": "fixture",
+        }
+        for certified in (None, [1], ["task-a", "task-a"], ["task-b"]):
+            candidate = dict(summary)
+            if certified is not None:
+                candidate["certified_tasks"] = certified
+            with self.subTest(certified=certified), self.assertRaises(ValueError):
+                _trial_row(candidate, 1, "fixture", ["task-a"])
+
     def test_search_profile_validation_preserves_old_defaults(self):
         self.assertEqual(
             normalize_search_profile(None),
