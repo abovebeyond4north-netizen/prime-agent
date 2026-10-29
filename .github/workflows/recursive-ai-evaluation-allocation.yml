@@ -1,0 +1,55 @@
+name: Recursive AI evaluation allocation study
+
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths:
+      - "recursive-ai/research/evaluation_allocation_study.py"
+      - "recursive-ai/tests/test_evaluation_allocation_study.py"
+      - ".github/workflows/recursive-ai-evaluation-allocation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  study:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Verify frozen study protocol
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_evaluation_allocation_study tests.test_evaluation_allocation_replay -v
+      - name: Start setup-inclusive clock
+        working-directory: recursive-ai
+        run: python3 -c "import time; from pathlib import Path; Path('.setup-start').write_text(str(time.monotonic()))"
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Collect development matrix and replay if admissible
+        working-directory: recursive-ai
+        run: |
+          python3 -m research.evaluation_allocation_study --setup-start-file .setup-start --output evaluation-allocation-study.json
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads(Path('evaluation-allocation-study.json').read_text())
+          assert report['config']['development_only']
+          assert not report['config']['holdout_rows_included']
+          assert report['screen']['positive_baseline_successes'] > 0
+          assert report['cost_accounting']['setup_inclusive_wall_supported']
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as stream:
+              stream.write('Evaluation allocation development screen\n\n```json\n')
+              stream.write(json.dumps(report['screen'], indent=2))
+              stream.write('\n```\n')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: evaluation-allocation-study
+          path: recursive-ai/evaluation-allocation-study.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -21,6 +21,24 @@ from autonomy.search_profile import (
 from autonomy.search import SearchEngine
 from autonomy.tasks import INVERSE_FAMILIES, goal_contract, task_from_key
 from autonomy.verifier import TaskVerifier
+from research.skill_contract import (
+    acquire as acquire_research_skill,
+    activate as activate_research_skill,
+    invoke as invoke_research_skill,
+)
+
+
+def acquire_skill_contract(root, descriptor, public_label, configuration, **budgets):
+    """Acquire through the opt-in contract without sharing production state."""
+    return acquire_research_skill(root, descriptor, public_label, configuration, **budgets)
+
+
+def invoke_skill_contract(root, key, value, image="recursive-ai-runner:local"):
+    return invoke_research_skill(root, key, value, image)
+
+
+def activate_skill_contract(root, checkpoint):
+    return activate_research_skill(root, checkpoint)
 
 
 def execute_goal(root, description="algorithms toolkit", tier=2, target=1.0,

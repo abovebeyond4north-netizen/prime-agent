@@ -1,0 +1,26 @@
+name: Recursive AI external verifier preflight
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths:
+      - "recursive-ai/research/external_verifier_preflight.py"
+      - "recursive-ai/tests/test_external_verifier_preflight.py"
+      - ".github/workflows/recursive-ai-external-verifier-preflight.yml"
+  pull_request:
+    paths:
+      - "recursive-ai/research/external_verifier_preflight.py"
+      - "recursive-ai/tests/test_external_verifier_preflight.py"
+      - ".github/workflows/recursive-ai-external-verifier-preflight.yml"
+permissions:
+  contents: read
+jobs:
+  identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Verify fail-closed cache identity and resource checks
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_external_verifier_preflight -v

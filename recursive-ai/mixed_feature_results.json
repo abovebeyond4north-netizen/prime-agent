@@ -1,0 +1,4140 @@
+{
+  "date": "2026-10-15",
+  "code_commit": "9f56c1e90e6608db1a70d8af365b80c501b21341",
+  "workflow_run": 38731949342,
+  "jobs": [
+    116411615063,
+    116411615365,
+    116411615442
+  ],
+  "results": [
+    {
+      "arm_budget": 40,
+      "automatic_promotion": false,
+      "configuration": {
+        "comparison": "<=",
+        "direction": "forward",
+        "result": "low - 1",
+        "upper": "n + 1"
+      },
+      "discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      },
+      "limits": [
+        "Mixed quadratic feature and search bounds are developer-defined.",
+        "Fixtures selected for unique identifiability from public labels, not a random task sample.",
+        "Hypothesis selection uses public labels only; configuration frozen before new rules.",
+        "Baseline has the same resource ceiling but no representational fit; consumed work differs.",
+        "Same evaluator/operator/environment class; no external or open-world claim."
+      ],
+      "rows": [
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 3,
+            "rule": [
+              1,
+              1,
+              0,
+              1
+            ],
+            "stages": [
+              {
+                "compatible": 1,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 0,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            1,
+            0,
+            1
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              9,
+              1
+            ],
+            [
+              10,
+              1
+            ],
+            [
+              11,
+              1
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              2
+            ],
+            [
+              21,
+              2
+            ],
+            [
+              22,
+              2
+            ],
+            [
+              23,
+              2
+            ],
+            [
+              24,
+              2
+            ],
+            [
+              25,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              27,
+              2
+            ],
+            [
+              28,
+              2
+            ],
+            [
+              29,
+              2
+            ],
+            [
+              30,
+              2
+            ],
+            [
+              31,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              2
+            ],
+            [
+              64,
+              3
+            ],
+            [
+              128,
+              4
+            ],
+            [
+              256,
+              6
+            ],
+            [
+              512,
+              7
+            ],
+            [
+              1024,
+              9
+            ],
+            [
+              2048,
+              12
+            ],
+            [
+              4096,
+              15
+            ],
+            [
+              8192,
+              19
+            ],
+            [
+              16384,
+              25
+            ],
+            [
+              32768,
+              31
+            ],
+            [
+              65536,
+              39
+            ],
+            [
+              131072,
+              50
+            ],
+            [
+              262144,
+              63
+            ],
+            [
+              524288,
+              80
+            ],
+            [
+              1048576,
+              101
+            ],
+            [
+              2097152,
+              127
+            ],
+            [
+              4194304,
+              160
+            ],
+            [
+              8388608,
+              202
+            ],
+            [
+              16777216,
+              255
+            ],
+            [
+              33554432,
+              322
+            ],
+            [
+              67108864,
+              406
+            ],
+            [
+              134217728,
+              511
+            ],
+            [
+              268435456,
+              644
+            ],
+            [
+              536870912,
+              812
+            ],
+            [
+              1073741824,
+              1023
+            ],
+            [
+              2147483648,
+              1289
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.004481689000000011,
+              "max_steps": 1028,
+              "peak_bytes": 4258
+            },
+            "objective": 0.9872835730999999,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_3_1_1_0_1"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_3_1_1_0_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 1 * mid * mid + 0 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        },
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 3,
+            "rule": [
+              1,
+              1,
+              1,
+              2
+            ],
+            "stages": [
+              {
+                "compatible": 1,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 0,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            1,
+            1,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              3
+            ],
+            [
+              23,
+              3
+            ],
+            [
+              24,
+              3
+            ],
+            [
+              25,
+              3
+            ],
+            [
+              26,
+              3
+            ],
+            [
+              27,
+              3
+            ],
+            [
+              28,
+              3
+            ],
+            [
+              29,
+              3
+            ],
+            [
+              30,
+              3
+            ],
+            [
+              31,
+              3
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              3
+            ],
+            [
+              64,
+              4
+            ],
+            [
+              128,
+              5
+            ],
+            [
+              256,
+              7
+            ],
+            [
+              512,
+              9
+            ],
+            [
+              1024,
+              12
+            ],
+            [
+              2048,
+              15
+            ],
+            [
+              4096,
+              19
+            ],
+            [
+              8192,
+              25
+            ],
+            [
+              16384,
+              31
+            ],
+            [
+              32768,
+              39
+            ],
+            [
+              65536,
+              50
+            ],
+            [
+              131072,
+              63
+            ],
+            [
+              262144,
+              80
+            ],
+            [
+              524288,
+              101
+            ],
+            [
+              1048576,
+              127
+            ],
+            [
+              2097152,
+              160
+            ],
+            [
+              4194304,
+              202
+            ],
+            [
+              8388608,
+              255
+            ],
+            [
+              16777216,
+              322
+            ],
+            [
+              33554432,
+              406
+            ],
+            [
+              67108864,
+              511
+            ],
+            [
+              134217728,
+              644
+            ],
+            [
+              268435456,
+              812
+            ],
+            [
+              536870912,
+              1023
+            ],
+            [
+              1073741824,
+              1289
+            ],
+            [
+              2147483648,
+              1625
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.004757755000000002,
+              "max_steps": 1028,
+              "peak_bytes": 4258
+            },
+            "objective": 0.9872559664999999,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_3_1_1_1_2"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_3_1_1_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 1 * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        },
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 4,
+            "rule": [
+              1,
+              1,
+              2,
+              3
+            ],
+            "stages": [
+              {
+                "compatible": 0,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 1,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            4,
+            1,
+            1,
+            2,
+            3
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              2
+            ],
+            [
+              21,
+              2
+            ],
+            [
+              22,
+              2
+            ],
+            [
+              23,
+              2
+            ],
+            [
+              24,
+              2
+            ],
+            [
+              25,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              27,
+              2
+            ],
+            [
+              28,
+              2
+            ],
+            [
+              29,
+              2
+            ],
+            [
+              30,
+              2
+            ],
+            [
+              31,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              3
+            ],
+            [
+              64,
+              3
+            ],
+            [
+              128,
+              4
+            ],
+            [
+              256,
+              5
+            ],
+            [
+              512,
+              6
+            ],
+            [
+              1024,
+              7
+            ],
+            [
+              2048,
+              8
+            ],
+            [
+              4096,
+              10
+            ],
+            [
+              8192,
+              12
+            ],
+            [
+              16384,
+              14
+            ],
+            [
+              32768,
+              17
+            ],
+            [
+              65536,
+              21
+            ],
+            [
+              131072,
+              25
+            ],
+            [
+              262144,
+              29
+            ],
+            [
+              524288,
+              35
+            ],
+            [
+              1048576,
+              42
+            ],
+            [
+              2097152,
+              50
+            ],
+            [
+              4194304,
+              59
+            ],
+            [
+              8388608,
+              70
+            ],
+            [
+              16777216,
+              84
+            ],
+            [
+              33554432,
+              100
+            ],
+            [
+              67108864,
+              119
+            ],
+            [
+              134217728,
+              141
+            ],
+            [
+              268435456,
+              168
+            ],
+            [
+              536870912,
+              200
+            ],
+            [
+              1073741824,
+              238
+            ],
+            [
+              2147483648,
+              283
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.004992862999999986,
+              "max_steps": 1028,
+              "peak_bytes": 4324
+            },
+            "objective": 0.9862263897,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_4_1_1_2_3"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_4_1_1_2_3(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid * mid + 1 * mid * mid + 2 * mid <= 3 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        }
+      ],
+      "seed": 330010,
+      "training_containers": 42
+    },
+    {
+      "arm_budget": 40,
+      "automatic_promotion": false,
+      "configuration": {
+        "comparison": "<=",
+        "direction": "forward",
+        "result": "low - 1",
+        "upper": "n + 1"
+      },
+      "discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      },
+      "limits": [
+        "Mixed quadratic feature and search bounds are developer-defined.",
+        "Fixtures selected for unique identifiability from public labels, not a random task sample.",
+        "Hypothesis selection uses public labels only; configuration frozen before new rules.",
+        "Baseline has the same resource ceiling but no representational fit; consumed work differs.",
+        "Same evaluator/operator/environment class; no external or open-world claim."
+      ],
+      "rows": [
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 3,
+            "rule": [
+              1,
+              1,
+              0,
+              1
+            ],
+            "stages": [
+              {
+                "compatible": 1,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 0,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            1,
+            0,
+            1
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              9,
+              1
+            ],
+            [
+              10,
+              1
+            ],
+            [
+              11,
+              1
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              2
+            ],
+            [
+              21,
+              2
+            ],
+            [
+              22,
+              2
+            ],
+            [
+              23,
+              2
+            ],
+            [
+              24,
+              2
+            ],
+            [
+              25,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              27,
+              2
+            ],
+            [
+              28,
+              2
+            ],
+            [
+              29,
+              2
+            ],
+            [
+              30,
+              2
+            ],
+            [
+              31,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              2
+            ],
+            [
+              64,
+              3
+            ],
+            [
+              128,
+              4
+            ],
+            [
+              256,
+              6
+            ],
+            [
+              512,
+              7
+            ],
+            [
+              1024,
+              9
+            ],
+            [
+              2048,
+              12
+            ],
+            [
+              4096,
+              15
+            ],
+            [
+              8192,
+              19
+            ],
+            [
+              16384,
+              25
+            ],
+            [
+              32768,
+              31
+            ],
+            [
+              65536,
+              39
+            ],
+            [
+              131072,
+              50
+            ],
+            [
+              262144,
+              63
+            ],
+            [
+              524288,
+              80
+            ],
+            [
+              1048576,
+              101
+            ],
+            [
+              2097152,
+              127
+            ],
+            [
+              4194304,
+              160
+            ],
+            [
+              8388608,
+              202
+            ],
+            [
+              16777216,
+              255
+            ],
+            [
+              33554432,
+              322
+            ],
+            [
+              67108864,
+              406
+            ],
+            [
+              134217728,
+              511
+            ],
+            [
+              268435456,
+              644
+            ],
+            [
+              536870912,
+              812
+            ],
+            [
+              1073741824,
+              1023
+            ],
+            [
+              2147483648,
+              1289
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.004577408000000005,
+              "max_steps": 1028,
+              "peak_bytes": 4258
+            },
+            "objective": 0.9872740011999999,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_3_1_1_0_1"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_3_1_1_0_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 1 * mid * mid + 0 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        },
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 3,
+            "rule": [
+              1,
+              1,
+              1,
+              2
+            ],
+            "stages": [
+              {
+                "compatible": 1,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 0,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            1,
+            1,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              3
+            ],
+            [
+              23,
+              3
+            ],
+            [
+              24,
+              3
+            ],
+            [
+              25,
+              3
+            ],
+            [
+              26,
+              3
+            ],
+            [
+              27,
+              3
+            ],
+            [
+              28,
+              3
+            ],
+            [
+              29,
+              3
+            ],
+            [
+              30,
+              3
+            ],
+            [
+              31,
+              3
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              3
+            ],
+            [
+              64,
+              4
+            ],
+            [
+              128,
+              5
+            ],
+            [
+              256,
+              7
+            ],
+            [
+              512,
+              9
+            ],
+            [
+              1024,
+              12
+            ],
+            [
+              2048,
+              15
+            ],
+            [
+              4096,
+              19
+            ],
+            [
+              8192,
+              25
+            ],
+            [
+              16384,
+              31
+            ],
+            [
+              32768,
+              39
+            ],
+            [
+              65536,
+              50
+            ],
+            [
+              131072,
+              63
+            ],
+            [
+              262144,
+              80
+            ],
+            [
+              524288,
+              101
+            ],
+            [
+              1048576,
+              127
+            ],
+            [
+              2097152,
+              160
+            ],
+            [
+              4194304,
+              202
+            ],
+            [
+              8388608,
+              255
+            ],
+            [
+              16777216,
+              322
+            ],
+            [
+              33554432,
+              406
+            ],
+            [
+              67108864,
+              511
+            ],
+            [
+              134217728,
+              644
+            ],
+            [
+              268435456,
+              812
+            ],
+            [
+              536870912,
+              1023
+            ],
+            [
+              1073741824,
+              1289
+            ],
+            [
+              2147483648,
+              1625
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.004753897000000007,
+              "max_steps": 1028,
+              "peak_bytes": 4258
+            },
+            "objective": 0.9872563522999999,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_3_1_1_1_2"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_3_1_1_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 1 * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        },
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 4,
+            "rule": [
+              1,
+              1,
+              2,
+              3
+            ],
+            "stages": [
+              {
+                "compatible": 0,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 1,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            4,
+            1,
+            1,
+            2,
+            3
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              2
+            ],
+            [
+              21,
+              2
+            ],
+            [
+              22,
+              2
+            ],
+            [
+              23,
+              2
+            ],
+            [
+              24,
+              2
+            ],
+            [
+              25,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              27,
+              2
+            ],
+            [
+              28,
+              2
+            ],
+            [
+              29,
+              2
+            ],
+            [
+              30,
+              2
+            ],
+            [
+              31,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              3
+            ],
+            [
+              64,
+              3
+            ],
+            [
+              128,
+              4
+            ],
+            [
+              256,
+              5
+            ],
+            [
+              512,
+              6
+            ],
+            [
+              1024,
+              7
+            ],
+            [
+              2048,
+              8
+            ],
+            [
+              4096,
+              10
+            ],
+            [
+              8192,
+              12
+            ],
+            [
+              16384,
+              14
+            ],
+            [
+              32768,
+              17
+            ],
+            [
+              65536,
+              21
+            ],
+            [
+              131072,
+              25
+            ],
+            [
+              262144,
+              29
+            ],
+            [
+              524288,
+              35
+            ],
+            [
+              1048576,
+              42
+            ],
+            [
+              2097152,
+              50
+            ],
+            [
+              4194304,
+              59
+            ],
+            [
+              8388608,
+              70
+            ],
+            [
+              16777216,
+              84
+            ],
+            [
+              33554432,
+              100
+            ],
+            [
+              67108864,
+              119
+            ],
+            [
+              134217728,
+              141
+            ],
+            [
+              268435456,
+              168
+            ],
+            [
+              536870912,
+              200
+            ],
+            [
+              1073741824,
+              238
+            ],
+            [
+              2147483648,
+              283
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.005446601000000023,
+              "max_steps": 1028,
+              "peak_bytes": 4324
+            },
+            "objective": 0.9861810159,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_4_1_1_2_3"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_4_1_1_2_3(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid * mid + 1 * mid * mid + 2 * mid <= 3 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        }
+      ],
+      "seed": 330011,
+      "training_containers": 42
+    },
+    {
+      "arm_budget": 40,
+      "automatic_promotion": false,
+      "configuration": {
+        "comparison": "<=",
+        "direction": "forward",
+        "result": "low - 1",
+        "upper": "n + 1"
+      },
+      "discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      },
+      "limits": [
+        "Mixed quadratic feature and search bounds are developer-defined.",
+        "Fixtures selected for unique identifiability from public labels, not a random task sample.",
+        "Hypothesis selection uses public labels only; configuration frozen before new rules.",
+        "Baseline has the same resource ceiling but no representational fit; consumed work differs.",
+        "Same evaluator/operator/environment class; no external or open-world claim."
+      ],
+      "rows": [
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 3,
+            "rule": [
+              1,
+              1,
+              0,
+              1
+            ],
+            "stages": [
+              {
+                "compatible": 1,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 0,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            1,
+            0,
+            1
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              9,
+              1
+            ],
+            [
+              10,
+              1
+            ],
+            [
+              11,
+              1
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              2
+            ],
+            [
+              21,
+              2
+            ],
+            [
+              22,
+              2
+            ],
+            [
+              23,
+              2
+            ],
+            [
+              24,
+              2
+            ],
+            [
+              25,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              27,
+              2
+            ],
+            [
+              28,
+              2
+            ],
+            [
+              29,
+              2
+            ],
+            [
+              30,
+              2
+            ],
+            [
+              31,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              2
+            ],
+            [
+              64,
+              3
+            ],
+            [
+              128,
+              4
+            ],
+            [
+              256,
+              6
+            ],
+            [
+              512,
+              7
+            ],
+            [
+              1024,
+              9
+            ],
+            [
+              2048,
+              12
+            ],
+            [
+              4096,
+              15
+            ],
+            [
+              8192,
+              19
+            ],
+            [
+              16384,
+              25
+            ],
+            [
+              32768,
+              31
+            ],
+            [
+              65536,
+              39
+            ],
+            [
+              131072,
+              50
+            ],
+            [
+              262144,
+              63
+            ],
+            [
+              524288,
+              80
+            ],
+            [
+              1048576,
+              101
+            ],
+            [
+              2097152,
+              127
+            ],
+            [
+              4194304,
+              160
+            ],
+            [
+              8388608,
+              202
+            ],
+            [
+              16777216,
+              255
+            ],
+            [
+              33554432,
+              322
+            ],
+            [
+              67108864,
+              406
+            ],
+            [
+              134217728,
+              511
+            ],
+            [
+              268435456,
+              644
+            ],
+            [
+              536870912,
+              812
+            ],
+            [
+              1073741824,
+              1023
+            ],
+            [
+              2147483648,
+              1289
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.002923086999999991,
+              "max_steps": 1028,
+              "peak_bytes": 4258
+            },
+            "objective": 0.9874394333,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_3_1_1_0_1"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_3_1_1_0_1(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 1 * mid * mid + 0 * mid <= 1 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        },
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 3,
+            "rule": [
+              1,
+              1,
+              1,
+              2
+            ],
+            "stages": [
+              {
+                "compatible": 1,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 0,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            3,
+            1,
+            1,
+            1,
+            2
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              2
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              3
+            ],
+            [
+              21,
+              3
+            ],
+            [
+              22,
+              3
+            ],
+            [
+              23,
+              3
+            ],
+            [
+              24,
+              3
+            ],
+            [
+              25,
+              3
+            ],
+            [
+              26,
+              3
+            ],
+            [
+              27,
+              3
+            ],
+            [
+              28,
+              3
+            ],
+            [
+              29,
+              3
+            ],
+            [
+              30,
+              3
+            ],
+            [
+              31,
+              3
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              3
+            ],
+            [
+              64,
+              4
+            ],
+            [
+              128,
+              5
+            ],
+            [
+              256,
+              7
+            ],
+            [
+              512,
+              9
+            ],
+            [
+              1024,
+              12
+            ],
+            [
+              2048,
+              15
+            ],
+            [
+              4096,
+              19
+            ],
+            [
+              8192,
+              25
+            ],
+            [
+              16384,
+              31
+            ],
+            [
+              32768,
+              39
+            ],
+            [
+              65536,
+              50
+            ],
+            [
+              131072,
+              63
+            ],
+            [
+              262144,
+              80
+            ],
+            [
+              524288,
+              101
+            ],
+            [
+              1048576,
+              127
+            ],
+            [
+              2097152,
+              160
+            ],
+            [
+              4194304,
+              202
+            ],
+            [
+              8388608,
+              255
+            ],
+            [
+              16777216,
+              322
+            ],
+            [
+              33554432,
+              406
+            ],
+            [
+              67108864,
+              511
+            ],
+            [
+              134217728,
+              644
+            ],
+            [
+              268435456,
+              812
+            ],
+            [
+              536870912,
+              1023
+            ],
+            [
+              1073741824,
+              1289
+            ],
+            [
+              2147483648,
+              1625
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.0028440200000000027,
+              "max_steps": 1028,
+              "peak_bytes": 4258
+            },
+            "objective": 0.9874473399999999,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_3_1_1_1_2"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_3_1_1_1_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid + 1 * mid * mid + 1 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        },
+        {
+          "baseline": {
+            "degree": null,
+            "rule": null,
+            "stages": [
+              {
+                "compatible_rules": 0,
+                "degree": 2,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 3,
+                "raw_hypotheses": 80
+              },
+              {
+                "compatible_rules": 0,
+                "degree": 4,
+                "raw_hypotheses": 80
+              }
+            ],
+            "status": "expansion_budget_exhausted"
+          },
+          "baseline_emits_candidate": false,
+          "containers": 30,
+          "hypothesis": {
+            "degree": 4,
+            "rule": [
+              1,
+              1,
+              2,
+              3
+            ],
+            "stages": [
+              {
+                "compatible": 0,
+                "degree": 3,
+                "raw_hypotheses": 320
+              },
+              {
+                "compatible": 1,
+                "degree": 4,
+                "raw_hypotheses": 320
+              }
+            ],
+            "status": "unique"
+          },
+          "parameters": [
+            4,
+            1,
+            1,
+            2,
+            3
+          ],
+          "public_examples": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              7,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              9,
+              2
+            ],
+            [
+              10,
+              2
+            ],
+            [
+              11,
+              2
+            ],
+            [
+              12,
+              2
+            ],
+            [
+              13,
+              2
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              15,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              17,
+              2
+            ],
+            [
+              18,
+              2
+            ],
+            [
+              19,
+              2
+            ],
+            [
+              20,
+              2
+            ],
+            [
+              21,
+              2
+            ],
+            [
+              22,
+              2
+            ],
+            [
+              23,
+              2
+            ],
+            [
+              24,
+              2
+            ],
+            [
+              25,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              27,
+              2
+            ],
+            [
+              28,
+              2
+            ],
+            [
+              29,
+              2
+            ],
+            [
+              30,
+              2
+            ],
+            [
+              31,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              8,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              32,
+              3
+            ],
+            [
+              64,
+              3
+            ],
+            [
+              128,
+              4
+            ],
+            [
+              256,
+              5
+            ],
+            [
+              512,
+              6
+            ],
+            [
+              1024,
+              7
+            ],
+            [
+              2048,
+              8
+            ],
+            [
+              4096,
+              10
+            ],
+            [
+              8192,
+              12
+            ],
+            [
+              16384,
+              14
+            ],
+            [
+              32768,
+              17
+            ],
+            [
+              65536,
+              21
+            ],
+            [
+              131072,
+              25
+            ],
+            [
+              262144,
+              29
+            ],
+            [
+              524288,
+              35
+            ],
+            [
+              1048576,
+              42
+            ],
+            [
+              2097152,
+              50
+            ],
+            [
+              4194304,
+              59
+            ],
+            [
+              8388608,
+              70
+            ],
+            [
+              16777216,
+              84
+            ],
+            [
+              33554432,
+              100
+            ],
+            [
+              67108864,
+              119
+            ],
+            [
+              134217728,
+              141
+            ],
+            [
+              268435456,
+              168
+            ],
+            [
+              536870912,
+              200
+            ],
+            [
+              1073741824,
+              238
+            ],
+            [
+              2147483648,
+              283
+            ]
+          ],
+          "report": {
+            "gates": [
+              {
+                "name": "syntax",
+                "number": 1,
+                "passed": true
+              },
+              {
+                "name": "ast_safety",
+                "number": 2,
+                "passed": true
+              },
+              {
+                "name": "isolation_boot",
+                "number": 3,
+                "passed": true
+              },
+              {
+                "name": "public",
+                "number": 4,
+                "passed": true
+              },
+              {
+                "name": "regression",
+                "number": 5,
+                "passed": true,
+                "reused_regression_checks": 0
+              },
+              {
+                "name": "holdout",
+                "number": 6,
+                "passed": true
+              },
+              {
+                "name": "generalization",
+                "number": 7,
+                "passed": true
+              },
+              {
+                "name": "performance",
+                "number": 8,
+                "passed": true
+              },
+              {
+                "name": "differential",
+                "number": 9,
+                "passed": true
+              },
+              {
+                "name": "determinism",
+                "number": 10,
+                "passed": true
+              }
+            ],
+            "measurements": {
+              "cpu_seconds": 0.0033666790000000113,
+              "max_steps": 1028,
+              "peak_bytes": 4324
+            },
+            "objective": 0.9863890081,
+            "passed": true,
+            "random_cases": 1128,
+            "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+            "suite_version": "autonomy-1",
+            "task": "research:mixed_inverse_4_1_1_2_3"
+          },
+          "shifted_cases": 512,
+          "source": "def mixed_inverse_4_1_1_2_3(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 1 * mid * mid * mid * mid + 1 * mid * mid + 2 * mid <= 3 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+        }
+      ],
+      "seed": 330012,
+      "training_containers": 42
+    }
+  ]
+}

@@ -1,0 +1,2088 @@
+{
+  "training_cost": 2790,
+  "macro": [
+    "double",
+    "increment"
+  ],
+  "summary": {
+    "primitive": {
+      "solved": 64,
+      "primitive_evaluations": 170658
+    },
+    "learned": {
+      "solved": 64,
+      "primitive_evaluations": 131655
+    }
+  },
+  "rows": [
+    {
+      "a": 16,
+      "b": 0,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 387,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 1365,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 1,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 747,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1350,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 2,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 729,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1335,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 3,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1341,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1320,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 4,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 711,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 1305,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 5,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1314,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1290,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 6,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1305,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1275,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 7,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2313,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1260,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 8,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 684,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 945,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 9,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1269,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 930,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 10,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1251,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 915,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 11,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2223,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 900,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 12,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 1242,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 810,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 13,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2205,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 795,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 14,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2196,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 735,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 15,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "negate",
+            "increment",
+            "negate"
+          ],
+          "cost": 3789,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 705,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 16,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 639,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "increment"
+          ],
+          "cost": 1710,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 17,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1188,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1755,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 18,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1170,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1860,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 19,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2097,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1845,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 20,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 1152,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 2070,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 21,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2070,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2055,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 22,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2061,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2025,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 23,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 3591,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2010,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 24,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 1125,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 2580,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 25,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2025,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2565,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 26,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2007,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2550,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 27,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 3501,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2535,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 28,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 1998,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 2445,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 29,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 3483,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2430,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 30,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 3474,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2370,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 16,
+      "b": 31,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "negate",
+            "increment",
+            "negate"
+          ],
+          "cost": 5922,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2340,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 0,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 756,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 3075,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 1,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1386,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 3060,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 2,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1368,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 3045,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 3,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2421,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 3030,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 4,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 1350,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 3015,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 5,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2394,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 3000,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 6,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2385,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2985,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 7,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 4122,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2970,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 8,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 1323,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 2955,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 9,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2349,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2940,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 10,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2331,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2925,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 11,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 4032,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2910,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 12,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 2322,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 2895,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 13,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 4014,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2880,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 14,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 4005,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2865,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 15,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "negate",
+            "increment",
+            "negate"
+          ],
+          "cost": 6813,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2850,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 16,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 1278,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 2205,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 17,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2268,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2190,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 18,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2250,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2175,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 19,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 3906,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2160,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 20,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 2232,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 2145,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 21,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 3879,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 2130,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 22,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 3870,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 2115,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 23,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 6615,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 2100,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 24,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 2214,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double"
+          ],
+          "cost": 1935,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 25,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 3852,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1920,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 26,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 3843,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1905,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 27,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 6561,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1890,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 28,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 3834,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double"
+          ],
+          "cost": 1800,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 29,
+      "arms": {
+        "primitive": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 6543,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "double",
+            "increment"
+          ],
+          "cost": 1785,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 30,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "negate",
+            "increment",
+            "double",
+            "negate"
+          ],
+          "cost": 6480,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double"
+          ],
+          "cost": 1725,
+          "status": "candidate"
+        }
+      }
+    },
+    {
+      "a": 32,
+      "b": 31,
+      "arms": {
+        "primitive": {
+          "program": [
+            "increment",
+            "double",
+            "double",
+            "double",
+            "double",
+            "double",
+            "negate",
+            "increment",
+            "negate"
+          ],
+          "cost": 6453,
+          "status": "candidate"
+        },
+        "learned": {
+          "program": [
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment",
+            "double",
+            "increment"
+          ],
+          "cost": 1695,
+          "status": "candidate"
+        }
+      }
+    }
+  ],
+  "audit_inputs_per_solved_task": 201,
+  "limits": [
+    "Developer-supplied primitives and compression/search algorithms.",
+    "Internal development tasks; not protected or independent evaluation.",
+    "Costs count primitive evaluations, not compression, queue work or wall time.",
+    "No generated Python execution, persistence, promotion or production change."
+  ]
+}
