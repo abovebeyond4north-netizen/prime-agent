@@ -115,6 +115,20 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
         self.assertNotEqual(first["run_id"], changed_dataset["run_id"])
         self.assertNotEqual(first["run_id"], changed_evaluator["run_id"])
 
+    def test_generated_root_result_does_not_invalidate_identity(self):
+        self.result.unlink()
+        first = self.identity()
+        self.result.write_text(json.dumps({"resolved": True}))
+        receipt = self.receipt(first)
+        second = self.identity()
+        self.assertEqual(first, second)
+        self.assertEqual(
+            cache_decision(
+                receipt, second, result=self.result, workspace_root=self.root
+            ),
+            {"reusable": True, "reasons": []},
+        )
+
     def test_swapped_evaluator_contents_force_distinct_run_and_cache_miss(self):
         helper = self.root / "helper.py"
         helper.write_text("def helper(): return False\n")
@@ -178,6 +192,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(primary / "evaluator.py",),
+            evaluator_dependencies=(primary,),
         )
         relocated = evaluation_identity(
             benchmark_revision="230023d821dff5f58d18446ce6dab0b588205c9f",
@@ -186,6 +201,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(secondary / "evaluator.py",),
+            evaluator_dependencies=(secondary,),
         )
         self.assertNotEqual(first["evaluator_sha256"], relocated["evaluator_sha256"])
         self.assertNotEqual(first["run_id"], relocated["run_id"])
@@ -219,6 +235,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(evaluator,),
+            evaluator_dependencies=(package,),
         )
         dependency.write_text("VERIFY = False\n")
         second_output = subprocess.run(
@@ -235,6 +252,7 @@ class ExternalVerifierPreflightTests(unittest.TestCase):
             datasets=(self.dataset,),
             predictions=self.predictions,
             evaluators=(evaluator,),
+            evaluator_dependencies=(package,),
         )
         self.assertEqual((first_output, second_output), ("True", "False"))
         self.assertNotEqual(first["evaluator_sha256"], changed["evaluator_sha256"])
