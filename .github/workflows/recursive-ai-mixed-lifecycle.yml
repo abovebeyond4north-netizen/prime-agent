@@ -1,0 +1,39 @@
+name: Recursive AI mixed feature lifecycle
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: [".github/workflows/recursive-ai-mixed-lifecycle.yml", "recursive-ai/research/mixed_lifecycle.py", "recursive-ai/tests/test_mixed_lifecycle.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [430013, 430014, 430015]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check lifecycle boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_mixed_lifecycle -v
+      - name: Compare and replay checkpoints
+        working-directory: recursive-ai
+        env:
+          STUDY_SEED: ${{ matrix.seed }}
+        run: |
+          mkdir mixed-lifecycle-evidence
+          python3 -m research.mixed_lifecycle --seed "$STUDY_SEED" --state mixed-lifecycle-evidence/state --output mixed-lifecycle-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: mixed-lifecycle-${{ matrix.seed }}
+          path: recursive-ai/mixed-lifecycle-evidence/**
+          if-no-files-found: error
+          retention-days: 30

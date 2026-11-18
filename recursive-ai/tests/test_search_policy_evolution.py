@@ -1,3 +1,5 @@
+import hashlib
+import json
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -9,8 +11,9 @@ from autonomy.search_profile import (
     normalize_search_profile,
     search_profile_digest,
 )
-from autonomy.tasks import Task
+from autonomy.tasks import Task, goal_contract
 from research.search_policy_evolution import (
+    _trial_row,
     initial_population,
     mutate,
     profile_distance,
@@ -20,6 +23,20 @@ from research.search_policy_evolution import (
 
 
 class SearchPolicyEvolutionTests(unittest.TestCase):
+    def test_task_evidence_validation_fails_closed(self):
+        summary = {
+            "status": "goal_reached", "audit": {"passed": True},
+            "coverage": 1.0, "total_attempts": 1, "wall_seconds": 0.1,
+            "container_runs": 1, "model_calls": 0,
+            "search_profile_digest": "fixture",
+        }
+        for certified in (None, [1], ["task-a", "task-a"], ["task-b"]):
+            candidate = dict(summary)
+            if certified is not None:
+                candidate["certified_tasks"] = certified
+            with self.subTest(certified=certified), self.assertRaises(ValueError):
+                _trial_row(candidate, 1, "fixture", ["task-a"])
+
     def test_search_profile_validation_preserves_old_defaults(self):
         self.assertEqual(
             normalize_search_profile(None),
@@ -133,6 +150,10 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
                 def fake_execute(root, **kwargs):
                     profile = normalize_search_profile(kwargs['search_profile'])
                     seconds = profile['ucb_exploration']
+                    contract = goal_contract(
+                        kwargs['description'], kwargs['tier'], kwargs['target'],
+                        kwargs['task_seed'], kwargs['task_count'],
+                    )
                     return {
                         'status': 'goal_reached', 'audit': {'passed': True},
                         'coverage': 1.0, 'total_attempts': 4, 'container_runs': 8,
@@ -140,6 +161,7 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
                         'wall_seconds': 100 - seconds if reverse else seconds,
                         'checkpoint': 'fixture',
                         'search_profile_digest': search_profile_digest(profile),
+                        'certified_tasks': sorted(contract['weights']),
                     }
                 with tempfile.TemporaryDirectory() as root, patch(
                     'research.search_policy_evolution.execute_goal', side_effect=fake_execute
@@ -168,6 +190,10 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
         def fake_execute(root, **kwargs):
             profile = normalize_search_profile(kwargs.get("search_profile"))
             calls.append((kwargs["description"], kwargs["task_seed"], profile))
+            contract = goal_contract(
+                kwargs["description"], kwargs["tier"], kwargs["target"],
+                kwargs["task_seed"], kwargs["task_count"],
+            )
             weight_total = (
                 profile["parent_quality_weight"]
                 + profile["parent_novelty_weight"]
@@ -192,6 +218,7 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
                 "model_calls": 0,
                 "checkpoint": f"checkpoint-{kwargs['description']}-{kwargs['task_seed']}",
                 "search_profile_digest": search_profile_digest(profile),
+                "certified_tasks": sorted(contract["weights"]),
             }
 
         with tempfile.TemporaryDirectory() as root, patch(
@@ -234,6 +261,28 @@ class SearchPolicyEvolutionTests(unittest.TestCase):
         self.assertFalse(report["promotion"]["automatic"])
         self.assertTrue(report["promotion"]["eligible"])
         self.assertTrue(calls)
+        matrix = report["development_evaluation"]
+        self.assertEqual(matrix["protocol"], "search-policy-development-matrix-1")
+        self.assertTrue(matrix["development_only"])
+        self.assertFalse(matrix["holdout_rows_included"])
+        unsigned = dict(matrix)
+        digest = unsigned.pop("sha256")
+        self.assertEqual(
+            digest,
+            hashlib.sha256(json.dumps(
+                unsigned, sort_keys=True, separators=(",", ":")
+            ).encode()).hexdigest(),
+        )
+        self.assertEqual(len(matrix["matrices"]), 1)
+        generation = matrix["matrices"][0]
+        self.assertTrue(generation["complete"])
+        self.assertEqual(len(generation["candidates"]), 4)
+        self.assertEqual(sorted(candidate["order"] for candidate in generation["candidates"]),
+                         [0, 1, 2, 3])
+        self.assertEqual(len(generation["items"]), 4)
+        self.assertTrue(all(candidate["scores"] == [1, 1, 1, 1]
+                            for candidate in generation["candidates"]))
+        self.assertTrue(all(candidate["runs"] for candidate in generation["candidates"]))
 
 
 if __name__ == "__main__":

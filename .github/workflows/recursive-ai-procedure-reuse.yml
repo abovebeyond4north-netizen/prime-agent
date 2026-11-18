@@ -1,0 +1,39 @@
+name: Recursive AI procedure memory ablation
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: [".github/workflows/recursive-ai-procedure-reuse.yml", "recursive-ai/research/procedure_reuse.py", "recursive-ai/tests/test_procedure_reuse.py", "recursive-ai/autonomy/procedure.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [910022, 910033, 910044]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check ablation boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_procedure_reuse -v
+      - name: Compare persisted procedure reuse against rediscovery
+        working-directory: recursive-ai
+        env:
+          STUDY_SEED: ${{ matrix.seed }}
+        run: |
+          mkdir procedure-reuse-evidence
+          python3 -m research.procedure_reuse --seed "$STUDY_SEED" --state procedure-reuse-evidence/state --output procedure-reuse-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: procedure-reuse-${{ matrix.seed }}
+          path: recursive-ai/procedure-reuse-evidence/**
+          if-no-files-found: error
+          retention-days: 30

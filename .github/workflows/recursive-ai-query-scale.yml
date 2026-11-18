@@ -1,0 +1,42 @@
+name: Recursive AI 24 rule query verification
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: [".github/workflows/recursive-ai-query-scale.yml", "recursive-ai/research/query_scale.py", "recursive-ai/tests/test_query_scale.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        seed: [820019, 820020, 820021]
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check frozen sample partitions
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_query_scale -v
+      - name: Compare frozen query policies
+        working-directory: recursive-ai
+        env:
+          STUDY_SEED: ${{ matrix.seed }}
+          STUDY_SHARD: ${{ matrix.shard }}
+        run: |
+          mkdir query-scale-evidence
+          python3 -m research.query_scale --seed "$STUDY_SEED" --shard "$STUDY_SHARD" --state query-scale-evidence/state --output query-scale-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: query-scale-${{ matrix.seed }}-${{ matrix.shard }}
+          path: recursive-ai/query-scale-evidence/**
+          if-no-files-found: error
+          retention-days: 30

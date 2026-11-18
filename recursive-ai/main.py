@@ -14,7 +14,13 @@ from memory.skill_store import MemoryEngine
 from sandbox.runner import SandboxRunner
 from synthesizer.context_builder import build_context
 from synthesizer.generator import CandidateSynthesizer, select_strategy
-from autonomy.controller import execute_goal, solve, status as research_status
+from autonomy.controller import (
+    activate_skill_contract,
+    execute_goal,
+    invoke_skill_contract,
+    solve,
+    status as research_status,
+)
 from autonomy.tasks import goal_contract
 from research.meta_eval import run_meta_evaluation
 from research.transfer_eval import run_transfer_evaluation
@@ -148,12 +154,15 @@ def rehearse_rollback(root, commit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["run", "status", "rollback", "rehearse-rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum", "evolve-search-policy", "compare-search-selection"])
+    parser.add_argument("command", choices=["run", "status", "rollback", "rehearse-rollback", "autonomous", "plan", "research-status", "solve", "meta-evaluate", "transfer-evaluate", "evolve-curriculum", "evolve-search-policy", "compare-search-selection", "contract-invoke", "contract-activate"])
     parser.add_argument("--state", default=str(Path(__file__).parent / ".lab-state"))
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--provider", choices=["demo", "search", "api"], default="demo")
     parser.add_argument("--image", default="recursive-ai-runner:local")
     parser.add_argument("--checkpoint")
+    parser.add_argument("--contract-state")
+    parser.add_argument("--contract-key")
+    parser.add_argument("--contract-input", type=int)
     parser.add_argument("--skill", default="gcd")
     parser.add_argument("--arguments", default="[12,18]")
     parser.add_argument("--goal", default="algorithms toolkit")
@@ -200,7 +209,19 @@ def main():
     provider = "search" if args.provider == "demo" else args.provider
     if args.command in ("rollback", "rehearse-rollback") and not args.checkpoint:
         parser.error("--checkpoint is required")
-    if args.command == "rollback":
+    if args.command.startswith("contract-") and not args.contract_state:
+        parser.error("--contract-state is required for contract commands")
+    if args.command == "contract-invoke" and (not args.contract_key or args.contract_input is None):
+        parser.error("--contract-key and --contract-input are required for contract-invoke")
+    if args.command == "contract-activate" and not args.checkpoint:
+        parser.error("--checkpoint is required for contract-activate")
+    if args.command == "contract-invoke":
+        print(json.dumps(invoke_skill_contract(
+            args.contract_state, args.contract_key, args.contract_input, args.image
+        ), sort_keys=True))
+    elif args.command == "contract-activate":
+        print(json.dumps(activate_skill_contract(args.contract_state, args.checkpoint), sort_keys=True))
+    elif args.command == "rollback":
         rollback(args.state, args.checkpoint)
     elif args.command == "rehearse-rollback":
         print(json.dumps(rehearse_rollback(args.state, args.checkpoint), indent=2, sort_keys=True))

@@ -1,0 +1,34 @@
+name: Recursive AI selective composition reuse
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths:
+      - "recursive-ai/research/selective_reuse.py"
+      - "recursive-ai/research/selective_reuse_study.py"
+      - "recursive-ai/tests/test_selective_reuse.py"
+      - ".github/workflows/recursive-ai-selective-reuse.yml"
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Test routing, fallback and rollback
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_selective_reuse tests.test_composition_contract tests.test_composition_search -v
+      - name: Execute frozen four-arm comparison
+        working-directory: recursive-ai
+        run: |
+          mkdir selective-evidence
+          python3 -m research.selective_reuse_study --state selective-evidence/state --output selective-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: selective-reuse
+          path: recursive-ai/selective-evidence/**
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,50 @@
+name: Recursive AI baseline preserving query fallback
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: [".github/workflows/recursive-ai-query-fallback.yml", "recursive-ai/research/query_fallback.py", "recursive-ai/research/oracle_process.py", "recursive-ai/research/mixed_inference.py", "recursive-ai/research/public_queries.py", "recursive-ai/research/fallback_study.py", "recursive-ai/sandbox/selector.Dockerfile", "recursive-ai/tests/test_selector_container.py", "recursive-ai/tests/test_query_fallback.py", "recursive-ai/tests/test_oracle_process.py"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        seed: [920022, 920023, 920024]
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build isolated runner
+        working-directory: recursive-ai
+        run: docker build -t recursive-ai-runner:local sandbox/
+      - name: Check preservation and query budget boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_query_fallback tests.test_oracle_process -v
+      - name: Build public-only selector image and freeze its identity
+        working-directory: recursive-ai
+        run: |
+          docker build -t recursive-ai-selector:local -f sandbox/selector.Dockerfile .
+          echo "RECURSIVE_SELECTOR_IMAGE=$(docker image inspect --format '{{.Id}}' recursive-ai-selector:local)" >> "$GITHUB_ENV"
+      - name: Verify actual selector containment and failure cleanup
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_selector_container -v
+      - name: Compare fixed extension and boundary fallback
+        working-directory: recursive-ai
+        env:
+          STUDY_SEED: ${{ matrix.seed }}
+          STUDY_SHARD: ${{ matrix.shard }}
+        run: |
+          mkdir fallback-evidence
+          python3 -m research.fallback_study --seed "$STUDY_SEED" --shard "$STUDY_SHARD" --state fallback-evidence/state --output fallback-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: query-fallback-${{ matrix.seed }}-${{ matrix.shard }}
+          path: recursive-ai/fallback-evidence/**
+          if-no-files-found: error
+          retention-days: 30

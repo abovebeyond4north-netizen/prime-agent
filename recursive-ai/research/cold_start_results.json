@@ -1,0 +1,789 @@
+{
+  "code_commit": "16e82059f36c8ab26f0a80dfbc19073467758695",
+  "run_id": 38561139891,
+  "results": [
+    {
+      "job_id": 115842212112,
+      "arms": {
+        "learned": {
+          "procedure_models": 4,
+          "shifted": {
+            "cases": {
+              "integer_sqrt:tier2": 256,
+              "triangular_inverse:tier2": 256
+            },
+            "containers": 17,
+            "passed": true,
+            "seed": 230007
+          },
+          "sources": {
+            "integer_sqrt:tier1": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "integer_sqrt:tier2": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "lower_bound:tier1": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "lower_bound:tier2": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "triangular_inverse:tier1": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c",
+            "triangular_inverse:tier2": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c"
+          },
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier2"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "integer_sqrt:tier2",
+              "lower_bound:tier1",
+              "lower_bound:tier2",
+              "triangular_inverse:tier1",
+              "triangular_inverse:tier2"
+            ],
+            "checkpoint": "1d1bfa7b3d22f773b2eb4fc0d6a57dd6037d382c",
+            "container_runs": 116,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "f488f745347d3768c3c559f9",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0,
+            "learn_inverse_procedure": true,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 15,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 7,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 16,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 7,
+            "wall_seconds": 42.472240481
+          }
+        },
+        "supplied": {
+          "procedure_models": 0,
+          "shifted": {
+            "cases": {
+              "integer_sqrt:tier2": 256,
+              "triangular_inverse:tier2": 256
+            },
+            "containers": 17,
+            "passed": true,
+            "seed": 230007
+          },
+          "sources": {
+            "integer_sqrt:tier1": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "integer_sqrt:tier2": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "lower_bound:tier1": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "lower_bound:tier2": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "triangular_inverse:tier1": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c",
+            "triangular_inverse:tier2": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c"
+          },
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier2"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "integer_sqrt:tier2",
+              "lower_bound:tier1",
+              "lower_bound:tier2",
+              "triangular_inverse:tier1",
+              "triangular_inverse:tier2"
+            ],
+            "checkpoint": "c75e8101999e51ad4d192714c12620e5130f3a79",
+            "container_runs": 99,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "f488f745347d3768c3c559f9",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0,
+            "learn_inverse_procedure": false,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 15,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 7,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 16,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 7,
+            "wall_seconds": 38.659596005
+          }
+        }
+      },
+      "budgets": {
+        "max_attempts": 16,
+        "max_containers": 160,
+        "max_model_calls": 0,
+        "max_seconds": 600
+      },
+      "comparison": {
+        "learned_extra_containers": 17,
+        "outcome": "supplied_advantage",
+        "verified": true
+      },
+      "limits": [
+        "Both start empty; extra seeded validation is separate from acquisition cost.",
+        "Same designed tasks, evaluator and operator/environment class; no open-world claim.",
+        "Receiving tiers use the same task family; supplied arm starts with a correct designed scaffold.",
+        "Container cost does not establish CPU, wall-time or dollar-cost superiority."
+      ],
+      "order": [
+        "learned",
+        "supplied"
+      ],
+      "seed": 230007
+    },
+    {
+      "job_id": 115842212491,
+      "arms": {
+        "learned": {
+          "procedure_models": 4,
+          "shifted": {
+            "cases": {
+              "integer_sqrt:tier2": 256,
+              "triangular_inverse:tier2": 256
+            },
+            "containers": 17,
+            "passed": true,
+            "seed": 230008
+          },
+          "sources": {
+            "integer_sqrt:tier1": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "integer_sqrt:tier2": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "lower_bound:tier1": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "lower_bound:tier2": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "triangular_inverse:tier1": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c",
+            "triangular_inverse:tier2": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c"
+          },
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier2"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "integer_sqrt:tier2",
+              "lower_bound:tier1",
+              "lower_bound:tier2",
+              "triangular_inverse:tier1",
+              "triangular_inverse:tier2"
+            ],
+            "checkpoint": "17819bb4146c03f5a4ca49f94e9c1b48083ae5f5",
+            "container_runs": 116,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "f488f745347d3768c3c559f9",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0,
+            "learn_inverse_procedure": true,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 15,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 7,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 16,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 7,
+            "wall_seconds": 46.195399577
+          }
+        },
+        "supplied": {
+          "procedure_models": 0,
+          "shifted": {
+            "cases": {
+              "integer_sqrt:tier2": 256,
+              "triangular_inverse:tier2": 256
+            },
+            "containers": 17,
+            "passed": true,
+            "seed": 230008
+          },
+          "sources": {
+            "integer_sqrt:tier1": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "integer_sqrt:tier2": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "lower_bound:tier1": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "lower_bound:tier2": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "triangular_inverse:tier1": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c",
+            "triangular_inverse:tier2": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c"
+          },
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier2"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "integer_sqrt:tier2",
+              "lower_bound:tier1",
+              "lower_bound:tier2",
+              "triangular_inverse:tier1",
+              "triangular_inverse:tier2"
+            ],
+            "checkpoint": "cb256faa4ff17e323eb661683c0ac3b0e811295e",
+            "container_runs": 99,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "f488f745347d3768c3c559f9",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0,
+            "learn_inverse_procedure": false,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 15,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 7,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 16,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 7,
+            "wall_seconds": 45.374395509
+          }
+        }
+      },
+      "budgets": {
+        "max_attempts": 16,
+        "max_containers": 160,
+        "max_model_calls": 0,
+        "max_seconds": 600
+      },
+      "comparison": {
+        "learned_extra_containers": 17,
+        "outcome": "supplied_advantage",
+        "verified": true
+      },
+      "limits": [
+        "Both start empty; extra seeded validation is separate from acquisition cost.",
+        "Same designed tasks, evaluator and operator/environment class; no open-world claim.",
+        "Receiving tiers use the same task family; supplied arm starts with a correct designed scaffold.",
+        "Container cost does not establish CPU, wall-time or dollar-cost superiority."
+      ],
+      "order": [
+        "supplied",
+        "learned"
+      ],
+      "seed": 230008
+    },
+    {
+      "job_id": 115842212524,
+      "arms": {
+        "learned": {
+          "procedure_models": 4,
+          "shifted": {
+            "cases": {
+              "integer_sqrt:tier2": 256,
+              "triangular_inverse:tier2": 256
+            },
+            "containers": 17,
+            "passed": true,
+            "seed": 230006
+          },
+          "sources": {
+            "integer_sqrt:tier1": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "integer_sqrt:tier2": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "lower_bound:tier1": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "lower_bound:tier2": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "triangular_inverse:tier1": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c",
+            "triangular_inverse:tier2": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c"
+          },
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier2"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "integer_sqrt:tier2",
+              "lower_bound:tier1",
+              "lower_bound:tier2",
+              "triangular_inverse:tier1",
+              "triangular_inverse:tier2"
+            ],
+            "checkpoint": "eb0a608ba9ba9e87654e735fde16c3a356b229f1",
+            "container_runs": 116,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "f488f745347d3768c3c559f9",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0,
+            "learn_inverse_procedure": true,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 15,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 7,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 16,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 7,
+            "wall_seconds": 45.76636689999998
+          }
+        },
+        "supplied": {
+          "procedure_models": 0,
+          "shifted": {
+            "cases": {
+              "integer_sqrt:tier2": 256,
+              "triangular_inverse:tier2": 256
+            },
+            "containers": 17,
+            "passed": true,
+            "seed": 230006
+          },
+          "sources": {
+            "integer_sqrt:tier1": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "integer_sqrt:tier2": "84617208c3ec49b991aa78f97c87dd80ed54b936f72cbca7727f44927d1e529e",
+            "lower_bound:tier1": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "lower_bound:tier2": "6d089d503483ccfd65b767f9f2edc7c0c73f958d746565b35c07d4297b50211c",
+            "triangular_inverse:tier1": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c",
+            "triangular_inverse:tier2": "d3890efe0656114bc5360920af14e258710b9650d6a3c57223c53660cd7d216c"
+          },
+          "summary": {
+            "audit": {
+              "confidence_level": 0.95,
+              "distribution": "independent shifted audit",
+              "passed": true,
+              "reports": [
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier1"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "lower_bound:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "integer_sqrt:tier2"
+                },
+                {
+                  "cases": 512,
+                  "passed": true,
+                  "simultaneous_lower_bound": 0.9906930108273898,
+                  "task": "triangular_inverse:tier2"
+                }
+              ]
+            },
+            "candidate_lineage_edges": 3,
+            "certified_tasks": [
+              "integer_sqrt:tier1",
+              "integer_sqrt:tier2",
+              "lower_bound:tier1",
+              "lower_bound:tier2",
+              "triangular_inverse:tier1",
+              "triangular_inverse:tier2"
+            ],
+            "checkpoint": "cdea0fa7faa4a9079b99b64d4678aa124fb10dde",
+            "container_runs": 99,
+            "coverage": 1,
+            "curriculum_profile": {
+              "family_balance_weight": 0,
+              "retry_weight": 1,
+              "unlock_weight": 0
+            },
+            "curriculum_profile_digest": "bcbd7c44e8b256f1857cf0b955e5a634385760b387485a9b12356fe0e1ad189e",
+            "focused_public_repair_attempts": 0,
+            "goal_id": "f488f745347d3768c3c559f9",
+            "image": "recursive-ai-runner:local",
+            "initial_coverage": 0,
+            "learn_inverse_procedure": false,
+            "model_calls": 0,
+            "policy_mode": "learned",
+            "policy_prior_digest": null,
+            "policy_revisions": 4,
+            "prior_strength": 4,
+            "provider": "search",
+            "regression_cache_hits": 0,
+            "regression_executions": 15,
+            "repair_public_failures": false,
+            "reuse_regression_checks": false,
+            "search_profile": {
+              "parent_limit": 8,
+              "parent_novelty_weight": 0.25,
+              "parent_quality_weight": 0.7,
+              "parent_size_weight": 0.05,
+              "ucb_exploration": 2
+            },
+            "search_profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "session_attempts": 7,
+            "stagnation_evidence": {
+              "consecutive_no_gain": 0,
+              "enforced_by_harness": true,
+              "limit": 16,
+              "observations": []
+            },
+            "status": "goal_reached",
+            "target": 1,
+            "total_attempts": 7,
+            "wall_seconds": 40.74009958399999
+          }
+        }
+      },
+      "budgets": {
+        "max_attempts": 16,
+        "max_containers": 160,
+        "max_model_calls": 0,
+        "max_seconds": 600
+      },
+      "comparison": {
+        "learned_extra_containers": 17,
+        "outcome": "supplied_advantage",
+        "verified": true
+      },
+      "limits": [
+        "Both start empty; extra seeded validation is separate from acquisition cost.",
+        "Same designed tasks, evaluator and operator/environment class; no open-world claim.",
+        "Receiving tiers use the same task family; supplied arm starts with a correct designed scaffold.",
+        "Container cost does not establish CPU, wall-time or dollar-cost superiority."
+      ],
+      "order": [
+        "supplied",
+        "learned"
+      ],
+      "seed": 230006
+    }
+  ]
+}

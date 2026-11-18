@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-26",
+  "protocol": "contract-comparison-1",
+  "laboratory_run_url": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40267714744",
+  "laboratory_conclusion": "success",
+  "code_commit": "24bb90b184155d351d037f40cbfc49a48073daaa",
+  "run_url": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40267709797",
+  "results": [
+    {
+      "shard": 0,
+      "commit": "24bb90b184155d351d037f40cbfc49a48073daaa",
+      "summary": {
+        "controller": {
+          "certified": 3,
+          "initial_containers": 52,
+          "initial_labels": 265,
+          "initial_wall_seconds": 24.775254595999975,
+          "repeat_containers": 0,
+          "repeat_labels": 0,
+          "replay_containers": 12
+        },
+        "direct": {
+          "certified": 3,
+          "initial_containers": 52,
+          "initial_labels": 265,
+          "initial_wall_seconds": 25.566746071000026,
+          "repeat_containers": 0,
+          "repeat_labels": 0,
+          "replay_containers": 12
+        },
+        "no_reuse": {
+          "certified": 3,
+          "initial_containers": 52,
+          "initial_labels": 265,
+          "initial_wall_seconds": 25.137077742000002,
+          "repeat_containers": 51,
+          "repeat_labels": 201,
+          "replay_containers": 12
+        }
+      },
+      "parity": true,
+      "rows": [
+        {
+          "parameters": [
+            3,
+            4,
+            2,
+            2,
+            1
+          ],
+          "status": "certified",
+          "labels": 64,
+          "containers": 17,
+          "audit": 128,
+          "signatures_equal": true,
+          "repeat_labels": 64
+        },
+        {
+          "parameters": [
+            3,
+            3,
+            1,
+            0,
+            1
+          ],
+          "status": "certified",
+          "labels": 64,
+          "containers": 17,
+          "audit": 128,
+          "signatures_equal": true,
+          "repeat_labels": 64
+        },
+        {
+          "parameters": [
+            4,
+            1,
+            1,
+            4,
+            3
+          ],
+          "status": "certified",
+          "labels": 73,
+          "containers": 17,
+          "audit": 128,
+          "signatures_equal": true,
+          "repeat_labels": 73
+        },
+        {
+          "parameters": [
+            5,
+            1,
+            1,
+            1,
+            1
+          ],
+          "status": "abstained",
+          "labels": 64,
+          "containers": 1,
+          "signatures_equal": true
+        }
+      ],
+      "image": "sha256:926cdee8fae2c51d2734b327c980c08ae75e2593c2d79a7b5adb67ba9f7c8bbe",
+      "selector_image": "sha256:7998201e7915d63805bc29658f3321f815cc50284999972e09499e771d6cd4d6"
+    },
+    {
+      "shard": 1,
+      "commit": "24bb90b184155d351d037f40cbfc49a48073daaa",
+      "summary": {
+        "controller": {
+          "certified": 3,
+          "initial_containers": 52,
+          "initial_labels": 273,
+          "initial_wall_seconds": 23.65768338999999,
+          "repeat_containers": 0,
+          "repeat_labels": 0,
+          "replay_containers": 12
+        },
+        "direct": {
+          "certified": 3,
+          "initial_containers": 52,
+          "initial_labels": 273,
+          "initial_wall_seconds": 23.497673186,
+          "repeat_containers": 0,
+          "repeat_labels": 0,
+          "replay_containers": 12
+        },
+        "no_reuse": {
+          "certified": 3,
+          "initial_containers": 52,
+          "initial_labels": 273,
+          "initial_wall_seconds": 23.498018508,
+          "repeat_containers": 51,
+          "repeat_labels": 209,
+          "replay_containers": 12
+        }
+      },
+      "parity": true,
+      "rows": [
+        {
+          "parameters": [
+            4,
+            3,
+            2,
+            3,
+            2
+          ],
+          "status": "certified",
+          "labels": 68,
+          "containers": 17,
+          "audit": 128,
+          "signatures_equal": true,
+          "repeat_labels": 68
+        },
+        {
+          "parameters": [
+            3,
+            3,
+            3,
+            4,
+            3
+          ],
+          "status": "certified",
+          "labels": 69,
+          "containers": 17,
+          "audit": 128,
+          "signatures_equal": true,
+          "repeat_labels": 69
+        },
+        {
+          "parameters": [
+            3,
+            3,
+            3,
+            4,
+            4
+          ],
+          "status": "certified",
+          "labels": 72,
+          "containers": 17,
+          "audit": 128,
+          "signatures_equal": true,
+          "repeat_labels": 72
+        },
+        {
+          "parameters": [
+            5,
+            1,
+            1,
+            1,
+            1
+          ],
+          "status": "abstained",
+          "labels": 64,
+          "containers": 1,
+          "signatures_equal": true
+        }
+      ],
+      "image": "sha256:7a385455ca7d5e6a54d5cb92d06bc485e9c99b719730ffe978074cd4b418f71c",
+      "selector_image": "sha256:fef47b05c8f49cec5c03e5d0fcba213804cfe086592d2a6bbf31ec14946a873a"
+    }
+  ],
+  "verified_unique_rules": 6,
+  "capability_gain_established": false,
+  "cached_repeat_labels": 0,
+  "cached_repeat_acquisition_containers": 0,
+  "cold_repeat_labels": 410,
+  "cold_repeat_acquisition_containers": 102,
+  "study_containers_including_replays": 486,
+  "total_label_calls": 2024,
+  "executed_audit_cases": 3072,
+  "audit_cases_across_six_rule_instances": 768,
+  "fresh_process_output_checks": 36,
+  "independent_replication": false,
+  "external_transfer": false,
+  "artifacts": [
+    {
+      "id": 12627177087,
+      "name": "contract-comparison-1",
+      "size_in_bytes": 310876,
+      "digest": "sha256:e61e9d5fe232e14551fcfc615c590a81b66f4e7f583f12a3ccfd555b1aefdb14",
+      "expires_at": "2026-11-25T04:12:46Z"
+    },
+    {
+      "id": 12626727605,
+      "name": "contract-comparison-0",
+      "size_in_bytes": 310650,
+      "digest": "sha256:a75be338e9252b266218a724438fc1160b2ed6f94f30e73e27e33df2cff405cf",
+      "expires_at": "2026-11-25T04:12:56Z"
+    }
+  ]
+}

@@ -331,7 +331,19 @@ def initial_population(size, seed=0):
     return result
 
 
-def _trial_row(summary, seed, goal):
+def _trial_row(summary, seed, goal, task_keys):
+    if not isinstance(task_keys, list) or not task_keys or any(
+        not isinstance(key, str) for key in task_keys
+    ):
+        raise ValueError("development task keys must be a nonempty string list")
+    certified = summary.get("certified_tasks")
+    if not isinstance(certified, list) or any(not isinstance(key, str) for key in certified):
+        raise ValueError("goal summary must retain certified task keys")
+    if len(set(certified)) != len(certified):
+        raise ValueError("goal summary contains duplicate certified task keys")
+    unexpected = set(certified) - set(task_keys)
+    if unexpected:
+        raise ValueError("goal summary contains tasks outside the development contract")
     return {
         "seed": seed,
         "goal": goal,
@@ -345,6 +357,10 @@ def _trial_row(summary, seed, goal):
         "model_calls": int(summary["model_calls"]),
         "checkpoint": summary.get("checkpoint"),
         "search_profile_digest": summary.get("search_profile_digest"),
+        "task_outcomes": {
+            key: key in certified
+            for key in task_keys
+        },
     }
 
 
@@ -398,6 +414,9 @@ def _evaluate_once(
     provider,
     image,
 ):
+    contract = goal_contract(
+        goal, tier=tier, target=target, task_seed=seed, task_count=task_count
+    )
     trial_root = Path(study_root) / phase / genome.id / f"seed-{seed}"
     summary = execute_goal(
         trial_root,
@@ -416,7 +435,70 @@ def _evaluate_once(
         policy_mode="learned",
         search_profile=genome.profile,
     )
-    return _trial_row(summary, seed, goal)
+    return _trial_row(summary, seed, goal, sorted(contract["weights"]))
+
+
+def development_evaluation_matrices(archive, generations):
+    matrices = []
+    for generation in range(generations):
+        records = [
+            record for record in archive.values()
+            if any(row.get("generation") == generation for row in record["development_rows"])
+        ]
+        if not records:
+            continue
+        shared = None
+        for record in records:
+            observed = {
+                (row["seed"], task)
+                for row in _generation_rows(record, generation)
+                for task in row["task_outcomes"]
+            }
+            shared = observed if shared is None else shared & observed
+        items = [
+            {"seed": seed, "task": task}
+            for seed, task in sorted(shared or set())
+        ]
+        candidate_order = {
+            record["genome"]["id"]: index for index, record in enumerate(records)
+        }
+        candidates = []
+        for record in sorted(records, key=lambda item: item["genome"]["id"]):
+            rows = _generation_rows(record, generation)
+            outcomes = {
+                (row["seed"], task): passed
+                for row in rows
+                for task, passed in row["task_outcomes"].items()
+            }
+            candidates.append({
+                "id": record["genome"]["id"],
+                "order": candidate_order[record["genome"]["id"]],
+                "profile_digest": record["genome"]["profile_digest"],
+                "scores": [int(outcomes[(item["seed"], item["task"])]) for item in items],
+                "runs": [{
+                    key: row[key] for key in (
+                        "seed", "attempts", "wall_seconds", "container_runs", "model_calls"
+                    )
+                } for row in rows],
+            })
+        matrices.append({
+            "generation": generation,
+            "items": items,
+            "candidates": candidates,
+            "complete": bool(items) and all(
+                len(candidate["scores"]) == len(items) for candidate in candidates
+            ),
+        })
+    result = {
+        "protocol": "search-policy-development-matrix-1",
+        "development_only": True,
+        "holdout_rows_included": False,
+        "matrices": matrices,
+    }
+    result["sha256"] = hashlib.sha256(
+        json.dumps(result, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    return result
 
 
 def _generation_rows(record, generation):
@@ -843,6 +925,9 @@ def run_search_policy_evolution(
                 for record in archive.values()
             ),
             key=lambda record: (record["first_generation"], record["genome"]["id"]),
+        ),
+        "development_evaluation": development_evaluation_matrices(
+            archive, generations
         ),
         "finalist": finalist_record["genome"],
         "baseline": baseline.descriptor(),

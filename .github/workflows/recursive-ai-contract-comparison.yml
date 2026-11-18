@@ -1,0 +1,44 @@
+name: Recursive AI contract matched comparison
+on:
+  push:
+    branches: [recursive-ai/procedure-memory-ablation]
+    paths: ["recursive-ai/research/contract_comparison.py", "recursive-ai/tests/test_contract_comparison.py", ".github/workflows/recursive-ai-contract-comparison.yml"]
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Build pinned candidate and selector images
+        working-directory: recursive-ai
+        run: |
+          docker build -t recursive-ai-runner:local sandbox/
+          docker build -t recursive-ai-selector:local -f sandbox/selector.Dockerfile .
+          echo "CONTRACT_RUNNER_IMAGE=$(docker image inspect --format '{{.Id}}' recursive-ai-runner:local)" >> "$GITHUB_ENV"
+          echo "RECURSIVE_SELECTOR_IMAGE=$(docker image inspect --format '{{.Id}}' recursive-ai-selector:local)" >> "$GITHUB_ENV"
+      - name: Verify study boundaries
+        working-directory: recursive-ai
+        run: python3 -m unittest tests.test_contract_comparison -v
+      - name: Execute frozen matched comparison
+        working-directory: recursive-ai
+        env:
+          STUDY_SHARD: ${{ matrix.shard }}
+        run: |
+          mkdir comparison-evidence
+          python3 -m research.contract_comparison --shard "$STUDY_SHARD" --state comparison-evidence/state --output comparison-evidence/result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: contract-comparison-${{ matrix.shard }}
+          path: recursive-ai/comparison-evidence/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

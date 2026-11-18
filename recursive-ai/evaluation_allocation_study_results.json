@@ -1,0 +1,309 @@
+{
+  "acceptance_passed": false,
+  "config": {
+    "base_seed": 43100,
+    "development_only": true,
+    "development_suite_digests": [
+      "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+      "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df"
+    ],
+    "goal": "compound arithmetic",
+    "holdout_rows_included": false,
+    "image": "recursive-ai-runner:local",
+    "max_attempts": 12,
+    "max_containers": 200,
+    "max_model_calls": 0,
+    "max_seconds": 90,
+    "max_stagnation": 8,
+    "population": 4,
+    "protocol": "evaluation-allocation-development-study-1",
+    "provider": "search",
+    "replay_core_size": 4,
+    "replay_seed": 43102,
+    "replay_source_sha256": "c7e075695c288b313e45af378f65625ba42466964ace6ec0001d4b247bae1baf",
+    "replay_warmup_candidates": 2,
+    "replicates": 2,
+    "search_policy_protocol_digest": "f885f8e96ba3d6f54bf442ac48fb6589e4eea04b20056f1005a0fe4f9ee6dcec",
+    "sha256": "08f51bb0738871d73b14b9fcf6b559cff77942df762c5a6ae3cfe7492be4f73b",
+    "study_source_sha256": "a5d90d35f1cf7ae145ecffc68045c89376762f66999198a14f600e4cd2fe96ab",
+    "target": 1.0,
+    "task_count": 4,
+    "tier": 2
+  },
+  "cost_accounting": {
+    "evaluation_wall_seconds": 374.892499972,
+    "matched_trial_budgets": true,
+    "reason": null,
+    "setup_inclusive_wall_seconds": 378.79608542700004,
+    "setup_inclusive_wall_supported": true
+  },
+  "development_evaluation": {
+    "development_only": true,
+    "holdout_rows_included": false,
+    "matrices": [
+      {
+        "candidates": [
+          {
+            "id": "30cce44b42aa6c508f83",
+            "order": 3,
+            "profile_digest": "5dcd5bc15c4835004ea561f8ecb8db3f896e798ad8401f4d79ab9baf606a68dd",
+            "runs": [
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43100,
+                "wall_seconds": 46.437630918000025
+              },
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43101,
+                "wall_seconds": 46.211433581999984
+              }
+            ],
+            "scores": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "id": "478a542c8563fc6a0b42",
+            "order": 1,
+            "profile_digest": "ae1a7b14a00f3587a6e13008b35361ad5af8f0e6cc24a46e6e9e018210b92ad9",
+            "runs": [
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43100,
+                "wall_seconds": 46.67024186800002
+              },
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43101,
+                "wall_seconds": 47.585678668000014
+              }
+            ],
+            "scores": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "id": "c71ce935688546ca2273",
+            "order": 2,
+            "profile_digest": "669c68bad226de61c7638ea4d561726726fe4f5824247f8c3b339a5e7f09d4f7",
+            "runs": [
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43100,
+                "wall_seconds": 47.575516703000005
+              },
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43101,
+                "wall_seconds": 46.70430193799996
+              }
+            ],
+            "scores": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "id": "fdd103af583058c44666",
+            "order": 0,
+            "profile_digest": "48ebfe0a8b98e07d64ce4bccff35769ba5e699313b0fdee40977e2cb3f49e7f9",
+            "runs": [
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43100,
+                "wall_seconds": 47.521863128999996
+              },
+              {
+                "attempts": 10,
+                "container_runs": 161,
+                "model_calls": 0,
+                "seed": 43101,
+                "wall_seconds": 46.14381006000001
+              }
+            ],
+            "scores": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "complete": true,
+        "generation": 0,
+        "items": [
+          {
+            "seed": 43100,
+            "task": "expression:5b22616464222c5b22616464222c2261222c2262225d2c5b22676364222c5b22616464222c2261222c325d2c5b22737562222c2262222c335d5d5d:tier1"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b22616464222c5b22616464222c2261222c2262225d2c5b22676364222c5b22616464222c2261222c325d2c5b22737562222c2262222c335d5d5d:tier2"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b226d6178222c5b22676364222c5b226d756c222c2261222c2d335d2c5b22737562222c2262222c2d325d5d2c5b226d756c222c2261222c2262225d5d:tier1"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b226d6178222c5b22676364222c5b226d756c222c2261222c2d335d2c5b22737562222c2262222c2d325d5d2c5b226d756c222c2261222c2262225d5d:tier2"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b226d756c222c5b22676364222c5b22737562222c2261222c2d375d2c5b22737562222c2262222c2d355d5d2c5b226d756c222c2261222c2262225d5d:tier1"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b226d756c222c5b22676364222c5b22737562222c2261222c2d375d2c5b22737562222c2262222c2d355d5d2c5b226d756c222c2261222c2262225d5d:tier2"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b22737562222c5b22676364222c5b22616464222c2261222c325d2c5b226d756c222c2262222c335d5d2c5b22737562222c2261222c2262225d5d:tier1"
+          },
+          {
+            "seed": 43100,
+            "task": "expression:5b22737562222c5b22676364222c5b22616464222c2261222c325d2c5b226d756c222c2262222c335d5d2c5b22737562222c2261222c2262225d5d:tier2"
+          },
+          {
+            "seed": 43100,
+            "task": "gcd:tier1"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b22616464222c5b22616464222c2261222c2262225d2c5b22676364222c5b22616464222c2261222c395d2c5b226d756c222c2262222c2d325d5d5d:tier1"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b22616464222c5b22616464222c2261222c2262225d2c5b22676364222c5b22616464222c2261222c395d2c5b226d756c222c2262222c2d325d5d5d:tier2"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b226d696e222c5b22676364222c5b22616464222c2261222c325d2c5b226d756c222c2262222c375d5d2c5b22737562222c2261222c2262225d5d:tier1"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b226d696e222c5b22676364222c5b22616464222c2261222c325d2c5b226d756c222c2262222c375d5d2c5b22737562222c2261222c2262225d5d:tier2"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b226d756c222c5b22616464222c2261222c2262225d2c5b22676364222c5b226d756c222c2261222c2d335d2c5b226d756c222c2262222c335d5d5d:tier1"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b226d756c222c5b22616464222c2261222c2262225d2c5b22676364222c5b226d756c222c2261222c2d335d2c5b226d756c222c2262222c335d5d5d:tier2"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b226d756c222c5b22676364222c5b22616464222c2261222c395d2c5b226d756c222c2262222c2d355d5d2c5b226d756c222c2261222c2262225d5d:tier1"
+          },
+          {
+            "seed": 43101,
+            "task": "expression:5b226d756c222c5b22676364222c5b22616464222c2261222c395d2c5b226d756c222c2262222c2d355d5d2c5b226d756c222c2261222c2262225d5d:tier2"
+          },
+          {
+            "seed": 43101,
+            "task": "gcd:tier1"
+          }
+        ]
+      }
+    ],
+    "protocol": "search-policy-development-matrix-1",
+    "sha256": "bde7e82c39b136fe48c2ef90dae898cafa4310c0ecb053601aed3c1c44edf245"
+  },
+  "limits": [
+    "Development evidence only; no holdout task is constructed or evaluated.",
+    "A degenerate matrix or zero baseline successes blocks replay.",
+    "No efficiency claim is admissible without setup-inclusive runtime.",
+    "This same-operator study cannot establish independent replication."
+  ],
+  "protocol": "evaluation-allocation-development-study-1",
+  "receipt_sha256": "6b7f02f8f9329a3632bd517cc3d4ae5288e36e8c9cdd478c22d3cc642b0df9a1",
+  "replay": null,
+  "screen": {
+    "candidate_count": 4,
+    "distinct_score_rows": 1,
+    "item_count": 18,
+    "nondegenerate": false,
+    "positive_baseline_successes": 18
+  },
+  "source_sha256": "a5d90d35f1cf7ae145ecffc68045c89376762f66999198a14f600e4cd2fe96ab"
+}

@@ -1,0 +1,3316 @@
+{
+  "code_commit": "d9c4f78889ee2eedf3e2b0aed0f24ad6164bc0cb",
+  "laboratory_run_url": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40270364367",
+  "laboratory_conclusion": "success",
+  "run_url": "https://github.com/abovebeyond4north-netizen/prime-agent/actions/runs/40270360658",
+  "totals": {
+    "compositional": {
+      "certified": 14,
+      "containers": 224,
+      "audit_cases": 1792
+    },
+    "linear": {
+      "certified": 7,
+      "containers": 112,
+      "audit_cases": 896
+    },
+    "lookup": {
+      "certified": 1,
+      "containers": 55,
+      "audit_cases": 128
+    }
+  },
+  "comparisons": [
+    {
+      "baseline": "lookup",
+      "wins": 13,
+      "losses": 0,
+      "ties": 1,
+      "one_sided_p": 0.0001220703125,
+      "holm_adjusted_p": 0.000244140625
+    },
+    {
+      "baseline": "linear",
+      "wins": 7,
+      "losses": 0,
+      "ties": 7,
+      "one_sided_p": 0.0078125,
+      "holm_adjusted_p": 0.0078125
+    }
+  ],
+  "statistical_caution": "Conditional sign-test calculations under exchangeable discordance signs; not population evidence outside this complete finite rule family.",
+  "total_containers": 397,
+  "negative_controls_rejected": 2,
+  "public_labels_shared_across_arms": 56,
+  "public_labels_negative_controls": 8,
+  "artifacts": [
+    {
+      "id": 12628945005,
+      "name": "boolean-transfer-0",
+      "size_in_bytes": 2542,
+      "digest": "sha256:53a309c53b9282884ea00e6739a8287447890cf080103938db6b0acdb14b2c23",
+      "expires_at": "2026-11-25T04:43:05Z"
+    },
+    {
+      "id": 12628255645,
+      "name": "boolean-transfer-1",
+      "size_in_bytes": 2552,
+      "digest": "sha256:f096ef5d1a797a6082303c2d3d1758a5960b283c3b32f63e571599d8044b0678",
+      "expires_at": "2026-11-25T04:43:03Z"
+    }
+  ],
+  "results": [
+    {
+      "code_commit": "d9c4f78889ee2eedf3e2b0aed0f24ad6164bc0cb",
+      "development_truths": [
+        6,
+        8
+      ],
+      "holdout_truths": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "image": "sha256:0d397db0c7dfd1cf978933e04fc2f291e7484ee0f4a06be83831cca8604a68a6",
+      "independent_evaluation": false,
+      "learner_digest": "8b31326369cb833ab3c0789cf184e7037cd64e4fed9c85a01a4e0a1d972dbcb9",
+      "limits": [
+        "Developer-supplied Boolean algebra and compiler; only operation coefficients are learned.",
+        "Four one-bit observations cannot prove arbitrary unknown functions are bitwise homogeneous.",
+        "Finite internal task family with complete one-bit truth tables, not open-world discovery.",
+        "Lookup and no-interaction controls isolate word transfer and Boolean interaction, not all SOTA methods.",
+        "Selector is trusted public-only host code; generated programs execute only in Docker.",
+        "No persistent skill promotion, independent operators, or external-domain evaluation."
+      ],
+      "production_promotion": false,
+      "protocol": "boolean-word-transfer-1",
+      "rows": [
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3626
+                },
+                "objective": 0.992889374,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:0"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3626
+                },
+                "objective": 0.992889374,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:0"
+              }
+            },
+            "lookup": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 5,
+                  "peak_bytes": 3672
+                },
+                "objective": 0.991832328,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:0"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 37,
+              "coefficients": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return 0\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 37,
+              "coefficients": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return 0\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[0, 0], [0, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 0
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3832
+                },
+                "objective": 0.991868168,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:1"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:1"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 54,
+              "coefficients": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ a ^ b ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 0], [0, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 1
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3760
+                },
+                "objective": 0.9928792399999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:2"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:2"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 46,
+              "coefficients": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return b ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[0, 1], [0, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 2
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3690
+                },
+                "objective": 0.99288231,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:3"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3690
+                },
+                "objective": 0.99288231,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:3"
+              }
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:3"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 42,
+              "coefficients": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ a\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 42,
+              "coefficients": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ a\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 1], [0, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 3
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3760
+                },
+                "objective": 0.9928792399999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:4"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:4"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 46,
+              "coefficients": [
+                0,
+                1,
+                0,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return a ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                0,
+                1,
+                0,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[0, 0], [1, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 4
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3750
+                },
+                "objective": 0.9928822500000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:5"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3750
+                },
+                "objective": 0.9928822500000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:5"
+              }
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:5"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 42,
+              "coefficients": [
+                1,
+                0,
+                1,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ b\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 42,
+              "coefficients": [
+                1,
+                0,
+                1,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ b\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                0,
+                1,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 0], [1, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 5
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3764
+                },
+                "objective": 0.992876236,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:7"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:7"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 46,
+              "coefficients": [
+                1,
+                0,
+                0,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                0,
+                0,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 1], [1, 0]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              0
+            ]
+          ],
+          "truth": 7
+        }
+      ],
+      "shard": 0,
+      "shifted_negative_control": {
+        "audit_cases": 0,
+        "certified": false,
+        "containers": 3,
+        "report": {
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "error_type": "ValueError",
+              "name": "regression",
+              "number": 5,
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+          "suite_version": "autonomy-1",
+          "task": "research:boolean-word:6"
+        }
+      },
+      "summary": {
+        "compositional": {
+          "audit_cases": 896,
+          "certified": 7,
+          "containers": 112,
+          "public_labels_per_task": 4
+        },
+        "linear": {
+          "audit_cases": 384,
+          "certified": 3,
+          "containers": 48,
+          "public_labels_per_task": 4
+        },
+        "lookup": {
+          "audit_cases": 128,
+          "certified": 1,
+          "containers": 34,
+          "public_labels_per_task": 4
+        }
+      }
+    },
+    {
+      "code_commit": "d9c4f78889ee2eedf3e2b0aed0f24ad6164bc0cb",
+      "development_truths": [
+        6,
+        8
+      ],
+      "holdout_truths": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "image": "sha256:caf928741c2ef58d6e40f2131b64168b3c0651d56bc6fd73ceeb5d5cc643b4d5",
+      "independent_evaluation": false,
+      "learner_digest": "8b31326369cb833ab3c0789cf184e7037cd64e4fed9c85a01a4e0a1d972dbcb9",
+      "limits": [
+        "Developer-supplied Boolean algebra and compiler; only operation coefficients are learned.",
+        "Four one-bit observations cannot prove arbitrary unknown functions are bitwise homogeneous.",
+        "Finite internal task family with complete one-bit truth tables, not open-world discovery.",
+        "Lookup and no-interaction controls isolate word transfer and Boolean interaction, not all SOTA methods.",
+        "Selector is trusted public-only host code; generated programs execute only in Docker.",
+        "No persistent skill promotion, independent operators, or external-domain evaluation."
+      ],
+      "production_promotion": false,
+      "protocol": "boolean-word-transfer-1",
+      "rows": [
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3816
+                },
+                "objective": 0.992878184,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:9"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3816
+                },
+                "objective": 0.992878184,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:9"
+              }
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:9"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 46,
+              "coefficients": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ a ^ b\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 46,
+              "coefficients": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ a ^ b\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 0], [0, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 9
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3688
+                },
+                "objective": 0.9928893120000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:10"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3688
+                },
+                "objective": 0.9928893120000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:10"
+              }
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:10"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 38,
+              "coefficients": [
+                0,
+                0,
+                1,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return b\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 38,
+              "coefficients": [
+                0,
+                0,
+                1,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return b\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                0,
+                0,
+                1,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[0, 1], [0, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 10
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3830
+                },
+                "objective": 0.9928721699999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:11"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:11"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 50,
+              "coefficients": [
+                1,
+                1,
+                0,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ a ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                1,
+                0,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 1], [0, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              0
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 11
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3688
+                },
+                "objective": 0.9928893120000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:12"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3688
+                },
+                "objective": 0.9928893120000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:12"
+              }
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:12"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 38,
+              "coefficients": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return a\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 38,
+              "coefficients": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return a\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[0, 0], [1, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 12
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3826
+                },
+                "objective": 0.9928721739999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:13"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:13"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 50,
+              "coefficients": [
+                1,
+                0,
+                1,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask ^ b ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                0,
+                1,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 0], [1, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              0
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 13
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3830
+                },
+                "objective": 0.9928751699999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:14"
+              }
+            },
+            "linear": {
+              "abstained": true,
+              "certified": false,
+              "containers": 0
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:14"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 50,
+              "coefficients": [
+                0,
+                1,
+                1,
+                1
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return a ^ b ^ (a & b)\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "reason": "interaction_required",
+              "source": null,
+              "status": "abstained"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                0,
+                1,
+                1,
+                1
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[0, 1], [1, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 14
+        },
+        {
+          "arms": {
+            "compositional": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3688
+                },
+                "objective": 0.992886312,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:15"
+              }
+            },
+            "linear": {
+              "audit_cases": 128,
+              "certified": true,
+              "containers": 16,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0,
+                  "max_steps": 4,
+                  "peak_bytes": 3688
+                },
+                "objective": 0.992886312,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:15"
+              }
+            },
+            "lookup": {
+              "audit_cases": 0,
+              "certified": false,
+              "containers": 3,
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "error_type": "ValueError",
+                    "name": "regression",
+                    "number": 5,
+                    "passed": false
+                  }
+                ],
+                "passed": false,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:boolean-word:15"
+              }
+            }
+          },
+          "proposals": {
+            "compositional": {
+              "ast_nodes": 38,
+              "coefficients": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "mode": "compositional",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask\n",
+              "status": "candidate"
+            },
+            "linear": {
+              "ast_nodes": 38,
+              "coefficients": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "mode": "linear",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    return mask\n",
+              "status": "candidate"
+            },
+            "lookup": {
+              "ast_nodes": 62,
+              "coefficients": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "mode": "lookup",
+              "public_labels": 4,
+              "source": "def bit_transform(a, b, width):\n    mask = (1 << width) - 1\n    a = a & mask\n    b = b & mask\n    if width != 1:\n        return 0\n    return [[1, 1], [1, 1]][a][b]\n",
+              "status": "candidate"
+            }
+          },
+          "public": [
+            [
+              0,
+              0,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "truth": 15
+        }
+      ],
+      "shard": 1,
+      "shifted_negative_control": {
+        "audit_cases": 0,
+        "certified": false,
+        "containers": 3,
+        "report": {
+          "gates": [
+            {
+              "name": "syntax",
+              "number": 1,
+              "passed": true
+            },
+            {
+              "name": "ast_safety",
+              "number": 2,
+              "passed": true
+            },
+            {
+              "name": "isolation_boot",
+              "number": 3,
+              "passed": true
+            },
+            {
+              "name": "public",
+              "number": 4,
+              "passed": true
+            },
+            {
+              "error_type": "ValueError",
+              "name": "regression",
+              "number": 5,
+              "passed": false
+            }
+          ],
+          "passed": false,
+          "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+          "suite_version": "autonomy-1",
+          "task": "research:boolean-word:6"
+        }
+      },
+      "summary": {
+        "compositional": {
+          "audit_cases": 896,
+          "certified": 7,
+          "containers": 112,
+          "public_labels_per_task": 4
+        },
+        "linear": {
+          "audit_cases": 512,
+          "certified": 4,
+          "containers": 64,
+          "public_labels_per_task": 4
+        },
+        "lookup": {
+          "audit_cases": 0,
+          "certified": 0,
+          "containers": 21,
+          "public_labels_per_task": 4
+        }
+      }
+    }
+  ]
+}

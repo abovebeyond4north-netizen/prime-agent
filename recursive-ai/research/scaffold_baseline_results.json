@@ -1,0 +1,2229 @@
+{
+  "code_commit": "7dbfccf292752ddb8edd136283e8d66ea0466505",
+  "run_id": 38400037052,
+  "results": [
+    {
+      "job_id": 115304994181,
+      "abstentions": {
+        "reuse": {
+          "abstained": true,
+          "containers": 0
+        },
+        "supplied": {
+          "abstained": true,
+          "containers": 0
+        }
+      },
+      "additional_model_learning_containers": 30,
+      "arm_budget": 40,
+      "donor_certification_containers": 12,
+      "frozen_configuration": {
+        "comparison": "<=",
+        "direction": "forward",
+        "result": "low - 1",
+        "upper": "n + 1"
+      },
+      "limits": [
+        "Rules and budgets fixed before Docker comparisons; public identifiability was checked during fixture design.",
+        "New receiving predicates, but same designed grammar and evaluator; not external held-out domains.",
+        "Learning setup cost is shared and reported separately; supplied adapter does not require a learned model.",
+        "Container counts do not establish CPU or wall-time superiority.",
+        "Same operator and environment class; no automatic promotion."
+      ],
+      "order": [
+        "reuse",
+        "supplied"
+      ],
+      "rows": [
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "fc93d2ff0001e5531dd2a45e25078c959abbb6448cf9c2fbaf599b4f57fc3d1a",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.001788075,
+                  "max_steps": 1028,
+                  "peak_bytes": 4154
+                },
+                "objective": 0.9895740385,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_2_2_3_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_2_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "fc93d2ff0001e5531dd2a45e25078c959abbb6448cf9c2fbaf599b4f57fc3d1a",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.002539606,
+                  "max_steps": 1028,
+                  "peak_bytes": 4154
+                },
+                "objective": 0.9894988854,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_2_2_3_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_2_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            2,
+            2,
+            3,
+            2
+          ]
+        },
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "782eb74c146b36e9d535239db525eba58cef354cae82c3d31d31c2a3475e7d32",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.002335862000000022,
+                  "max_steps": 1028,
+                  "peak_bytes": 4212
+                },
+                "objective": 0.9885132017999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_3_3_4_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_3_3_4_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid + 4 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "782eb74c146b36e9d535239db525eba58cef354cae82c3d31d31c2a3475e7d32",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0019703270000000217,
+                  "max_steps": 1028,
+                  "peak_bytes": 4212
+                },
+                "objective": 0.9885497552999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_3_3_4_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_3_3_4_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid + 4 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            3,
+            3,
+            4,
+            2
+          ]
+        },
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "3cdfe0ef81b3fe3ad34b7995a207b971919fa47efae5494643bc0df529c9e384",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0026099809999999835,
+                  "max_steps": 1028,
+                  "peak_bytes": 4278
+                },
+                "objective": 0.9874797238999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_4_3_2_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_4_3_2_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid * mid + 2 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "3cdfe0ef81b3fe3ad34b7995a207b971919fa47efae5494643bc0df529c9e384",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.00233154599999999,
+                  "max_steps": 1028,
+                  "peak_bytes": 4278
+                },
+                "objective": 0.9875075674,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_4_3_2_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_4_3_2_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid * mid + 2 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            4,
+            3,
+            2,
+            2
+          ]
+        }
+      ],
+      "seed": 130003,
+      "training_containers": 42,
+      "training_discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      }
+    },
+    {
+      "job_id": 115304994478,
+      "abstentions": {
+        "reuse": {
+          "abstained": true,
+          "containers": 0
+        },
+        "supplied": {
+          "abstained": true,
+          "containers": 0
+        }
+      },
+      "additional_model_learning_containers": 30,
+      "arm_budget": 40,
+      "donor_certification_containers": 12,
+      "frozen_configuration": {
+        "comparison": "<=",
+        "direction": "forward",
+        "result": "low - 1",
+        "upper": "n + 1"
+      },
+      "limits": [
+        "Rules and budgets fixed before Docker comparisons; public identifiability was checked during fixture design.",
+        "New receiving predicates, but same designed grammar and evaluator; not external held-out domains.",
+        "Learning setup cost is shared and reported separately; supplied adapter does not require a learned model.",
+        "Container counts do not establish CPU or wall-time superiority.",
+        "Same operator and environment class; no automatic promotion."
+      ],
+      "order": [
+        "supplied",
+        "reuse"
+      ],
+      "rows": [
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "fc93d2ff0001e5531dd2a45e25078c959abbb6448cf9c2fbaf599b4f57fc3d1a",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.003753511000000015,
+                  "max_steps": 1028,
+                  "peak_bytes": 4154
+                },
+                "objective": 0.9893774949,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_2_2_3_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_2_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "fc93d2ff0001e5531dd2a45e25078c959abbb6448cf9c2fbaf599b4f57fc3d1a",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0032657319999999934,
+                  "max_steps": 1028,
+                  "peak_bytes": 4154
+                },
+                "objective": 0.9894262728000001,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_2_2_3_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_2_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            2,
+            2,
+            3,
+            2
+          ]
+        },
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "782eb74c146b36e9d535239db525eba58cef354cae82c3d31d31c2a3475e7d32",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0036115419999999954,
+                  "max_steps": 1028,
+                  "peak_bytes": 4212
+                },
+                "objective": 0.9883856337999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_3_3_4_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_3_3_4_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid + 4 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "782eb74c146b36e9d535239db525eba58cef354cae82c3d31d31c2a3475e7d32",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0037889499999999854,
+                  "max_steps": 1028,
+                  "peak_bytes": 4212
+                },
+                "objective": 0.9883678929999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_3_3_4_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_3_3_4_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid + 4 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            3,
+            3,
+            4,
+            2
+          ]
+        },
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "3cdfe0ef81b3fe3ad34b7995a207b971919fa47efae5494643bc0df529c9e384",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0038375179999999842,
+                  "max_steps": 1028,
+                  "peak_bytes": 4278
+                },
+                "objective": 0.9873569702,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_4_3_2_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_4_3_2_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid * mid + 2 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "3cdfe0ef81b3fe3ad34b7995a207b971919fa47efae5494643bc0df529c9e384",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.003992061999999991,
+                  "max_steps": 1028,
+                  "peak_bytes": 4278
+                },
+                "objective": 0.9873415158,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_4_3_2_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_4_3_2_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid * mid + 2 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            4,
+            3,
+            2,
+            2
+          ]
+        }
+      ],
+      "seed": 130002,
+      "training_containers": 42,
+      "training_discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      }
+    },
+    {
+      "job_id": 115304994729,
+      "abstentions": {
+        "reuse": {
+          "abstained": true,
+          "containers": 0
+        },
+        "supplied": {
+          "abstained": true,
+          "containers": 0
+        }
+      },
+      "additional_model_learning_containers": 30,
+      "arm_budget": 40,
+      "donor_certification_containers": 12,
+      "frozen_configuration": {
+        "comparison": "<=",
+        "direction": "forward",
+        "result": "low - 1",
+        "upper": "n + 1"
+      },
+      "limits": [
+        "Rules and budgets fixed before Docker comparisons; public identifiability was checked during fixture design.",
+        "New receiving predicates, but same designed grammar and evaluator; not external held-out domains.",
+        "Learning setup cost is shared and reported separately; supplied adapter does not require a learned model.",
+        "Container counts do not establish CPU or wall-time superiority.",
+        "Same operator and environment class; no automatic promotion."
+      ],
+      "order": [
+        "supplied",
+        "reuse"
+      ],
+      "rows": [
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "fc93d2ff0001e5531dd2a45e25078c959abbb6448cf9c2fbaf599b4f57fc3d1a",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0018747309999999906,
+                  "max_steps": 1028,
+                  "peak_bytes": 4154
+                },
+                "objective": 0.9895653729,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_2_2_3_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_2_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "fc93d2ff0001e5531dd2a45e25078c959abbb6448cf9c2fbaf599b4f57fc3d1a",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0023668579999999995,
+                  "max_steps": 1028,
+                  "peak_bytes": 4154
+                },
+                "objective": 0.9895161602,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_2_2_3_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_2_2_3_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 2 * mid * mid + 3 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            2,
+            2,
+            3,
+            2
+          ]
+        },
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "782eb74c146b36e9d535239db525eba58cef354cae82c3d31d31c2a3475e7d32",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.001996463000000004,
+                  "max_steps": 1028,
+                  "peak_bytes": 4212
+                },
+                "objective": 0.9885471416999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_3_3_4_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_3_3_4_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid + 4 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "782eb74c146b36e9d535239db525eba58cef354cae82c3d31d31c2a3475e7d32",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0025574640000000093,
+                  "max_steps": 1028,
+                  "peak_bytes": 4212
+                },
+                "objective": 0.9884910415999999,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_3_3_4_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_3_3_4_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid + 4 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            3,
+            3,
+            4,
+            2
+          ]
+        },
+        {
+          "arms": {
+            "reuse": {
+              "containers": 30,
+              "normalized_source": "3cdfe0ef81b3fe3ad34b7995a207b971919fa47efae5494643bc0df529c9e384",
+              "passed": true,
+              "proposal_evidence": {
+                "parent_source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8",
+                "status": "reused"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.00228236200000001,
+                  "max_steps": 1028,
+                  "peak_bytes": 4278
+                },
+                "objective": 0.9875124858,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_4_3_2_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_4_3_2_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid * mid + 2 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            },
+            "supplied": {
+              "containers": 30,
+              "normalized_source": "3cdfe0ef81b3fe3ad34b7995a207b971919fa47efae5494643bc0df529c9e384",
+              "passed": true,
+              "proposal_evidence": {
+                "status": "supplied_scaffold"
+              },
+              "report": {
+                "gates": [
+                  {
+                    "name": "syntax",
+                    "number": 1,
+                    "passed": true
+                  },
+                  {
+                    "name": "ast_safety",
+                    "number": 2,
+                    "passed": true
+                  },
+                  {
+                    "name": "isolation_boot",
+                    "number": 3,
+                    "passed": true
+                  },
+                  {
+                    "name": "public",
+                    "number": 4,
+                    "passed": true
+                  },
+                  {
+                    "name": "regression",
+                    "number": 5,
+                    "passed": true,
+                    "reused_regression_checks": 0
+                  },
+                  {
+                    "name": "holdout",
+                    "number": 6,
+                    "passed": true
+                  },
+                  {
+                    "name": "generalization",
+                    "number": 7,
+                    "passed": true
+                  },
+                  {
+                    "name": "performance",
+                    "number": 8,
+                    "passed": true
+                  },
+                  {
+                    "name": "differential",
+                    "number": 9,
+                    "passed": true
+                  },
+                  {
+                    "name": "determinism",
+                    "number": 10,
+                    "passed": true
+                  }
+                ],
+                "measurements": {
+                  "cpu_seconds": 0.0025155910000000115,
+                  "max_steps": 1028,
+                  "peak_bytes": 4278
+                },
+                "objective": 0.9874891629,
+                "passed": true,
+                "random_cases": 1128,
+                "suite_digest": "85ea7bdcba9fb50465f1fadb59b8d42c7253af31842e5bd8b18063019a62c2df",
+                "suite_version": "autonomy-1",
+                "task": "research:expanded_inverse_4_3_2_2"
+              },
+              "shifted_cases": 512,
+              "source": "def expanded_inverse_4_3_2_2(n):\n    low = 0\n    high = n + 1\n    while low < high:\n        mid = (low + high) // 2\n        if 3 * mid * mid * mid * mid + 2 * mid <= 2 * n:\n            low = mid + 1\n        else:\n            high = mid\n    return low - 1\n"
+            }
+          },
+          "outcome": "tie",
+          "parameters": [
+            4,
+            3,
+            2,
+            2
+          ]
+        }
+      ],
+      "seed": 130004,
+      "training_containers": 42,
+      "training_discovery": {
+        "expansion": {
+          "degree": 2,
+          "rule": [
+            1,
+            0,
+            1
+          ],
+          "stages": [
+            {
+              "compatible_rules": 1,
+              "degree": 2,
+              "raw_hypotheses": 80
+            }
+          ],
+          "status": "unique"
+        },
+        "model": {
+          "configuration": {
+            "comparison": "<=",
+            "direction": "forward",
+            "result": "low - 1",
+            "upper": "n + 1"
+          },
+          "degree": 2,
+          "entrypoint": "integer_sqrt",
+          "rule": [
+            1,
+            0,
+            1
+          ]
+        },
+        "screens": [
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d8910172b9dc083aeed609af854f2723712c71f8c030b1d92117218c814b638a"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "28605efbe2e3a690503f1e5f52b86876cc25566aabd82fab692e68db0bee2ba4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "22804b880326c5322789918a51cf58c952012042c85ae9d853ce644e54d17db6"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "2f3412b6a181c1a443721e991394714dacf4d07b49ea687902cf7f05af215503"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "6f70b6d5a2dec5655fade5c2323d665f15c40b484075951c72b9fbbd80782e09"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "ac32b147fc232d268991584b25a949e0f436cb88ddb59a37dce71652aba4bbb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "b0c977a91d3fa5c38d3b5a51ef73a558981a129babe1715a258b5467c34ee1e2"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "c01c39389dddf1252f6d4d2ea1e0a7de28af326be99c75f76ccdf592c9708bb4"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "955d2e840f353a9e683886ba166e17c6ac2d3fd277582ca88dba311c31073d72"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "4d49f1e22f2d93dfbfe16da8fe90c388fbbb99d1a4dedd31b8366b588b5d0e35"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "d7b4bfdc53354b9b4f9e7e431d95b5a937f3c397414a1f61bada4de3d1d21f1b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "reverse",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "a1bda5c7de29e7815980350805bf4f94a6a0a78a6bbbe57015e60c708437d66e"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "27635fc43a0fe353ce0ab8093e92bf3ae484c7b1dcebb087064dc0d97dbd6561"
+          },
+          {
+            "configuration": {
+              "comparison": "<",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "cd77e0c2a438dd86817ae62f655c27a1a50dcf01159e102f2fb1df2069875d82"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": false,
+            "source_sha256": "045c7a8c1c68734966f830457c64ad7128a0254207b0c79f187d7dbcb027bf7b"
+          },
+          {
+            "configuration": {
+              "comparison": "<=",
+              "direction": "forward",
+              "result": "low - 1",
+              "upper": "n + 1"
+            },
+            "error": null,
+            "passed_public": true,
+            "source_sha256": "463a475f9bca31989dabfc187b7597b0f834d4bd9a16dc88ad02f73f3c55c1d8"
+          }
+        ],
+        "status": "unique"
+      }
+    }
+  ]
+}
