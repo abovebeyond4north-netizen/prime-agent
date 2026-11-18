@@ -1,11 +1,79 @@
+import hashlib
+import json
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-from research.evaluation_allocation_study import FROZEN_CONFIG, run_development_study
+from research import evaluation_allocation_replay, evaluation_allocation_study
+from research.evaluation_allocation_study import (
+    FROZEN_CONFIG,
+    _digest,
+    run_development_study,
+)
 
 
 class EvaluationAllocationStudyTests(unittest.TestCase):
+    def test_preserved_saturated_receipt_matches_artifact_and_sources(self):
+        receipt_path = (
+            Path(__file__).resolve().parents[1]
+            / "evaluation_allocation_study_results.json"
+        )
+        raw = receipt_path.read_bytes()
+        self.assertEqual(
+            hashlib.sha256(raw).hexdigest(),
+            "54b4d6ddf429fe02f12799ea3bff9fdd49d7c9436a6f368142f039839a4bf204",
+        )
+        report = json.loads(raw)
+
+        receipt = dict(report)
+        receipt_sha256 = receipt.pop("receipt_sha256")
+        self.assertEqual(receipt_sha256, _digest(receipt))
+
+        config = dict(report["config"])
+        config_sha256 = config.pop("sha256")
+        self.assertEqual(config_sha256, _digest(config))
+        self.assertEqual(
+            config["study_source_sha256"],
+            hashlib.sha256(
+                Path(evaluation_allocation_study.__file__).read_bytes()
+            ).hexdigest(),
+        )
+        self.assertEqual(
+            config["replay_source_sha256"],
+            hashlib.sha256(
+                Path(evaluation_allocation_replay.__file__).read_bytes()
+            ).hexdigest(),
+        )
+
+        matrix = dict(report["development_evaluation"])
+        matrix_sha256 = matrix.pop("sha256")
+        self.assertEqual(matrix_sha256, _digest(matrix))
+        candidates = report["development_evaluation"]["matrices"][0]["candidates"]
+        self.assertEqual(len(candidates), 4)
+        self.assertTrue(
+            all(len(candidate["scores"]) == 18 for candidate in candidates)
+        )
+        self.assertTrue(
+            all(sum(candidate["scores"]) == 18 for candidate in candidates)
+        )
+        self.assertEqual(
+            sum(
+                run["model_calls"]
+                for candidate in candidates
+                for run in candidate["runs"]
+            ),
+            0,
+        )
+        self.assertEqual(report["screen"]["distinct_score_rows"], 1)
+        self.assertEqual(report["screen"]["positive_baseline_successes"], 18)
+        self.assertIsNone(report["replay"])
+        self.assertFalse(report["acceptance_passed"])
+        self.assertTrue(report["cost_accounting"]["matched_trial_budgets"])
+        self.assertTrue(
+            report["cost_accounting"]["setup_inclusive_wall_supported"]
+        )
+
     def test_study_collects_shared_development_matrix_without_holdout(self):
         calls = []
 
@@ -56,3 +124,4 @@ class EvaluationAllocationStudyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
