@@ -1,4 +1,4 @@
-name: EGCE three-arm development evaluation
+name: EGCE routing ablation development evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -71,6 +71,10 @@ jobs:
               other('n02', 'Which is larger: 9 or 3? Answer with a number.', '9'),
               other('n03', 'Write the uppercase form of cat.', 'CAT'),
               other('n04', 'What is the next integer after 18?', '19'),
+              other('n05', 'What is 3 plus 5? Answer with a number.', '8'),
+              other('n06', 'Write the uppercase form of dog.', 'DOG'),
+              other('n07', 'How many letters are in the word sun?', '3'),
+              other('n08', 'What is the next integer after 29?', '30'),
           ]
           canonical = lambda x: json.dumps(x, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
           suite_hash = hashlib.sha256(canonical(cases).encode()).hexdigest()
@@ -114,7 +118,13 @@ jobs:
                   instruction = base if arm == 'baseline' else base + procedure
                   if recommendation is not None:
                       instruction += ' The executable policy returned ' + recommendation + '. Return that exact result.'
-                  prompt = tokenizer.apply_chat_template([{'role':'system','content':instruction},{'role':'user','content':canonical(task)}], tokenize=False, add_generation_prompt=True)
+                  # Negative-trigger bypass is identical for every arm; no project policy is loaded.
+                  if task['kind'] == 'other':
+                      instruction = 'Answer the user question with only the requested word or number. No explanation.'
+                      user_input = task['question']
+                  else:
+                      user_input = canonical(task)
+                  prompt = tokenizer.apply_chat_template([{'role':'system','content':instruction},{'role':'user','content':user_input}], tokenize=False, add_generation_prompt=True)
                   inputs = tokenizer(prompt, return_tensors='pt')
                   with torch.inference_mode():
                       generated = model.generate(**inputs, max_new_tokens=16, do_sample=False, pad_token_id=tokenizer.eos_token_id, temperature=None, top_p=None, top_k=None)
@@ -126,16 +136,16 @@ jobs:
           paired = {}
           for a in ('instruction','tool_guarded'):
               paired[a] = dict(gains=sum(not by_case[c['id'],'baseline'] and by_case[c['id'],a] for c in cases), regressions=sum(by_case[c['id'],'baseline'] and not by_case[c['id'],a] for c in cases))
-          report = dict(mode='public development experiment; no full skill, native tool calling, independent evaluation, or promotion', model=model_id, revision=revision, suite_sha256=suite_hash, github_run_id=os.environ.get('GITHUB_RUN_ID'), github_sha=os.environ.get('GITHUB_SHA'), torch=torch.__version__, transformers=transformers.__version__, scores=scores, paired=paired, cases=rows)
+          report = dict(mode='public routing ablation; explicit task kind supplied; no inferred routing, full skill, independent evaluation, or promotion', model=model_id, revision=revision, suite_sha256=suite_hash, github_run_id=os.environ.get('GITHUB_RUN_ID'), github_sha=os.environ.get('GITHUB_SHA'), torch=torch.__version__, transformers=transformers.__version__, scores=scores, paired=paired, cases=rows)
           assert len(rows)==3*len(cases)
           print(json.dumps(report, indent=2), flush=True)
-          with open('egce-three-arm.json','w') as f:
+          with open('egce-routing-ablation.json','w') as f:
               json.dump(report,f,indent=2)
           PY
       - name: Upload raw and guarded results
         uses: actions/upload-artifact@v4
         with:
-          name: egce-three-arm
-          path: egce-three-arm.json
+          name: egce-routing-ablation
+          path: egce-routing-ablation.json
           if-no-files-found: error
           retention-days: 7
