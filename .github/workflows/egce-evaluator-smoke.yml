@@ -35,7 +35,7 @@ jobs:
       - name: Execute two prompt conditions on synthetic fixtures
         run: |
           /tmp/egce-venv/bin/python - <<'PY'
-          import json, time, torch, transformers
+          import json, os, time, torch, transformers
           from huggingface_hub import model_info, snapshot_download
           from transformers import AutoTokenizer, AutoModelForCausalLM
           model_id = 'Qwen/Qwen2.5-0.5B-Instruct'
@@ -64,7 +64,7 @@ jobs:
                       generated = model.generate(**inputs, max_new_tokens=16, do_sample=False, pad_token_id=tokenizer.eos_token_id)
                   output = tokenizer.decode(generated[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True).strip()
                   rows.append(dict(case_id=case_id, arm=arm, expected=expected, output=output, exact_match=output==expected, seconds=round(time.monotonic()-started,3)))
-          report = dict(mode='public synthetic transport smoke; not independent or full-skill evaluation', model=model_id, revision=revision, torch=torch.__version__, transformers=transformers.__version__, cases=rows)
+          report = dict(mode='public synthetic transport smoke; not independent or full-skill evaluation', model=model_id, revision=revision, github_run_id=os.environ.get('GITHUB_RUN_ID'), github_sha=os.environ.get('GITHUB_SHA'), github_event=os.environ.get('GITHUB_EVENT_NAME'), torch=torch.__version__, transformers=transformers.__version__, cases=rows)
           print(json.dumps(report, indent=2))
           with open('egce-smoke.json','w') as f:
               json.dump(report,f,indent=2)
