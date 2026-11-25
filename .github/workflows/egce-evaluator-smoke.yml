@@ -1,14 +1,22 @@
 name: EGCE evaluator transport smoke
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '.github/workflows/egce-evaluator-smoke.yml'
+  push:
+    branches:
+      - 'egce/evaluator-ci-smoke-20261125'
     paths:
       - '.github/workflows/egce-evaluator-smoke.yml'
 permissions:
   contents: read
+concurrency:
+  group: egce-transport-smoke-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
 jobs:
   smoke:
-    if: github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'egce/evaluator-ci-smoke-')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/egce/evaluator-ci-smoke-20261125') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'egce/evaluator-ci-smoke-20261125')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -16,6 +24,9 @@ jobs:
       TOKENIZERS_PARALLELISM: 'false'
       OMP_NUM_THREADS: '2'
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: Install CPU inference dependencies
         run: |
           python -m venv /tmp/egce-venv
