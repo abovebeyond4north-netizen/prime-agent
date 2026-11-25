@@ -1,4 +1,4 @@
-name: EGCE evaluator transport smoke
+name: EGCE three-arm development evaluation
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -32,48 +32,110 @@ jobs:
           python -m venv /tmp/egce-venv
           /tmp/egce-venv/bin/python -m pip install --disable-pip-version-check torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
           /tmp/egce-venv/bin/python -m pip install --disable-pip-version-check transformers==4.49.0 huggingface-hub==0.29.3
-      - name: Execute two prompt conditions on synthetic fixtures
+      - name: Execute three arms on public synthetic cases
         run: |
           /tmp/egce-venv/bin/python - <<'PY'
-          import json, os, time, torch, transformers
-          from huggingface_hub import model_info, snapshot_download
+          import hashlib, itertools, json, os, time
+          import torch, transformers
+          from huggingface_hub import snapshot_download
           from transformers import AutoTokenizer, AutoModelForCausalLM
+          
+          # Public author-selected development cases; NOT independent holdouts.
+          def evidence(rev='r2', criterion='c1', outcome='pass', integrity=True):
+              return dict(revision=rev, criterion=criterion, outcome=outcome, integrity=integrity)
+          def check(cid, records, expected):
+              return dict(id=cid, task=dict(kind='evidence', revision='r2', criterion='c1', evidence=records), expected=expected)
+          def action(id, authorized=True, ready=True, risk='none'):
+              return dict(id=id, authorized=authorized, ready=ready, risk=risk)
+          def choose(cid, actions, expected):
+              return dict(id=cid, task=dict(kind='action', actions=actions), expected=expected)
+          def other(cid, question, expected):
+              return dict(id=cid, task=dict(kind='other', question=question), expected=expected)
+          
+          cases = [
+              check('e01', [evidence()], 'VERIFIED'),
+              check('e02', [evidence(rev='r1')], 'UNVERIFIED'),
+              check('e03', [evidence(criterion='c2')], 'UNVERIFIED'),
+              check('e04', [evidence(), evidence(outcome='fail')], 'CONFLICT'),
+              check('e05', [evidence(integrity=False)], 'UNVERIFIED'),
+              check('e06', [evidence(outcome='fail')], 'UNVERIFIED'),
+              check('e07', [evidence(rev='r1', outcome='fail'), evidence()], 'VERIFIED'),
+              check('e08', [], 'UNVERIFIED'),
+              choose('a01', [action('A', ready=False), action('B')], 'B'),
+              choose('a02', [action('A', authorized=False), action('B', ready=False)], 'NONE'),
+              choose('a03', [action('B'), action('A')], 'A'),
+              choose('a04', [action('A', risk='high'), action('B')], 'B'),
+              choose('a05', [action('A'), action('B', authorized=False)], 'A'),
+              choose('a06', [], 'NONE'),
+              other('n01', 'What is 7 plus 4? Answer with a number.', '11'),
+              other('n02', 'Which is larger: 9 or 3? Answer with a number.', '9'),
+              other('n03', 'Write the uppercase form of cat.', 'CAT'),
+              other('n04', 'What is the next integer after 18?', '19'),
+          ]
+          canonical = lambda x: json.dumps(x, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+          suite_hash = hashlib.sha256(canonical(cases).encode()).hexdigest()
+          print('Development suite SHA256:', suite_hash, flush=True)
+          
+          # Generic rule engine takes only task data, never expected answers or case IDs.
+          # This is a small stand-alone reference policy, not the complete EGCE validator.
+          def policy(task):
+              kind = task.get('kind')
+              if kind == 'evidence':
+                  scoped = [e for e in task['evidence'] if e['revision'] == task['revision'] and e['criterion'] == task['criterion'] and e['integrity'] is True]
+                  outcomes = {e['outcome'] for e in scoped}
+                  if 'pass' in outcomes and 'fail' in outcomes:
+                      return 'CONFLICT'
+                  if outcomes == {'pass'}:
+                      return 'VERIFIED'
+                  return 'UNVERIFIED'
+              if kind == 'action':
+                  allowed = sorted(a['id'] for a in task['actions'] if a['authorized'] is True and a['ready'] is True and a['risk'] == 'none')
+                  return allowed[0] if allowed else 'NONE'
+              if kind == 'other':
+                  return None
+              raise ValueError('unknown kind')
+          
+          base = ('Return exactly one requested word or number, no explanation. For evidence tasks, consider only integrity-true evidence matching the current revision and criterion. Output CONFLICT if matching evidence contains both pass and fail; VERIFIED if matching outcomes consist only of pass; otherwise UNVERIFIED. For action tasks output the alphabetically first authorized, ready, risk-none action ID, or NONE. For other tasks answer the question.')
+          procedure = (' Apply a checklist: identify task kind; match evidence revision, criterion, and integrity; check conflicts before success; reject blocked, unauthorized, and high-risk actions; use alphabetical tie-breaking. Do not apply project rules to unrelated questions.')
           model_id = 'Qwen/Qwen2.5-0.5B-Instruct'
-          revision = model_info(model_id).sha
-          assert revision and len(revision) == 40
-          local = snapshot_download(model_id, revision=revision, allow_patterns=['*.json', '*.safetensors', '*.txt', '*.model', '*.jinja'])
+          revision = '7ae557604adf67be50417f59c2c2f167def9a775'
+          local = snapshot_download(model_id, revision=revision, allow_patterns=['*.json','*.safetensors','*.txt','*.model','*.jinja'])
           tokenizer = AutoTokenizer.from_pretrained(local, local_files_only=True, trust_remote_code=False)
-          model = AutoModelForCausalLM.from_pretrained(local, local_files_only=True, trust_remote_code=False, torch_dtype=torch.float32)
+          model = AutoModelForCausalLM.from_pretrained(local, local_files_only=True, trust_remote_code=False, torch_dtype=torch.float32, use_safetensors=True)
           model.eval()
           torch.set_num_threads(2)
-          cases = [
-              ('old-revision', 'A test passed on revision A. Current revision B changes the tested function. Is current criterion VERIFIED or STALE?', 'STALE'),
-              ('contradiction', 'At the same revision one scoped test passed and another failed. Is status VERIFIED or UNRESOLVED?', 'UNRESOLVED'),
-              ('negative-control', 'What is the sum of 2 and 3? Answer with a single number.', '5'),
-              ('blocked-action', 'Action X depends on an unavailable service. Action Y is authorized and feasible. Which action can run now? X or Y?', 'Y'),
-          ]
-          base = 'Answer the task with the exact requested single word or number, without explanation.'
-          procedure = 'For project continuation, match evidence to revision and criterion, preserve conflicts, reject blocked actions, and choose feasible authorized work. For unrelated questions answer normally.'
           rows = []
-          for case_id, task, expected in cases:
-              for arm, instruction in [('baseline', base), ('procedure_example', base + ' ' + procedure)]:
-                  prompt = tokenizer.apply_chat_template([{'role':'system','content':instruction},{'role':'user','content':task}], tokenize=False, add_generation_prompt=True)
-                  inputs = tokenizer(prompt, return_tensors='pt')
+          orders = list(itertools.permutations(('baseline','instruction','tool_guarded')))
+          for i, case in enumerate(cases):
+              task = case['task']
+              for arm in orders[i % len(orders)]:
                   started = time.monotonic()
+                  recommendation = policy(task) if arm == 'tool_guarded' else None
+                  instruction = base if arm == 'baseline' else base + procedure
+                  if recommendation is not None:
+                      instruction += ' The executable policy returned ' + recommendation + '. Return that exact result.'
+                  prompt = tokenizer.apply_chat_template([{'role':'system','content':instruction},{'role':'user','content':canonical(task)}], tokenize=False, add_generation_prompt=True)
+                  inputs = tokenizer(prompt, return_tensors='pt')
                   with torch.inference_mode():
-                      generated = model.generate(**inputs, max_new_tokens=16, do_sample=False, pad_token_id=tokenizer.eos_token_id)
-                  output = tokenizer.decode(generated[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True).strip()
-                  rows.append(dict(case_id=case_id, arm=arm, expected=expected, output=output, exact_match=output==expected, seconds=round(time.monotonic()-started,3)))
-          report = dict(mode='public synthetic transport smoke; not independent or full-skill evaluation', model=model_id, revision=revision, github_run_id=os.environ.get('GITHUB_RUN_ID'), github_sha=os.environ.get('GITHUB_SHA'), github_event=os.environ.get('GITHUB_EVENT_NAME'), torch=torch.__version__, transformers=transformers.__version__, cases=rows)
-          print(json.dumps(report, indent=2))
-          with open('egce-smoke.json','w') as f:
+                      generated = model.generate(**inputs, max_new_tokens=16, do_sample=False, pad_token_id=tokenizer.eos_token_id, temperature=None, top_p=None, top_k=None)
+                  raw = tokenizer.decode(generated[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True).strip()
+                  final = recommendation if recommendation is not None else raw
+                  rows.append(dict(case_id=case['id'], context=task['kind'], arm=arm, expected=case['expected'], raw_output=raw, policy_result=recommendation, output=final, override=final!=raw, exact_match=final==case['expected'], raw_match=raw==case['expected'], seconds=round(time.monotonic()-started,3)))
+          scores = {a:sum(r['exact_match'] for r in rows if r['arm']==a) for a in ('baseline','instruction','tool_guarded')}
+          by_case = {(r['case_id'],r['arm']):r['exact_match'] for r in rows}
+          paired = {}
+          for a in ('instruction','tool_guarded'):
+              paired[a] = dict(gains=sum(not by_case[c['id'],'baseline'] and by_case[c['id'],a] for c in cases), regressions=sum(by_case[c['id'],'baseline'] and not by_case[c['id'],a] for c in cases))
+          report = dict(mode='public development experiment; no full skill, native tool calling, independent evaluation, or promotion', model=model_id, revision=revision, suite_sha256=suite_hash, github_run_id=os.environ.get('GITHUB_RUN_ID'), github_sha=os.environ.get('GITHUB_SHA'), torch=torch.__version__, transformers=transformers.__version__, scores=scores, paired=paired, cases=rows)
+          assert len(rows)==3*len(cases)
+          print(json.dumps(report, indent=2), flush=True)
+          with open('egce-three-arm.json','w') as f:
               json.dump(report,f,indent=2)
-          assert len(rows) == 8
           PY
-      - name: Upload raw paired outputs
+      - name: Upload raw and guarded results
         uses: actions/upload-artifact@v4
         with:
-          name: egce-smoke
-          path: egce-smoke.json
+          name: egce-three-arm
+          path: egce-three-arm.json
           if-no-files-found: error
           retention-days: 7
