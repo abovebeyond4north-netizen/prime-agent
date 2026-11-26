@@ -288,7 +288,7 @@ jobs:
           print(json.dumps(report, indent=2), flush=True)
           with open('egce-routing-boundary.json', 'w') as handle:
               json.dump(report, handle, indent=2)
-                    PY
+          PY
       - name: Upload frozen routing-boundary results
         uses: actions/upload-artifact@v4
         with:
