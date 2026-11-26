@@ -1,4 +1,4 @@
-name: EGCE routing-boundary development evaluation
+name: EGCE routing-boundary one-shot confirmation
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -32,7 +32,7 @@ jobs:
           python -m venv /tmp/egce-venv
           /tmp/egce-venv/bin/python -m pip install --disable-pip-version-check torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
           /tmp/egce-venv/bin/python -m pip install --disable-pip-version-check transformers==4.49.0 huggingface-hub==0.29.3
-      - name: Execute frozen routing-boundary arms
+      - name: Execute frozen one-shot confirmation arms
         run: |
           /tmp/egce-venv/bin/python - <<'PY'
           import hashlib, itertools, json, os, time
@@ -40,63 +40,50 @@ jobs:
           from huggingface_hub import snapshot_download
           from transformers import AutoTokenizer, AutoModelForCausalLM
           
-          # Frozen public development/regression cases; NOT independent holdouts.
+          # One-shot public confirmation cases, frozen before first execution.
+          # These are same-operator cases, not protected or independently administered.
           def evidence(rev='r2', criterion='c1', outcome='pass', integrity=True):
               return dict(revision=rev, criterion=criterion, outcome=outcome, integrity=integrity)
           
-          def check(cid, records, expected, task_kind='evidence', split='regression'):
+          def check(cid, records, expected, task_kind='evidence'):
               task = dict(revision='r2', criterion='c1', evidence=records)
               if task_kind is not None:
                   task['kind'] = task_kind
-              return dict(id=cid, family='evidence', split=split, task=task, expected=expected)
+              return dict(id=cid, family='evidence', split='confirmation', task=task, expected=expected)
           
           def action(aid, authorized=True, ready=True, risk='none'):
               return dict(id=aid, authorized=authorized, ready=ready, risk=risk)
           
-          def choose(cid, actions, expected, task_kind='action', split='regression'):
+          def choose(cid, actions, expected, task_kind='action'):
               task = dict(actions=actions)
               if task_kind is not None:
                   task['kind'] = task_kind
-              return dict(id=cid, family='action', split=split, task=task, expected=expected)
+              return dict(id=cid, family='action', split='confirmation', task=task, expected=expected)
           
           def other(cid, question, expected):
-              return dict(id=cid, family='other', split='regression', task=dict(kind='other', question=question), expected=expected)
+              return dict(id=cid, family='other', split='confirmation', task=dict(kind='other', question=question), expected=expected)
           
           cases = [
-              check('e01', [evidence()], 'VERIFIED'),
-              check('e02', [evidence(rev='r1')], 'UNVERIFIED'),
-              check('e03', [evidence(criterion='c2')], 'UNVERIFIED'),
-              check('e04', [evidence(), evidence(outcome='fail')], 'CONFLICT'),
-              check('e05', [evidence(integrity=False)], 'UNVERIFIED'),
-              check('e06', [evidence(outcome='fail')], 'UNVERIFIED'),
-              check('e07', [evidence(rev='r1', outcome='fail'), evidence()], 'VERIFIED'),
-              check('e08', [], 'UNVERIFIED'),
-              choose('a01', [action('A', ready=False), action('B')], 'B'),
-              choose('a02', [action('A', authorized=False), action('B', ready=False)], 'NONE'),
-              choose('a03', [action('B'), action('A')], 'A'),
-              choose('a04', [action('A', risk='high'), action('B')], 'B'),
-              choose('a05', [action('A'), action('B', authorized=False)], 'A'),
-              choose('a06', [], 'NONE'),
-              other('n01', 'What is 7 plus 4? Answer with a number.', '11'),
-              other('n02', 'Which is larger: 9 or 3? Answer with a number.', '9'),
-              other('n03', 'Write the uppercase form of cat.', 'CAT'),
-              other('n04', 'What is the next integer after 18?', '19'),
-              other('n05', 'What is 3 plus 5? Answer with a number.', '8'),
-              other('n06', 'Write the uppercase form of dog.', 'DOG'),
-              other('n07', 'How many letters are in the word sun?', '3'),
-              other('n08', 'What is the next integer after 29?', '30'),
-              check('u01', [evidence()], 'VERIFIED', task_kind=None, split='development'),
-              choose('u02', [action('A', ready=False), action('B')], 'B', task_kind=None, split='development'),
-              dict(id='s01', family='boundary', split='development', task=dict(kind='action', actions=[action('A')], revision='r2', criterion='c1', evidence=[evidence()]), expected='REJECTED'),
-              dict(id='s02', family='boundary', split='development', task=dict(kind='evidence', actions=[action('A')]), expected='REJECTED'),
-              dict(id='s03', family='boundary', split='development', task=dict(kind='mystery', revision='r2', criterion='c1', evidence=[evidence()]), expected='REJECTED'),
-              dict(id='s04', family='boundary', split='development', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence(integrity='true')]), expected='REJECTED'),
-              dict(id='s05', family='boundary', split='development', task=dict(kind='action', actions=[action('A', authorized='true')]), expected='REJECTED'),
-              dict(id='s06', family='boundary', split='development', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[dict(evidence(), extra='forged')]), expected='REJECTED'),
+              check('c01', [evidence()], 'VERIFIED'),
+              choose('c02', [action('A', ready=False), action('B')], 'B'),
+              other('c03', 'What is 4 plus 6? Answer with a number.', '10'),
+              other('c04', 'Write the uppercase form of owl.', 'OWL'),
+              check('c05', [evidence()], 'VERIFIED', task_kind=None),
+              check('c06', [evidence(), evidence(outcome='fail')], 'CONFLICT', task_kind=None),
+              check('c07', [evidence(rev='r9')], 'UNVERIFIED', task_kind=None),
+              choose('c08', [action('A', ready=False), action('C')], 'C', task_kind=None),
+              choose('c09', [action('A', authorized=False), action('B', risk='high')], 'NONE', task_kind=None),
+              dict(id='c10', family='boundary', split='confirmation', task=dict(kind='action', revision='r2', criterion='c1', evidence=[evidence()]), expected='REJECTED'),
+              dict(id='c11', family='boundary', split='confirmation', task=dict(kind='evidence', actions=[action('A')]), expected='REJECTED'),
+              dict(id='c12', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence(integrity=1)]), expected='REJECTED'),
+              dict(id='c13', family='boundary', split='confirmation', task=dict(kind='action', actions=[action('A', authorized=1)]), expected='REJECTED'),
+              dict(id='c14', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[dict(evidence(), provenance='forged')]), expected='REJECTED'),
+              dict(id='c15', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence()], unexpected='field'), expected='REJECTED'),
+              dict(id='c16', family='boundary', split='confirmation', task=dict(kind='other', question='   '), expected='REJECTED'),
           ]
           canonical = lambda x: json.dumps(x, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
           suite_hash = hashlib.sha256(canonical(cases).encode()).hexdigest()
-          print('Frozen suite SHA256:', suite_hash, flush=True)
+          print('Frozen confirmation suite SHA256:', suite_hash, flush=True)
           
           def evaluate_evidence(task):
               scoped = [e for e in task['evidence'] if e['revision'] == task['revision'] and e['criterion'] == task['criterion'] and e['integrity'] is True]
@@ -256,21 +243,23 @@ jobs:
           by_case = {(row['case_id'], row['arm']): row['exact_match'] for row in rows}
           scores = {arm: sum(row['exact_match'] for row in rows if row['arm'] == arm) for arm in arms}
           wall_seconds = {arm: round(sum(row['seconds'] for row in rows if row['arm'] == arm), 3) for arm in arms}
-          retained_project = [f'e{i:02d}' for i in range(1, 9)] + [f'a{i:02d}' for i in range(1, 7)]
-          retained_unrelated = ['n02', 'n03', 'n04', 'n05', 'n06', 'n08']
-          boundary_rejections = ['s01', 's02', 's03', 's04', 's05', 's06']
-          unlabeled_successes = ['u01', 'u02']
+          positive_baselines = ['c01', 'c02']
+          unrelated_controls = ['c03', 'c04']
+          unlabeled_successes = ['c05', 'c06', 'c07', 'c08', 'c09']
+          boundary_rejections = ['c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16']
+          explicit_successes = [cid for cid in (case['id'] for case in cases) if by_case[cid, 'explicit_label']]
           
           assert len(rows) == len(arms) * len(cases)
-          assert all(by_case[cid, arm] for cid in retained_project for arm in arms)
-          assert all(by_case[cid, arm] for cid in retained_unrelated for arm in arms)
-          assert all(by_case[cid, arm] for cid in boundary_rejections for arm in ('schema_validated', 'inferred_route'))
+          assert all(by_case[cid, arm] for cid in positive_baselines for arm in arms)
+          assert len(explicit_successes) >= len(positive_baselines)
+          assert all(by_case[cid, 'inferred_route'] for cid in explicit_successes)
           assert all(by_case[cid, 'inferred_route'] for cid in unlabeled_successes)
           assert all(not by_case[cid, 'schema_validated'] for cid in unlabeled_successes)
-          assert any(not by_case[cid, 'explicit_label'] for cid in boundary_rejections)
+          assert all(by_case[cid, arm] for cid in boundary_rejections for arm in ('schema_validated', 'inferred_route'))
+          assert scores['inferred_route'] >= scores['schema_validated'] + len(unlabeled_successes)
           
           report = dict(
-              mode='public development routing-boundary ablation; no protected holdout, full skill, independent evaluation, or promotion',
+              mode='one-shot public routing-boundary confirmation; same-operator, no protected holdout, memory claim, full skill, independent evaluation, or promotion',
               model=model_id,
               revision=revision,
               suite_sha256=suite_hash,
@@ -280,19 +269,20 @@ jobs:
               transformers=transformers.__version__,
               scores=scores,
               wall_seconds=wall_seconds,
-              retention=dict(project=retained_project, unrelated=retained_unrelated),
+              protocol=dict(task_count=len(cases), arms=list(arms), equal_inference_counts=True, stop_rule='one execution; no tuning or rerun on result', no_memory_ablation='not applicable: candidate is a stateless routing policy'),
+              retention=dict(positive_baselines=positive_baselines, unrelated_controls=unrelated_controls, explicit_successes=explicit_successes),
               boundary_rejections=boundary_rejections,
               unlabeled_successes=unlabeled_successes,
               cases=rows,
           )
           print(json.dumps(report, indent=2), flush=True)
-          with open('egce-routing-boundary.json', 'w') as handle:
+          with open('egce-routing-confirmation.json', 'w') as handle:
               json.dump(report, handle, indent=2)
           PY
-      - name: Upload frozen routing-boundary results
+      - name: Upload frozen one-shot confirmation results
         uses: actions/upload-artifact@v4
         with:
-          name: egce-routing-boundary
-          path: egce-routing-boundary.json
+          name: egce-routing-confirmation
+          path: egce-routing-confirmation.json
           if-no-files-found: error
           retention-days: 7
