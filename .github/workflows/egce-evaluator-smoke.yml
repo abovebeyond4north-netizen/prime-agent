@@ -22,6 +22,7 @@ jobs:
     env:
       HF_HUB_DISABLE_TELEMETRY: '1'
       TOKENIZERS_PARALLELISM: 'false'
+      CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
       OMP_NUM_THREADS: '2'
     steps:
       - uses: actions/setup-python@v5
@@ -64,22 +65,33 @@ jobs:
               return dict(id=cid, family='other', split='confirmation', task=dict(kind='other', question=question), expected=expected)
           
           cases = [
-              check('c01', [evidence()], 'VERIFIED'),
-              choose('c02', [action('A', ready=False), action('B')], 'B'),
-              other('c03', 'What is 4 plus 6? Answer with a number.', '10'),
-              other('c04', 'Write the uppercase form of owl.', 'OWL'),
-              check('c05', [evidence()], 'VERIFIED', task_kind=None),
-              check('c06', [evidence(), evidence(outcome='fail')], 'CONFLICT', task_kind=None),
-              check('c07', [evidence(rev='r9')], 'UNVERIFIED', task_kind=None),
-              choose('c08', [action('A', ready=False), action('C')], 'C', task_kind=None),
-              choose('c09', [action('A', authorized=False), action('B', risk='high')], 'NONE', task_kind=None),
-              dict(id='c10', family='boundary', split='confirmation', task=dict(kind='action', revision='r2', criterion='c1', evidence=[evidence()]), expected='REJECTED'),
-              dict(id='c11', family='boundary', split='confirmation', task=dict(kind='evidence', actions=[action('A')]), expected='REJECTED'),
-              dict(id='c12', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence(integrity=1)]), expected='REJECTED'),
-              dict(id='c13', family='boundary', split='confirmation', task=dict(kind='action', actions=[action('A', authorized=1)]), expected='REJECTED'),
-              dict(id='c14', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[dict(evidence(), provenance='forged')]), expected='REJECTED'),
-              dict(id='c15', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence()], unexpected='field'), expected='REJECTED'),
-              dict(id='c16', family='boundary', split='confirmation', task=dict(kind='other', question='   '), expected='REJECTED'),
+              check('n01', [evidence()], 'VERIFIED'),
+              check('n02', [evidence(outcome='fail')], 'UNVERIFIED'),
+              check('n03', [evidence(), evidence(outcome='fail')], 'CONFLICT'),
+              check('n04', [evidence(rev='r7')], 'UNVERIFIED'),
+              check('n05', [evidence(criterion='c9')], 'UNVERIFIED'),
+              check('n06', [evidence(), evidence()], 'VERIFIED'),
+              check('n07', [evidence(outcome='fail', integrity=False), evidence()], 'VERIFIED'),
+              choose('n08', [action('D')], 'D'),
+              choose('n09', [action('C'), action('B')], 'B'),
+              choose('n10', [action('A', authorized=False), action('B', authorized=False)], 'NONE'),
+              choose('n11', [action('A', ready=False), action('B', ready=False)], 'NONE'),
+              choose('n12', [action('A', risk='high'), action('B', risk='high')], 'NONE'),
+              choose('n13', [action('A', authorized=False), action('D'), action('C', ready=False)], 'D'),
+              choose('n14', [action('C'), action('A'), action('B')], 'A'),
+              other('n15', 'What is 7 plus 5? Answer with a number.', '12'),
+              other('n16', 'What is 13 minus 6? Answer with a number.', '7'),
+              other('n17', 'What is 4 times 3? Answer with a number.', '12'),
+              other('n18', 'What is 18 divided by 3? Answer with a number.', '6'),
+              other('n19', 'What integer comes immediately after 19? Answer with a number.', '20'),
+              other('n20', 'What is 9 plus 8? Answer with a number.', '17'),
+              dict(id='n21', family='boundary', split='confirmation', task=dict(kind='action', revision='r2', criterion='c1', evidence=[evidence()]), expected='REJECTED'),
+              dict(id='n22', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence()], unexpected='field'), expected='REJECTED'),
+              dict(id='n23', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence(integrity=1)]), expected='REJECTED'),
+              dict(id='n24', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[dict(evidence(), provenance='forged')]), expected='REJECTED'),
+              dict(id='n25', family='boundary', split='confirmation', task=dict(kind='other', question='   '), expected='REJECTED'),
+              dict(id='n26', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', evidence=[evidence()]), expected='REJECTED'),
+              dict(id='n27', family='boundary', split='confirmation', task=dict(kind='action', actions=[action('A', authorized=1)]), expected='REJECTED'),
           ]
           canonical = lambda x: json.dumps(x, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
           suite_hash = hashlib.sha256(canonical(cases).encode()).hexdigest()
@@ -197,8 +209,11 @@ jobs:
           rows = []
           orders = list(itertools.permutations(arms))
           for i, case in enumerate(cases):
-              task = case['task']
+              source_task = case['task']
               for arm in orders[i % len(orders)]:
+                  task = dict(source_task)
+                  if case['family'] in {'evidence', 'action'} and arm == 'inferred_route':
+                      task.pop('kind', None)
                   started = time.monotonic()
                   recommendation = safe_call(policies[arm], task)
                   instruction = base_instruction
@@ -243,36 +258,33 @@ jobs:
           by_case = {(row['case_id'], row['arm']): row['exact_match'] for row in rows}
           scores = {arm: sum(row['exact_match'] for row in rows if row['arm'] == arm) for arm in arms}
           wall_seconds = {arm: round(sum(row['seconds'] for row in rows if row['arm'] == arm), 3) for arm in arms}
-          positive_baselines = ['c01', 'c02']
-          unrelated_controls = ['c03', 'c04']
-          unlabeled_successes = ['c05', 'c06', 'c07', 'c08', 'c09']
-          boundary_rejections = ['c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16']
-          explicit_successes = [cid for cid in (case['id'] for case in cases) if by_case[cid, 'explicit_label']]
+          semantic_controls = [f'n{i:02d}' for i in range(1, 15)]
+          unrelated_controls = [f'n{i:02d}' for i in range(15, 21)]
+          boundary_rejections = [f'n{i:02d}' for i in range(21, 28)]
+          explicit_boundary_failures = [cid for cid in boundary_rejections if not by_case[cid, 'explicit_label']]
           
-          assert len(rows) == len(arms) * len(cases)
-          assert all(by_case[cid, arm] for cid in positive_baselines for arm in arms)
-          assert len(explicit_successes) >= len(positive_baselines)
-          assert all(by_case[cid, 'inferred_route'] for cid in explicit_successes)
-          assert all(by_case[cid, 'inferred_route'] for cid in unlabeled_successes)
-          assert all(not by_case[cid, 'schema_validated'] for cid in unlabeled_successes)
+          assert len(rows) == len(arms) * len(cases) == 81
+          assert all(by_case[cid, arm] for cid in semantic_controls for arm in arms)
+          assert all(by_case[cid, arm] for cid in unrelated_controls for arm in arms)
           assert all(by_case[cid, arm] for cid in boundary_rejections for arm in ('schema_validated', 'inferred_route'))
-          assert scores['inferred_route'] >= scores['schema_validated'] + len(unlabeled_successes)
+          assert explicit_boundary_failures
           
           report = dict(
-              mode='one-shot public routing-boundary confirmation; same-operator, no protected holdout, memory claim, full skill, independent evaluation, or promotion',
+              mode='fresh 14+6 public routing confirmation; same-operator, no protected holdout, memory claim, full skill, independent evaluation, or promotion',
               model=model_id,
               revision=revision,
               suite_sha256=suite_hash,
               workflow_commit=os.environ.get('GITHUB_SHA'),
+              candidate_head=os.environ.get('CANDIDATE_HEAD'),
               github_run_id=os.environ.get('GITHUB_RUN_ID'),
               torch=torch.__version__,
               transformers=transformers.__version__,
               scores=scores,
               wall_seconds=wall_seconds,
               protocol=dict(task_count=len(cases), arms=list(arms), equal_inference_counts=True, stop_rule='one execution; no tuning or rerun on result', no_memory_ablation='not applicable: candidate is a stateless routing policy'),
-              retention=dict(positive_baselines=positive_baselines, unrelated_controls=unrelated_controls, explicit_successes=explicit_successes),
+              retention=dict(semantic_controls=semantic_controls, unrelated_controls=unrelated_controls),
               boundary_rejections=boundary_rejections,
-              unlabeled_successes=unlabeled_successes,
+              explicit_boundary_failures=explicit_boundary_failures,
               cases=rows,
           )
           print(json.dumps(report, indent=2), flush=True)
