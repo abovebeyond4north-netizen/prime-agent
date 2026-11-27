@@ -1,14 +1,6 @@
 name: EGCE routing-boundary one-shot confirmation
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - '.github/workflows/egce-evaluator-smoke.yml'
-  push:
-    branches:
-      - 'egce/evaluator-ci-smoke-20261125'
-    paths:
-      - '.github/workflows/egce-evaluator-smoke.yml'
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -16,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   smoke:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/egce/evaluator-ci-smoke-20261125') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'egce/evaluator-ci-smoke-20261125')
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -255,20 +247,47 @@ jobs:
                       seconds=round(time.monotonic() - started, 3),
                   ))
           
-          by_case = {(row['case_id'], row['arm']): row['exact_match'] for row in rows}
+          def evaluate_gate_failures(rows, arms):
+              by_case = {(row['case_id'], row['arm']): row['exact_match'] for row in rows}
+              semantic_controls = [f'n{i:02d}' for i in range(1, 15)]
+              unrelated_controls = [f'n{i:02d}' for i in range(15, 21)]
+              boundary_rejections = [f'n{i:02d}' for i in range(21, 28)]
+              
+              def failed_pairs(case_ids, arm_ids):
+                  return [
+                      dict(case_id=cid, arm=arm)
+                      for cid in case_ids
+                      for arm in arm_ids
+                      if not by_case.get((cid, arm), False)
+                  ]
+              
+              gate_failures = []
+              if len(rows) != len(arms) * len(cases):
+                  gate_failures.append(dict(gate='row_count', expected=len(arms) * len(cases), observed=len(rows)))
+              semantic_failures = failed_pairs(semantic_controls, arms)
+              if semantic_failures:
+                  gate_failures.append(dict(gate='semantic_retention', failures=semantic_failures))
+              unrelated_failures = failed_pairs(unrelated_controls, arms)
+              if unrelated_failures:
+                  gate_failures.append(dict(gate='unrelated_retention', failures=unrelated_failures))
+              boundary_failures = failed_pairs(boundary_rejections, ('schema_validated', 'inferred_route'))
+              if boundary_failures:
+                  gate_failures.append(dict(gate='boundary_rejection', failures=boundary_failures))
+              explicit_boundary_failures = failed_pairs(boundary_rejections, ('explicit_label',))
+              if not explicit_boundary_failures:
+                  gate_failures.append(dict(gate='explicit_boundary_signal', failures=[]))
+              return dict(
+                  by_case=by_case,
+                  semantic_controls=semantic_controls,
+                  unrelated_controls=unrelated_controls,
+                  boundary_rejections=boundary_rejections,
+                  explicit_boundary_failures=explicit_boundary_failures,
+                  gate_failures=gate_failures,
+              )
+          
+          gate = evaluate_gate_failures(rows, arms)
           scores = {arm: sum(row['exact_match'] for row in rows if row['arm'] == arm) for arm in arms}
           wall_seconds = {arm: round(sum(row['seconds'] for row in rows if row['arm'] == arm), 3) for arm in arms}
-          semantic_controls = [f'n{i:02d}' for i in range(1, 15)]
-          unrelated_controls = [f'n{i:02d}' for i in range(15, 21)]
-          boundary_rejections = [f'n{i:02d}' for i in range(21, 28)]
-          explicit_boundary_failures = [cid for cid in boundary_rejections if not by_case[cid, 'explicit_label']]
-          
-          assert len(rows) == len(arms) * len(cases) == 81
-          assert all(by_case[cid, arm] for cid in semantic_controls for arm in arms)
-          assert all(by_case[cid, arm] for cid in unrelated_controls for arm in arms)
-          assert all(by_case[cid, arm] for cid in boundary_rejections for arm in ('schema_validated', 'inferred_route'))
-          assert explicit_boundary_failures
-          
           report = dict(
               mode='fresh 14+6 public routing confirmation; same-operator, no protected holdout, memory claim, full skill, independent evaluation, or promotion',
               model=model_id,
@@ -282,16 +301,20 @@ jobs:
               scores=scores,
               wall_seconds=wall_seconds,
               protocol=dict(task_count=len(cases), arms=list(arms), equal_inference_counts=True, stop_rule='one execution; no tuning or rerun on result', no_memory_ablation='not applicable: candidate is a stateless routing policy'),
-              retention=dict(semantic_controls=semantic_controls, unrelated_controls=unrelated_controls),
-              boundary_rejections=boundary_rejections,
-              explicit_boundary_failures=explicit_boundary_failures,
+              retention=dict(semantic_controls=gate['semantic_controls'], unrelated_controls=gate['unrelated_controls']),
+              boundary_rejections=gate['boundary_rejections'],
+              explicit_boundary_failures=gate['explicit_boundary_failures'],
+              gate_failures=gate['gate_failures'],
               cases=rows,
           )
           print(json.dumps(report, indent=2), flush=True)
           with open('egce-routing-confirmation.json', 'w') as handle:
               json.dump(report, handle, indent=2)
+          if gate['gate_failures']:
+              raise AssertionError(canonical(gate['gate_failures']))
           PY
       - name: Upload frozen one-shot confirmation results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: egce-routing-confirmation
