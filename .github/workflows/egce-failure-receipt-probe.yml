@@ -1,0 +1,66 @@
+name: EGCE failed-job receipt probe
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/egce-failure-receipt-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  receipt-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Create and validate synthetic failure receipt
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          receipt = {
+              "schema_version": 1,
+              "mode": "synthetic-failed-job-receipt-probe",
+              "candidate_head": os.environ["CANDIDATE_HEAD"],
+              "github_run_id": os.environ["GITHUB_RUN_ID"],
+              "expected_job_conclusion": "failure",
+              "provider_calls": 0,
+              "gate_failures": [
+                  {
+                      "gate": "synthetic_unrelated_retention",
+                      "failures": [
+                          {"case_id": "synthetic-n15", "arm": "inferred_route"}
+                      ],
+                  }
+              ],
+          }
+          with open("egce-synthetic-failure-receipt.json", "w") as handle:
+              json.dump(receipt, handle, indent=2, sort_keys=True)
+
+          with open("egce-synthetic-failure-receipt.json") as handle:
+              observed = json.load(handle)
+          assert observed == receipt
+          assert observed["provider_calls"] == 0
+          assert observed["expected_job_conclusion"] == "failure"
+          assert observed["gate_failures"][0]["gate"] == "synthetic_unrelated_retention"
+          print(json.dumps(receipt, sort_keys=True))
+          PY
+
+      - name: Trigger expected synthetic gate failure
+        run: |
+          echo "Expected synthetic gate failure; the following upload must still run."
+          exit 1
+
+      - name: Upload synthetic failure receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: egce-synthetic-failure-receipt
+          path: egce-synthetic-failure-receipt.json
+          if-no-files-found: error
+          retention-days: 7

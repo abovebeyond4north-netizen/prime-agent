@@ -1,0 +1,323 @@
+name: EGCE routing-boundary one-shot confirmation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: egce-transport-smoke-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HF_HUB_DISABLE_TELEMETRY: '1'
+      TOKENIZERS_PARALLELISM: 'false'
+      CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+      OMP_NUM_THREADS: '2'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU inference dependencies
+        run: |
+          python -m venv /tmp/egce-venv
+          /tmp/egce-venv/bin/python -m pip install --disable-pip-version-check torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+          /tmp/egce-venv/bin/python -m pip install --disable-pip-version-check transformers==4.49.0 huggingface-hub==0.29.3
+      - name: Execute frozen one-shot confirmation arms
+        run: |
+          /tmp/egce-venv/bin/python - <<'PY'
+          import hashlib, itertools, json, os, time
+          import torch, transformers
+          from huggingface_hub import snapshot_download
+          from transformers import AutoTokenizer, AutoModelForCausalLM
+          
+          # One-shot public confirmation cases, frozen before first execution.
+          # These are same-operator cases, not protected or independently administered.
+          def evidence(rev='r2', criterion='c1', outcome='pass', integrity=True):
+              return dict(revision=rev, criterion=criterion, outcome=outcome, integrity=integrity)
+          
+          def check(cid, records, expected, task_kind='evidence'):
+              task = dict(revision='r2', criterion='c1', evidence=records)
+              if task_kind is not None:
+                  task['kind'] = task_kind
+              return dict(id=cid, family='evidence', split='confirmation', task=task, expected=expected)
+          
+          def action(aid, authorized=True, ready=True, risk='none'):
+              return dict(id=aid, authorized=authorized, ready=ready, risk=risk)
+          
+          def choose(cid, actions, expected, task_kind='action'):
+              task = dict(actions=actions)
+              if task_kind is not None:
+                  task['kind'] = task_kind
+              return dict(id=cid, family='action', split='confirmation', task=task, expected=expected)
+          
+          def other(cid, question, expected):
+              return dict(id=cid, family='other', split='confirmation', task=dict(kind='other', question=question), expected=expected)
+          
+          cases = [
+              check('n01', [evidence()], 'VERIFIED'),
+              check('n02', [evidence(outcome='fail')], 'UNVERIFIED'),
+              check('n03', [evidence(), evidence(outcome='fail')], 'CONFLICT'),
+              check('n04', [evidence(rev='r7')], 'UNVERIFIED'),
+              check('n05', [evidence(criterion='c9')], 'UNVERIFIED'),
+              check('n06', [evidence(), evidence()], 'VERIFIED'),
+              check('n07', [evidence(outcome='fail', integrity=False), evidence()], 'VERIFIED'),
+              choose('n08', [action('D')], 'D'),
+              choose('n09', [action('C'), action('B')], 'B'),
+              choose('n10', [action('A', authorized=False), action('B', authorized=False)], 'NONE'),
+              choose('n11', [action('A', ready=False), action('B', ready=False)], 'NONE'),
+              choose('n12', [action('A', risk='high'), action('B', risk='high')], 'NONE'),
+              choose('n13', [action('A', authorized=False), action('D'), action('C', ready=False)], 'D'),
+              choose('n14', [action('C'), action('A'), action('B')], 'A'),
+              other('n15', 'What is 7 plus 5? Answer with a number.', '12'),
+              other('n16', 'What is 13 minus 6? Answer with a number.', '7'),
+              other('n17', 'What is 4 times 3? Answer with a number.', '12'),
+              other('n18', 'What is 18 divided by 3? Answer with a number.', '6'),
+              other('n19', 'What integer comes immediately after 19? Answer with a number.', '20'),
+              other('n20', 'What is 9 plus 8? Answer with a number.', '17'),
+              dict(id='n21', family='boundary', split='confirmation', task=dict(kind='action', revision='r2', criterion='c1', evidence=[evidence()]), expected='REJECTED'),
+              dict(id='n22', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence()], unexpected='field'), expected='REJECTED'),
+              dict(id='n23', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[evidence(integrity=1)]), expected='REJECTED'),
+              dict(id='n24', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', criterion='c1', evidence=[dict(evidence(), provenance='forged')]), expected='REJECTED'),
+              dict(id='n25', family='boundary', split='confirmation', task=dict(kind='other', question='   '), expected='REJECTED'),
+              dict(id='n26', family='boundary', split='confirmation', task=dict(kind='evidence', revision='r2', evidence=[evidence()]), expected='REJECTED'),
+              dict(id='n27', family='boundary', split='confirmation', task=dict(kind='action', actions=[action('A', authorized=1)]), expected='REJECTED'),
+          ]
+          canonical = lambda x: json.dumps(x, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+          suite_hash = hashlib.sha256(canonical(cases).encode()).hexdigest()
+          print('Frozen confirmation suite SHA256:', suite_hash, flush=True)
+          
+          def evaluate_evidence(task):
+              scoped = [e for e in task['evidence'] if e['revision'] == task['revision'] and e['criterion'] == task['criterion'] and e['integrity'] is True]
+              outcomes = {e['outcome'] for e in scoped}
+              if 'pass' in outcomes and 'fail' in outcomes:
+                  return 'CONFLICT'
+              if outcomes == {'pass'}:
+                  return 'VERIFIED'
+              return 'UNVERIFIED'
+          
+          def evaluate_actions(task):
+              allowed = sorted(a['id'] for a in task['actions'] if a['authorized'] is True and a['ready'] is True and a['risk'] == 'none')
+              return allowed[0] if allowed else 'NONE'
+          
+          # Frozen baseline: trusts the caller-supplied task kind.
+          def explicit_policy(task):
+              kind = task.get('kind')
+              if kind == 'evidence':
+                  return evaluate_evidence(task)
+              if kind == 'action':
+                  return evaluate_actions(task)
+              if kind == 'other':
+                  return None
+              raise ValueError('unknown kind')
+          
+          def structural_kind(task):
+              keys = set(task) - {'kind'}
+              if keys == {'revision', 'criterion', 'evidence'}:
+                  return 'evidence'
+              if keys == {'actions'}:
+                  return 'action'
+              if keys == {'question'}:
+                  return 'other'
+              return None
+          
+          def valid_evidence_task(task):
+              if not isinstance(task.get('revision'), str) or not isinstance(task.get('criterion'), str):
+                  return False
+              records = task.get('evidence')
+              if not isinstance(records, list):
+                  return False
+              required = {'revision', 'criterion', 'outcome', 'integrity'}
+              for record in records:
+                  if not isinstance(record, dict) or set(record) != required:
+                      return False
+                  if not isinstance(record['revision'], str) or not isinstance(record['criterion'], str):
+                      return False
+                  if record['outcome'] not in {'pass', 'fail'} or type(record['integrity']) is not bool:
+                      return False
+              return True
+          
+          def valid_action_task(task):
+              actions = task.get('actions')
+              if not isinstance(actions, list):
+                  return False
+              required = {'id', 'authorized', 'ready', 'risk'}
+              for item in actions:
+                  if not isinstance(item, dict) or set(item) != required:
+                      return False
+                  if not isinstance(item['id'], str) or not item['id']:
+                      return False
+                  if type(item['authorized']) is not bool or type(item['ready']) is not bool:
+                      return False
+                  if item['risk'] not in {'none', 'high'}:
+                      return False
+              return True
+          
+          def strict_policy(task, require_kind):
+              if not isinstance(task, dict):
+                  return 'REJECTED'
+              shape = structural_kind(task)
+              supplied = task.get('kind')
+              if shape is None:
+                  return 'REJECTED'
+              if supplied is None and require_kind:
+                  return 'REJECTED'
+              if supplied is not None and supplied != shape:
+                  return 'REJECTED'
+              if shape == 'evidence':
+                  return evaluate_evidence(task) if valid_evidence_task(task) else 'REJECTED'
+              if shape == 'action':
+                  return evaluate_actions(task) if valid_action_task(task) else 'REJECTED'
+              if not isinstance(task.get('question'), str) or not task['question'].strip():
+                  return 'REJECTED'
+              return None
+          
+          def schema_policy(task):
+              return strict_policy(task, require_kind=True)
+          
+          def inferred_policy(task):
+              return strict_policy(task, require_kind=False)
+          
+          def safe_call(fn, task):
+              try:
+                  return fn(task)
+              except (KeyError, TypeError, ValueError):
+                  return 'REJECTED'
+          
+          arms = ('explicit_label', 'schema_validated', 'inferred_route')
+          policies = dict(explicit_label=explicit_policy, schema_validated=schema_policy, inferred_route=inferred_policy)
+          base_instruction = ('Return exactly one requested word, identifier, or number with no explanation. '
+                              'For unrelated questions answer only the requested value. '
+                              'A deterministic validator result, when supplied, is authoritative.')
+          model_id = 'Qwen/Qwen2.5-0.5B-Instruct'
+          revision = '7ae557604adf67be50417f59c2c2f167def9a775'
+          local = snapshot_download(model_id, revision=revision, allow_patterns=['*.json','*.safetensors','*.txt','*.model','*.jinja'])
+          tokenizer = AutoTokenizer.from_pretrained(local, local_files_only=True, trust_remote_code=False)
+          model = AutoModelForCausalLM.from_pretrained(local, local_files_only=True, trust_remote_code=False, torch_dtype=torch.float32, use_safetensors=True)
+          model.eval()
+          torch.set_num_threads(2)
+          rows = []
+          orders = list(itertools.permutations(arms))
+          for i, case in enumerate(cases):
+              source_task = case['task']
+              for arm in orders[i % len(orders)]:
+                  task = dict(source_task)
+                  if case['family'] in {'evidence', 'action'} and arm == 'inferred_route':
+                      task.pop('kind', None)
+                  started = time.monotonic()
+                  recommendation = safe_call(policies[arm], task)
+                  instruction = base_instruction
+                  if recommendation is not None:
+                      instruction += ' The deterministic validator returned ' + recommendation + '. Return that exact result.'
+                  if case['family'] == 'other':
+                      user_input = task['question']
+                  else:
+                      user_input = canonical(task)
+                  prompt = tokenizer.apply_chat_template(
+                      [{'role':'system','content':instruction},{'role':'user','content':user_input}],
+                      tokenize=False,
+                      add_generation_prompt=True,
+                  )
+                  inputs = tokenizer(prompt, return_tensors='pt')
+                  with torch.inference_mode():
+                      generated = model.generate(
+                          **inputs,
+                          max_new_tokens=16,
+                          do_sample=False,
+                          pad_token_id=tokenizer.eos_token_id,
+                          temperature=None,
+                          top_p=None,
+                          top_k=None,
+                      )
+                  raw = tokenizer.decode(generated[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True).strip()
+                  final = recommendation if recommendation is not None else raw
+                  rows.append(dict(
+                      case_id=case['id'],
+                      family=case['family'],
+                      split=case['split'],
+                      arm=arm,
+                      expected=case['expected'],
+                      raw_output=raw,
+                      policy_result=recommendation,
+                      output=final,
+                      override=final != raw,
+                      exact_match=final == case['expected'],
+                      seconds=round(time.monotonic() - started, 3),
+                  ))
+          
+          def evaluate_gate_failures(rows, arms):
+              by_case = {(row['case_id'], row['arm']): row['exact_match'] for row in rows}
+              semantic_controls = [f'n{i:02d}' for i in range(1, 15)]
+              unrelated_controls = [f'n{i:02d}' for i in range(15, 21)]
+              boundary_rejections = [f'n{i:02d}' for i in range(21, 28)]
+              
+              def failed_pairs(case_ids, arm_ids):
+                  return [
+                      dict(case_id=cid, arm=arm)
+                      for cid in case_ids
+                      for arm in arm_ids
+                      if not by_case.get((cid, arm), False)
+                  ]
+              
+              gate_failures = []
+              if len(rows) != len(arms) * len(cases):
+                  gate_failures.append(dict(gate='row_count', expected=len(arms) * len(cases), observed=len(rows)))
+              semantic_failures = failed_pairs(semantic_controls, arms)
+              if semantic_failures:
+                  gate_failures.append(dict(gate='semantic_retention', failures=semantic_failures))
+              unrelated_failures = failed_pairs(unrelated_controls, arms)
+              if unrelated_failures:
+                  gate_failures.append(dict(gate='unrelated_retention', failures=unrelated_failures))
+              boundary_failures = failed_pairs(boundary_rejections, ('schema_validated', 'inferred_route'))
+              if boundary_failures:
+                  gate_failures.append(dict(gate='boundary_rejection', failures=boundary_failures))
+              explicit_boundary_failures = failed_pairs(boundary_rejections, ('explicit_label',))
+              if not explicit_boundary_failures:
+                  gate_failures.append(dict(gate='explicit_boundary_signal', failures=[]))
+              return dict(
+                  by_case=by_case,
+                  semantic_controls=semantic_controls,
+                  unrelated_controls=unrelated_controls,
+                  boundary_rejections=boundary_rejections,
+                  explicit_boundary_failures=explicit_boundary_failures,
+                  gate_failures=gate_failures,
+              )
+          
+          gate = evaluate_gate_failures(rows, arms)
+          scores = {arm: sum(row['exact_match'] for row in rows if row['arm'] == arm) for arm in arms}
+          wall_seconds = {arm: round(sum(row['seconds'] for row in rows if row['arm'] == arm), 3) for arm in arms}
+          report = dict(
+              mode='fresh 14+6 public routing confirmation; same-operator, no protected holdout, memory claim, full skill, independent evaluation, or promotion',
+              model=model_id,
+              revision=revision,
+              suite_sha256=suite_hash,
+              workflow_commit=os.environ.get('GITHUB_SHA'),
+              candidate_head=os.environ.get('CANDIDATE_HEAD'),
+              github_run_id=os.environ.get('GITHUB_RUN_ID'),
+              torch=torch.__version__,
+              transformers=transformers.__version__,
+              scores=scores,
+              wall_seconds=wall_seconds,
+              protocol=dict(task_count=len(cases), arms=list(arms), equal_inference_counts=True, stop_rule='one execution; no tuning or rerun on result', no_memory_ablation='not applicable: candidate is a stateless routing policy'),
+              retention=dict(semantic_controls=gate['semantic_controls'], unrelated_controls=gate['unrelated_controls']),
+              boundary_rejections=gate['boundary_rejections'],
+              explicit_boundary_failures=gate['explicit_boundary_failures'],
+              gate_failures=gate['gate_failures'],
+              cases=rows,
+          )
+          print(json.dumps(report, indent=2), flush=True)
+          with open('egce-routing-confirmation.json', 'w') as handle:
+              json.dump(report, handle, indent=2)
+          if gate['gate_failures']:
+              raise AssertionError(canonical(gate['gate_failures']))
+          PY
+      - name: Upload frozen one-shot confirmation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: egce-routing-confirmation
+          path: egce-routing-confirmation.json
+          if-no-files-found: error
+          retention-days: 7
